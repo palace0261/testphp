@@ -1,5 +1,5 @@
 <?php
-include "../db_conn.php";
+include "db_conn.php";
 
 $pw = $_POST['pw'];
 $hashed_pw = hash('sha256', $pw);
