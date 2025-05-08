@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "../db_conn.php";
+include "db_conn.php";
 
 $id = $_POST['id'];
 $pw = $_POST['pw'];
