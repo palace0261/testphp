@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $nickname = $_POST['nickname']; // 닉네임을 POST 데이터에서 가져옵니다.
 
   if ($username != "") {
-    $jb_conn = mysqli_connect('svc.sel4.cloudtype.app', 'root', 'palace', 'palacedb'); // 데이터베이스 연결
+    $jb_conn = mysqli_connect('svc.sel4.cloudtype.app:32715', 'root', 'palace', 'palacedb'); // 데이터베이스 연결
     if (!$jb_conn) {
       die("Connection failed: " . mysqli_connect_error());
     }

@@ -8,7 +8,7 @@
         </head>
         <body>
                 <div class="container">
-                        <h1>Snowman</h1>
+                        <h1>TEST LOGIN</h1>
                 <?php
                         if(!isset($_SESSION['user_id']) || !isset($_SESSION['user_name'])) { ?>
                 <form method="post" action="login_ok.php">
