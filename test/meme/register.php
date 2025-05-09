@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   </head>
   <body>
     <h1>회원 가입</h1>
-    <form action="register_ok.php" method="POST">
+    <form action="register.php" method="POST">
       <p><input type="text" name="username" placeholder="사용자 ID" required></p>
       <p><input type="password" name="password" placeholder="비밀번호" required></p>
       <p><input type="password" name="password_confirm" placeholder="비밀번호 확인" required></p>
