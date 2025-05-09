@@ -47,14 +47,14 @@ if ($result->num_rows > 0) {
     } else {
         // 인증 실패
         header("Content-Type: text/html; charset=UTF-8");
-        echo "<script>alert('아이디 또는 비밀번호가 잘못되었습니다.');";
+        echo "<script>alert('아이디 또는 비밀번1호가 잘못되었습니다.');";
         echo "window.location.replace('login.php');</script>";
         exit;
     }
 } else {
     // 사용자가 존재하지 않음
     header("Content-Type: text/html; charset=UTF-8");
-    echo "<script>alert('아이디 또는 비밀번호가 잘못되었습니다.');";
+    echo "<script>alert('아이디 또는 비밀번호2가 잘못되었습니다.');";
     echo "window.location.replace('login.php');</script>";
     exit;
 }
