@@ -1,7 +1,7 @@
 <?php
 if (isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
     // Directory containing the PNG files
-    $directory = __DIR__ . '/img/upload';
+    $directory = __DIR__ . '/img/upload/2025-05';
 
     // Scan the directory for files
     $files = scandir($directory);

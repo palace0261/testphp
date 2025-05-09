@@ -34,7 +34,7 @@
       // 허용할 확장자를 jpg, bmp, gif, png로 정함, 그 외는 업로드 불가
       if ($isExtGood) {
         // 임시 파일 옮길 폴더 및 파일명
-        $myFile = "./{$fileName}";
+        $myFile = "./img/upload/2025-05/{$fileName}";
         // 임시 저장된 파일을 우리가 저장할 장소 및 파일명으로 옮김
         $imageUpload = move_uploaded_file($myTempFile, $myFile);
 
