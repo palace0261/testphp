@@ -24,7 +24,7 @@ try {
     $mail->SMTPDebug = 0;                                 // Enable verbose debug output
     $mail->isSMTP();                                      // Set mailer to use SMTP
     $mail->CharSet    = "EUC-KR"; // korean
-    $mail->Encoding   = "base64"; // 
+    $mail->Encoding   = "base64"; // text
     $mail->Host = 'smtp.naver.com';  // Specify main and backup SMTP servers
     $mail->SMTPAuth = true;                               // Enable SMTP authentication
     $mail->Username = 'jieunha8099';                 // SMTP username
