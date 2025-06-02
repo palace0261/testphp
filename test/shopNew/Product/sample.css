@@ -11,6 +11,24 @@
     box-sizing: border-box;
 }
 
+div{
+    
+    ::-webkit-scrollbar-track {
+    	border-radius: 0.125rem;
+    	background-color: lightgray;
+  	}
+  	
+    ::-webkit-scrollbar {
+    	width: 0.25rem;
+    	border-radius: 0.125rem;
+  	}
+  	
+    ::-webkit-scrollbar-thumb {
+    	border-radius: 0.125rem;
+    	background-color: gray;};
+  	}
+}
+
 ul {
     list-style: none;
     padding: 0;
@@ -154,7 +172,7 @@ section {
     /* background-color: #121212; */
     background: #070707;
     /* background: radial-gradient(circle, rgb(45 45 45) 0%, rgba(3, 3, 3, 1) 31%, rgba(3, 3, 3, 1) 66%, rgba(3, 3, 3, 1) 100%); */
-    padding: 2.5rem;
+    padding: 1.5rem;
     /* margin: 1rem; */
     color: #fff;
     overflow-y: hidden;
@@ -163,6 +181,7 @@ section {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    border-top: 1px solid var(--White-color);
 }
 
 #ss-ex{
@@ -175,7 +194,7 @@ section {
     color: #fff;
     overflow-y: hidden;
     position: relative;
-    height: calc(70.0rem + 20.0vw);
+    height: calc(66rem + 16vw);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -205,16 +224,16 @@ section {
 
 #ss-eua{
     background: #272727;
-    border-top: 1px solid;
+    border-top: 1px solid var(--White-color);
 }
 
 .span-mm{
-    font-size: 160%;
+    font-size: 200%;
     background: linear-gradient(#909090, #ffffff, #ffffff);
     color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
-    margin-bottom: calc(2rem + 1.25vw);
+    margin-bottom: calc(4rem + 2.25vw);
 }
 
 .ss-line{
@@ -232,7 +251,7 @@ section {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    top: 28rem;
+    top: 30rem;
     scale: 0.8;
 }
 
@@ -248,12 +267,12 @@ section {
 }
 
 .ss-exu-title h2{
-    font-size: 1400%;
+    font-size: 1000%;
     font-weight: 900;
     line-height: 1.2;
 }
 .ss-exu-title h3{
-    font-size: 620%;
+    font-size: 320%;
     font-weight: 300;
     line-height: 1.2;
 }
@@ -268,7 +287,7 @@ section {
 
 .ss-exu-title{
     position: relative;
-    top: 14rem;
+    top: 26%;
     width: 100%;
 }
 
@@ -415,18 +434,19 @@ section {
 }
 
 #exu-id div {
-    height: 80%;
+    height: 100%;
+    max-height: 100%;
 }
 
 #exu-id{
-    height: calc(41rem + -13.75vw);
+    height: 100%;
     /* max-height: 39rem; */
 }
 
 #exu-id > div > div{
     /* padding:1rem; */
     overflow: hidden;
-    max-height: 73%;
+    max-height: 65%;
     height: 100%;
     /* width: 100%; */
     border: 1px solid var(--aGray-color);
@@ -483,6 +503,7 @@ section {
 #exu-id img{
     scale:1.2;
     position: relative;
+    top: 7%;
 }
 
 #exu-id > div > div{
@@ -490,23 +511,82 @@ section {
     border-radius: 0.5rem;
 }
 
+.xqz > div {
+    /* border: 3px solid #ff7608; */
+    position: relative;
+    width: 100%;
+    height: auto;
+    /* background: #000000b0; */
+    overflow: hidden;
+}
+
+
+.xqz > div:nth-child(1) {
+    border: 3px solid #ff7608; 
+}
+
+
+.xqz > div:nth-child(2) {
+    border: 3px solid #006c6c; 
+}
+
+.xqz > div:nth-child(3) {
+    border: 3px solid #ff4848; 
+}
+
+.xqz > div img{
+    scale: 2;
+    position: sticky;
+    /* top: 38%; */
+    left: 30%;
+    height: 100%;
+}
+
+#stta .st1{
+    border: 3px solid #ff661d;
+    position: absolute;
+    width: 39%;
+    height: 39%;
+    background: #0000006e;
+    top: 33%;
+    left: 2%;
+    z-index: 19;
+}
+#stta .st2{
+    border: 3px solid #2f96ad;
+    position: absolute;
+    width: 62%;
+    height: 60%;
+    background: #0000006e;
+    top: 12%;
+    left: 2%;
+    z-index: 18;
+}
+
+
+#stta div:nth-child(1){
+    border: 3px solid #ff1e1e;
+}
 
 
 .cxwq{
     position:relative;
+    width: 100%;
 }
 
 .cxwq h2{
     position: absolute;
-    top: 10%;
-    right: 5%;
+    top: 3%;
+    right: 2%;
     scale: 120%;
     color: #ff0808;
     background: #000000;
     border-radius: 0.5rem;
     /* padding: 0rem 1rem; */
-    width: 10%;
+    width: 5%;
+    min-width: 53px;
     line-height: 2;
+    font-size: 100%;
 }
 
 
@@ -516,16 +596,47 @@ section {
 
 .cxz h2{
     position: absolute;
-    top: 9%;
-    right: 5%;
+    top: 3%;
+    right: 2%;
     scale: 120%;
     color: #ff0808;
     background: #000000;
     border-radius: 0.5rem;
     /* padding: 0rem 1rem; */
-    width: 10%;
+    width: 12%;
+    min-width: 5rem;
     line-height: 2;
+    font-size: 100%;
 }
+
+.xqz{
+    
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+
+.xqz div:nth-child(1) img{
+    scale: 2.5;
+    top: 0%;
+    left: 73%;
+}
+
+.xqz div:nth-child(2) img{
+    scale: 1.8;
+    top: 14%;
+    left: 25%;
+}
+
+
+.xqz div:nth-child(3) img{
+    /* left:50%; */
+    scale: 1;
+}
+
 
 #sq h2{
     font-size: 260%;
@@ -537,14 +648,14 @@ section {
 
 .socic{
     background: #2e2e2e;
-    min-height: 120px;
+    min-height: 100px;
 }
 
 .socic > div{
     display: flex;
     border: #ccc;
-    overflow-x: scroll;
     overflow-y: hidden;
+    overflow-x: auto;
 }
 
 .socic > div > div{
@@ -607,16 +718,45 @@ z-index: 9;
 /* mo */
 
 @media (max-width: 768px) {
+    #ss-ex{
+        padding: 1rem;
+        height: calc(43rem + 16vw);
+    }
+    
     .ss-exu-title h2{
-    font-size: 620%;
+    font-size: 320%;
     font-weight: 900;
     line-height: 1.2;
-}
-.ss-exu-title h3{
-    font-size: 280%;
+    }
+    .ss-exu-title h3{
+    font-size: 140%;
     font-weight: 300;
     line-height: 1.2;
-}
+    }
+
+    
+    .ss-exu-ab h3{
+    font-size: 200%;
+    font-weight:bold;
+    line-height: 1.5;
+    }
+
+    
+    .ss-exu{
+    padding: 1.5rem;
+    /* overflow:scroll; */
+    /* height: 100% !important; */
+    }
+  
+    .ss-ex{
+    position: absolute;
+    width: 80%;
+    height: 60%;
+    object-fit: cover;
+    top: 19rem;
+    scale: 1;
+    }
+    
     
     
     nav {
@@ -635,6 +775,11 @@ z-index: 9;
 
 @media (min-width: 768px) and (max-width: 1023px){
 
+    #ss-ex{
+        padding: 1.5rem;
+    }
+    
+    
     .ss-exu-title h2{
     font-size: 1000%;
     font-weight: 900;
@@ -648,24 +793,9 @@ z-index: 9;
      {
     }
   }
-  @media (max-width: 767px){
 
-      
-    
-        .ss-exu{
-        padding: 1.5rem 1rem;
-        /* overflow:scroll; */
-        /* height: 100% !important; */
-        }
-      
-        .ss-ex{
-        position: absolute;
-        width: 100%;
-        height: 80%;
-        object-fit: cover;
-        top: 22rem;
-        scale: 0.8;
-        }
+
+  @media (max-width: 767px){
       
     * {
     }
