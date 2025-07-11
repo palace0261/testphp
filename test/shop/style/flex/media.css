@@ -1,0 +1,55 @@
+/* -------------- */
+
+
+
+
+
+/* ma.css - 20250624 */
+
+
+
+
+@charset "utf-8";
+
+@media screen and (max-width: 768px) {
+.topop > ul{
+  grid-template-columns: 2fr 2fr 0.2fr;
+}
+.grid_x > li:nth-child(3){
+  justify-self: center;
+}
+}
+
+@media screen and (max-width: 1280px) {
+#pc_slb > div h4{
+  font-size: calc(2.0rem + 0.5vw);
+  text-align: left;
+}
+#pc_slb > div > div span{
+  font-size:  calc(0.5rem + 0.5vw);
+  text-align: left;
+}
+#pc_slb > div p{
+  font-size: calc(0.25rem + 0.5vw);
+  text-align: left;
+  background: #1b73ff;
+  border-radius: 6rem;
+  padding: 1vw;
+  color: #fff;
+}
+}
+
+@media screen and (min-width: 768px) {
+}
+  
+/* ma.css - 20250624 */
+
+
+
+
+
+
+
+
+
+/* -------------- */
