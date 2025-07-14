@@ -10,7 +10,7 @@ summary::marker{
 }
 
 li{
-    cursor:pointer;
+    /* cursor:pointer; */
 }
 
 ul,li,ol {
