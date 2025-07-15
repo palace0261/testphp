@@ -6,10 +6,11 @@
 .topop,
 .cate_bar,
 footer,
-body section:nth-of-type(n+3){
+body section:nth-of-type(n+2){
   display: flex;
   justify-content: center;
   padding: 0 1rem;
+  box-sizing: border-box;
 }
 .cate_bar > ul{
   width: 100%;
@@ -54,20 +55,38 @@ body section:nth-of-type(n+4){
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0 1rem;
 }
-.main_bn {
+.main_bn > div > li + div{
+  margin-top: 0.5rem;
+}
+.main_bn > div > li + div span:last-of-type,
+.main_bn > div > li + div h3:last-of-type{
+  text-align:right;
+}
+
+.main_bn > div > li + div div{
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
+  padding: 0.5rem 1.5rem 0rem 0.5rem;
+  box-sizing: border-box;
+}
+.main_bn {
+  display: flex;
+  gap: 0 1.5rem;
+  box-sizing: border-box;
+  overflow-x: scroll;
+  padding-bottom: 1rem;
 }
 .main_bn li {
   overflow: hidden;
   display: inline-block;
   vertical-align: top;
-  width: 100%px;
+  width: 100%;
   height: auto;
   /* 고정 크기와 flex-shrink 방지 */
   flex: 0 0 auto;
   max-width: 460px;
+  box-sizing: border-box;
+  border-radius: 1rem;
 }
 .main_bn li img {
   transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
@@ -237,9 +256,12 @@ body section:nth-of-type(n+4){
 #mo_slb .so_service{
   display: grid;
   grid-template-columns: repeat(3, minmax(28%, auto));
-  padding: 0.5rem;
+  /* padding: 0.5rem; */
   text-align: center;
   color: #46433f;
+  width: 100%;
+  /* box-sizing: border-box; */
+  /* padding: 1rem; */
 }
 #mo_slb .so_service > span{
   padding: 0.5rem;
@@ -480,8 +502,9 @@ footer {
   gap: 0 1.5rem;
   align-content: center;
   align-items: flex-end;
-  margin-bottom: 0.5rem;
-  margin-top: 2rem;
+  /* margin-bottom: 0.5rem; */
+  margin-top: 1rem;
+  padding: 1rem;
 }
 .foot {
   display: grid;
@@ -491,13 +514,8 @@ footer {
   margin: 0 auto;
   padding: 1rem 0;
 }
-.foot_menu ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+.foot_menu ul {display: grid;gap: 1rem;}
 .foot_menu ul li {
-  margin-bottom: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: color 0.2s;
@@ -527,6 +545,16 @@ footer {
   padding: 2rem 1rem;
   font-size: 1rem;
   margin-top: 2rem;
+}
+.foot > div:last-of-type{
+  display: flex;
+  gap:1rem;
+  flex-direction: column;
+}
+.foot > div:last-of-type > h4{
+  display:flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 .foot > h3,
 .foot > div{

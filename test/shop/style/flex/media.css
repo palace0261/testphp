@@ -12,15 +12,22 @@
 @charset "utf-8";
 
 @media screen and (max-width: 768px) {
+.main_bn > div{
+  min-width: 80%;
+}
+  
+.foot_logo{
+  display:flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 .cate_top{
-    /* width:1200px; */
     display: flex;
     flex-direction: row;
     gap: 2rem;
     overflow: scroll;
-    width: 92%;
-    /* padding: 0 2rem; */
-    margin: 2rem 0 0 0;
+    margin: 0.5rem 0;
+    padding-bottom: 1rem;
   }
 .pr_slt{
   gap:0.5rem;
