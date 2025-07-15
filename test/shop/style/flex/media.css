@@ -12,6 +12,16 @@
 @charset "utf-8";
 
 @media screen and (max-width: 768px) {
+.cate_top{
+    /* width:1200px; */
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    overflow: scroll;
+    width: 92%;
+    /* padding: 0 2rem; */
+    margin: 2rem 0 0 0;
+  }
 .pr_slt{
   gap:0.5rem;
 }
