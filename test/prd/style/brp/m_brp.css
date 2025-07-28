@@ -2,6 +2,9 @@
 
 @media screen and (max-width: 768px) {
 
+#container .av_b ul li:nth-of-type(4) img{
+  width: 50% !important;
+}
   
   #container .p_set {
     grid-template-columns:1fr;
