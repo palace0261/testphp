@@ -16,5 +16,5 @@
     --size-cd:calc(1.5rem + 0.25vw);
     --size-ca:calc(1rem + 0.25vw);
     --size-cb:calc(0.75rem + 0.25vw);
-    --size-b:calc(0.5rem + 3.25vw);
+    --size-b: calc(4.0rem + 0.25vw);
 }

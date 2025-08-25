@@ -696,6 +696,7 @@ header {
 }
 .av_b_ul li img{
   border-radius:0.5rem;
+  max-height:8rem;
 }
 .av_b_ul li{
   padding:1rem;

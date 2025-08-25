@@ -514,7 +514,7 @@ z-index: 12;
 
 .presset ul{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(48%, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 2rem;
   padding-top: 1rem;
 }
