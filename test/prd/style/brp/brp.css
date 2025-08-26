@@ -394,12 +394,12 @@ header {
 
 .bas{
   position: absolute;
-  top: 26%;
+  top: 20%;
   left: 50%;
   color: #fafafa;
   transform: translate(-50%, -50%);
   font-size: calc(2.5rem + 0.25vw);
-  font-weight: 400;
+  font-weight: bold;
 }
 
 .so_xa img{
@@ -461,7 +461,7 @@ header {
 
 .av_prd_info{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(49%, 1fr));
+  grid-template-columns: 1fr 1fr;
   justify-content: space-around;
   gap: 0.75rem;
   max-width: var(--max-width);
@@ -551,7 +551,6 @@ font-size: 1.0rem;
 .av_b i{
 padding-right:0.25rem;
 }
-
 .ad_q > div:nth-of-type(n+2){
 	font-size: 2rem;
 	font-weight: bold;
@@ -560,12 +559,18 @@ padding-right:0.25rem;
 .ad_q > div:nth-of-type(-n+3){
 	/* border-top:1px solid  #e5e5e5; */
 }
-
 .ad_q > div:nth-of-type(-n+3){
 	border-top:1px solid  #e5e5e5;
 }
-
-
+.ad_q > div:nth-of-type(9){
+	display:none;
+}
+.ad_q > div:nth-of-type(8){
+	grid-column: 2 / span 2;
+}
+.ad_q > div:nth-of-type(8) span{
+	width:100%;
+}
 .ad_q > div:nth-of-type(3){
 	border-top-right-radius:1rem;
 }
@@ -711,7 +716,7 @@ padding-right:0.25rem;
 
 .ad_q{
   display: grid;
-  grid-template-columns: 2fr 0.1fr 2fr;
+  grid-template-columns: 2fr 0.5fr 2fr;
   /* gap: 0 1.5rem; */
   margin-top: 2rem;
   /* background: #fff; */

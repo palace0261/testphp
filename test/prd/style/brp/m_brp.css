@@ -43,6 +43,7 @@
   }
   #container .av_prd_info{
     justify-items:flex-start;
+    grid-template-columns: 1fr;
   }
 
   
