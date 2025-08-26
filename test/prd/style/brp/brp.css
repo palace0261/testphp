@@ -572,21 +572,26 @@ padding-right:0.25rem;
 .ad_q > div:nth-of-type(1){
 	border-top-left-radius:1rem;
 }
-.ad_q > div:nth-of-type(13){
-	border-bottom-left-radius:1rem;
+.ad_q > div:nth-of-type(15){
+	border-bottom-right-radius: 1rem;
+	border-bottom: 1px solid #e5e5e5;
 }
-.ad_q > div:nth-of-type(16){
+.ad_q > div:nth-of-type(18){
 	border-top:1px solid  #ff8686;
 }
 .ad_q > div:nth-of-type(20){
 	background: #ffffff00;
 }
+.ad_q > div:nth-of-type(16){
+	border-left:1px solid  #e5e5e5;
+	/* border-right:1px solid  #e5e5e5; */
+}
 .ad_q > div:nth-of-type(17){
 	background: #ffffff00;
-	border-top-right-radius:1rem;
+	border-top-left-radius: 1rem;
 	border-top:1px solid  #e5e5e5;
-	border-right:1px solid  #e5e5e5;
-	margin: -1px 0px 0px 0px;
+	border-left: 1px solid  #e5e5e5;
+	margin: -1px;
 }
 
 .ad_q > div:nth-of-type(21),
@@ -612,14 +617,18 @@ padding-right:0.25rem;
 	border-bottom-left-radius:1rem;;
 	border-bottom-right-radius:1rem;
 }
-.ad_q > div:nth-of-type(21),
-.ad_q > div:nth-of-type(13){
+.ad_q > div:nth-of-type(21){
 	border-bottom:1px solid  #e5e5e5;
+	padding-bottom: 1rem;
+	margin: 0px;
+}
+.ad_q > div:nth-of-type(13){
+	/* border-bottom:1px solid  #e5e5e5; */
 	padding-bottom: 1rem;
 }
 
 
-.ad_q > div:nth-of-type(16){
+.ad_q > div:nth-of-type(18){
 	border-top:1px solid  #e5e5e5;
 	border-right:1px solid  #e5e5e5;
 	border-left:1px solid  #e5e5e5;
@@ -648,7 +657,7 @@ padding-right:0.25rem;
 #reu3{
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
+  gap: 3.5rem;
   text-align: center;
   margin: 0;
   justify-items: center;
@@ -657,7 +666,16 @@ padding-right:0.25rem;
 #reu2{
   display: grid;
   grid-template-columns: 2fr 0.1fr 2fr 0.1fr 2fr;
-  gap: 1.5rem;
+  gap: 1.0rem;
+  text-align: center;
+  margin: 0 0 1rem;
+  justify-items: center;
+  align-items: center;
+}
+.reu1{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 2.5rem;
   text-align: center;
   margin: 0 0 1rem;
   justify-items: center;
@@ -666,7 +684,7 @@ padding-right:0.25rem;
 .reu{
   display: grid;
   grid-template-columns: 1fr 0.1fr 1fr 0.1fr 1fr 0.1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   text-align: center;
   margin: 0 0 1rem;
   justify-items: center;
