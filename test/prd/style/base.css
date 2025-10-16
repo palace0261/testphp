@@ -8,11 +8,11 @@
     box-sizing: border-box;
 }
 
-summary::marker{
+.bbase summary::marker{
     font-size:0;
 }
 
-div{
+.bbase div{
     ::-webkit-scrollbar-track {
     border-radius: 0.125rem;
     background-color: lightgray;
@@ -30,38 +30,43 @@ div{
 
 }
 
-ul,li,ol {
+.bbase ul,li,ol {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.bbase h1, 
+.bbase h2, 
+.bbase h3, 
+.bbase h4, 
+.bbase h5, 
+.bbase h6 {
     margin: 0;
     padding: 0;
     line-height: 1.2;
 }
 
-a{
+.bbase a{
     text-decoration: none;
     color: #fff;
 }
 
-p {
+.bbase p {
     margin: 0;
     padding: 0;
 }
 
-img {
+.bbase img {
     max-width: 100%;
     height: auto;
 }
 
-span{
+.bbase span{
     display: inline-block;
 }
 
-button {
+.bbase button {
     cursor: pointer;
     background-color: transparent;
     border: none;
@@ -87,6 +92,6 @@ body {
 
 
 
-#container{
+.bbase #container{
     margin: 0 auto;
 }

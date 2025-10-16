@@ -1148,6 +1148,7 @@ section:nth-child(2) > div{
   
   #container .av_prd_info h2{
     font-size: calc(2.5rem + 0.25vw);
+    border-left: 8px solid var(--pcor);
   }
   #container .bas span:last-of-type{
   font-size: calc(1rem + 0.25vw);
@@ -1160,7 +1161,8 @@ section:nth-child(2) > div{
 
 @media screen and (max-width: 720px) {
 #container .bas{
-  top: 18%;
+  top: 13%;
+  gap: 1rem;
 }
 }
 

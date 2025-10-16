@@ -2,7 +2,6 @@
 
 @media screen and (max-width: 768px) {
 
-  
   #container .p_set {
     grid-template-columns:1fr;
   }
@@ -15,9 +14,7 @@
     grid-template-columns:1fr;
   }
 
-   #container .bas{
-     top:12%;
-   }
+
    #container .av_f span > ul{
       grid-template-columns: 1fr 1fr;
    }
@@ -61,5 +58,17 @@
      text-align: center;
   }
   
+
+}
+
+
+
+@media screen and (max-width: 1024px) {
+#container .bas{
+  top: 10%;
+}
+#container .bas span{
+  font-size: calc(2rem + 0.25vw);
+}
 
 }
