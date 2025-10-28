@@ -661,22 +661,26 @@ header {
   width: 100%;
   display: flex;
   z-index: 9;
-  margin: 1rem 0;
-  padding: 1rem 0;
+  /* margin: 1rem 0; */
+  /* padding: 1rem 0; */
+  /* margin-bottom: 3rem; */
+  position: relative;
+  top: -2rem;
 }
 
 .ba_av h2{
-  font-size: calc(3.5rem + 0.25vw);
-  border-left: 8px solid var(--pcor);
+  font-size: calc(5.5rem + 0.25vw);
+  border-left: 14px solid #ff4e0c;
   line-height: 0.6;
-  margin: 0.8rem 0;
-  padding: 0.5rem 0.5rem;
+  /* margin: 0.8rem 0; */
+  padding: 0.5rem 0.5rem 1.0rem;
 }
 
 
 .ba_av h3{
-  font-size: calc(2rem + 0.25vw);
-  margin-bottom: 1rem;
+  font-size: calc(1rem + 0.25vw);
+  /* margin-bottom: 1rem; */
+  padding-top: 1rem;
 }
 
 .ba_av h4{
@@ -1017,7 +1021,7 @@ padding: calc(0.5rem + 1.25vw);
 
 .bas{
   position: absolute;
-  top: 32%;
+  top: 29%;
   left: 50%;
   color: #e0e0e0;
   transform: translate(-50%, -50%);
