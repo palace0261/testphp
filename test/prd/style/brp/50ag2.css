@@ -716,11 +716,14 @@ header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid #191919;
+  /* border: 1px solid #191919; */
   text-align: center;
   justify-content: center;
   gap: 1rem;
-  background: #000000;
+  /* background: #000000; */
+  filter: drop-shadow(2px 4px 6px black);
+  background: #020024;
+  background: linear-gradient(0deg, rgb(0 0 0) 0%, rgb(0 6 74) 35%, rgb(0 0 0) 100%);
 }
 
 .av_grid h4{
@@ -1087,7 +1090,7 @@ padding: calc(0.5rem + 1.25vw);
   gap: 0.75rem;
   max-width: var(--max-width);
   margin-bottom: 1rem;
-  align-items: center;
+  align-items: baseline;
   /* border-bottom: 1px solid; */
 }
 
@@ -1128,8 +1131,89 @@ section:nth-child(2) > div{
 }
 
 
+#dicont .ad_s{
+ filter: drop-shadow(0px 5px 3px #1818186b)
+}
 
 
+        /* 이동한 스타일: 필요시 외부 CSS로 옮기세요 */
+        #dicont .offers {
+          display: grid;
+          gap: 1rem;
+          /* grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); */
+          margin-top: 1rem;
+        }
+        #dicont .offer-card {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          background: #fff;
+          padding: 2rem;
+          border-radius: 1rem;
+          border: 1px solid #eee;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+          align-items: end;
+        }
+        #dicont .offer-media {
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap:.5rem;
+          width: 100%;
+          justify-content:center;
+        }
+        #dicont .offer-media img {
+          max-width:100%;
+          height:auto;
+          display:block;
+        }
+        #dicont .offer-title{
+          font-weight:700;
+          display:block;
+          margin-bottom:.25rem;
+          font-size: 0.75rem;
+        }
+        #dicont .offer-desc{
+          color:#444;
+          font-size:0.95rem;
+          margin:0;
+        }
+        #dicont .offer-info{
+          padding-left:1rem;
+          border-left:1px solid #ccc;
+          display:flex;
+          flex-direction:column;
+          gap:.5rem;
+        }
+        #dicont .offer-price{
+          display:flex;
+          justify-content:flex-end;
+          gap:.5rem;
+          align-items:center;
+          margin-top:.5rem;
+        }
+        #dicont .offer-price del{
+          color:#888;
+          font-size:0.95rem;
+        }
+        #dicont .offer-price strong{
+          color:#111;
+          font-size:1.05rem;
+        }
+
+        /* 작은 화면에서 미세조정 */
+        @media (max-width:520px){
+          #dicont .offer-card{
+            grid-template-columns:1fr;
+            text-align:center;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+          }
+          #dicont .offer-info{ border-left: none; padding-left:0; }
+          #dicont .offer-price{ justify-content:center; }
+        }
 
 
 
