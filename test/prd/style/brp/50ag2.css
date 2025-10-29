@@ -647,7 +647,7 @@ header {
 
 .av_prd{
   position: relative;
-  background: #030303;
+  background: #000000;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -665,7 +665,7 @@ header {
   /* padding: 1rem 0; */
   /* margin-bottom: 3rem; */
   position: relative;
-  top: -2rem;
+  /* top: -2rem; */
 }
 
 .ba_av h2{
@@ -720,7 +720,7 @@ header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* border: 1px solid #191919; */
+  border: 1px solid #737373;
   text-align: center;
   justify-content: center;
   gap: 1rem;
@@ -776,7 +776,8 @@ header {
 .av_a_img,
 .av_d > div,
 .av_c > div{
-  margin-top: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
 }
 
 .av_a_img div ul{
@@ -1193,8 +1194,8 @@ section:nth-child(2) > div{
           display:flex;
           justify-content:flex-end;
           gap:.5rem;
-          align-items:center;
           margin-top:.5rem;
+          align-items: baseline;
         }
         #dicont .offer-price del{
           color:#888;
@@ -1202,7 +1203,7 @@ section:nth-child(2) > div{
         }
         #dicont .offer-price strong{
           color:#111;
-          font-size:1.05rem;
+          font-size: 1.25rem;
         }
 
         /* 작은 화면에서 미세조정 */
@@ -1225,12 +1226,12 @@ section:nth-child(2) > div{
 @media screen and (max-width: 1024px) {
 #container .bas{
   top: 32%;
-  width: 80%;
+  width: 90%;
   /* gap: 16vw; */
 }
   
 #container .bas span{
-  font-size: calc(2rem + 3.25vw);
+  font-size: calc(1.5rem + 2.25vw);
   /* text-align: center; */
 }
   
@@ -1249,7 +1250,7 @@ section:nth-child(2) > div{
 
 @media screen and (max-width: 720px) {
 #container .bas{
-  top: 13%;
+  top: 22%;
   gap: 1rem;
 }
 }
