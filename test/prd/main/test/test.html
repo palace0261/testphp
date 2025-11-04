@@ -5,7 +5,307 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Document</title>
 </head>
-<body>
+
+<style>
+  h1, h2, h3, h4, h5, h6, div, section, main, body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+  }
+  div{
+    /* center flex */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .pcbod > h5 {
+    font-size: 2rem;
+    font-weight: normal;
+  }
+  section{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #ccc;
+  }
+  section > div {
+    gap: 0.5rem;
+  }
+  .pcbod{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    width: 100%;
+    max-width: 800px;
+    background: #ebebeb;
+    align-items: center;
+  }
+  input[type="text"] {
+    width: 50%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: #f1f1f1;
+    border: 1px solid#ccc;
+  }
+</style>
+
+<body style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 1rem; margin: 0;">
+
+<main>
+
+
+<div class="pcbod" style="gap: 2rem; padding:2rem;">
+  <h5>계산기</h5>
+
+  <section>
+    <div><span>환율 VND</span><input type="text" value="" id="vnd"></div>
+    <div><span>베트남 원금</span><input type="text" value="1,880"  id="vnwg"></div>
+    <div><span>한국 원금</span><input type="text" value=""  id="krwg"></div>
+  </section>
+
+  <section>
+    <div><span>한국 이자</span><input type="text" value=""  id="krwi"></div>
+    <div><span>대출금</span><input type="text" value="1800"  id="degg"></div>
+    <div><span>대출 이자</span><input type="text" value="4.05"  id="dewi"></div>
+  </section>
+
+
+<script>
+  document.getElementById('vnd').value = 5.43;
+
+  function updateKRWG() {
+    const vnwg = parseFloat(document.getElementById('vnwg').value.replace(/,/g, '')) || 0;
+    const vnd = parseFloat(document.getElementById('vnd').value) || 0;
+    const krwg = vnwg * vnd;
+    document.getElementById('krwg').value = krwg.toLocaleString();
+
+    // krwi 계산 및 출력
+    const krwi = krwg * 0.006;
+    document.getElementById('krwi').value = krwi ? krwi.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+  }
+
+  // vnd 값이 바뀌면 krwg도 업데이트
+  document.getElementById('vnd').addEventListener('input', updateKRWG);
+  // vnwg 값이 바뀌면 krwg도 업데이트
+  document.getElementById('vnwg').addEventListener('input', updateKRWG);
+
+  // 초기 계산
+  updateKRWG();
+</script>
+
+
+  <section>
+    <div><span>현 보증금</span><input type="text" value="3500"  id="bog"></div>
+    <div><span>이사 보증금</span><input type="text" value="2000"  id="eog"></div>
+    <div><span>남은 원금 KRW</span><input type="text" value=""  id="zzeog"></div>
+    <div><span>KRW 베트남에 보냄</span><input type="text" value="3300"  id="krwnext"></div>
+    <div><span>VND 베트남에 보냄</span><input type="text" value=""  id="vetnext"></div>
+  </section>
+  <script>
+  function updateZzeog() {
+    const krwg = parseFloat(document.getElementById('krwg').value.replace(/,/g, '')) || 0;
+    const krwnext = parseFloat(document.getElementById('krwnext').value.replace(/,/g, '')) || 0;
+    const zzeog = krwg - krwnext;
+    document.getElementById('zzeog').value = zzeog ? zzeog.toLocaleString() : '';
+  }
+
+  function updateVetnext() {
+    const krwnext = parseFloat(document.getElementById('krwnext').value.replace(/,/g, '')) || 0;
+    const vetnext = krwnext * 18.42;
+    document.getElementById('vetnext').value = vetnext ? vetnext.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+  }
+
+  // krwg, krwnext 값이 바뀔 때마다 updateZzeog 호출
+  document.getElementById('krwg').addEventListener('input', updateZzeog);
+  document.getElementById('krwnext').addEventListener('input', function() {
+    updateZzeog();
+    updateVetnext();
+  });
+
+  // krwnext 값이 바뀔 때마다 updateVetnext 호출
+  document.getElementById('vetnext').addEventListener('input', updateVetnext);
+
+  // 초기 계산
+  updateZzeog();
+  updateVetnext();
+  </script>
+
+  <section>
+    <div><span>추월급</span><input type="text" value="309"  id="h-h"></div>
+    <div><span>집월세</span><input type="text" value="75"  id="s-ws"></div>
+    <div><span>자동차</span><input type="text" value="80"  id="s-ds"></div>
+    <div><span>카드값</span><input type="text" value="80"  id="s-fs"></div>
+    <div><span>남은돈</span><input type="text" value=""  id="g-g"></div>
+  </section>
+
+  <section>
+    <div><span>하월급</span><input type="text" value="200"  id="h-hh"></div>
+    <div><span>생활비</span><input type="text" value="60"  id="s-hws"></div>
+    <div><span>남은돈</span><input type="text" value=""  id="g-hg"></div>
+  </section>
+
+  <section>
+    <div><span>추민식 남은돈</span><input type="text" value=""  id="kcz"></div>
+    <div><span>지은 남은돈</span><input type="text" value=""  id="khz"></div>
+    <div><span>합산</span><input type="text" value=""  id="kqz"></div>
+    <div><span>매달 한국 이자</span><input type="text" value=""  id="kvz"></div>
+    <div><span>남은돈 이자뺌</span><input type="text" value=""  id="kcz"></div>
+    <div><span>원금 이자뺌</span><input type="text" value=""  id="kwz"></div>
+  </section>
+
+  <section>
+    <div><span>매달 이자</span><input type="text" value=""  id="po-wz"></div>
+    <div><span>24개월 후 남은 원금</span><input type="text" value=""  id="po-wz"></div>
+  </section>
+
+<script>
+
+</script>
+
+
+
+
+  <script>
+
+    // 추월급 남은돈 계산
+    function updateGG() {
+      const hh = parseFloat(document.getElementById('h-h').value.replace(/,/g, '')) || 0;
+      const sws = parseFloat(document.getElementById('s-ws').value.replace(/,/g, '')) || 0;
+      const sds = parseFloat(document.getElementById('s-ds').value.replace(/,/g, '')) || 0;
+      const sfs = parseFloat(document.getElementById('s-fs').value.replace(/,/g, '')) || 0;
+      const gg = hh - (sws + sds + sfs);
+      document.getElementById('g-g').value = gg ? gg.toLocaleString() : '';
+      updateSummary(); // 남은돈 변경시 합산도 갱신
+    }
+
+    // 하월급 남은돈 계산
+    function updateGHG() {
+      const hhh = parseFloat(document.getElementById('h-hh').value.replace(/,/g, '')) || 0;
+      const shws = parseFloat(document.getElementById('s-hws').value.replace(/,/g, '')) || 0;
+      const ghg = hhh - shws;
+      document.getElementById('g-hg').value = ghg ? ghg.toLocaleString() : '';
+      updateSummary(); // 남은돈 변경시 합산도 갱신
+    }
+
+    // 합산 및 요약 계산
+    function updateSummary() {
+      // 추민식 남은돈 = g-g
+      const gg = parseFloat(document.getElementById('g-g').value.replace(/,/g, '')) || 0;
+      document.getElementById('kcz').value = gg ? gg.toLocaleString() : '';
+
+      // 지은 남은돈 = g-hg
+      const ghg = parseFloat(document.getElementById('g-hg').value.replace(/,/g, '')) || 0;
+      document.getElementById('khz').value = ghg ? ghg.toLocaleString() : '';
+
+      // 합산 = kcz + khz
+      const kqz = gg + ghg;
+      document.getElementById('kqz').value = kqz ? kqz.toLocaleString() : '';
+
+      // kvz = zzeog * 0.006
+      const zzeog = parseFloat(document.getElementById('zzeog').value.replace(/,/g, '')) || 0;
+      const kvz = zzeog * 0.006;
+      document.getElementById('kvz').value = kvz ? kvz.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+
+      // 남은돈 이자뺌 = 합산 - kvz
+      const kcz2 = kqz - kvz;
+      // kcz id가 중복이므로 마지막 input에만 값이 들어감
+      const kczInputs = document.querySelectorAll('input#kcz');
+      if (kczInputs.length > 1) {
+        kczInputs[1].value = kcz2 ? kcz2.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+      }
+    }
+
+    // 원금 이자뺌 = 남은 원금 KRW - 남은돈 이자뺌
+    function updateKWZ() {
+      const zzeog = parseFloat(document.getElementById('zzeog').value.replace(/,/g, '')) || 0;
+      // kcz id가 중복이므로 마지막 input이 남은돈 이자뺌
+      const kczInputs = document.querySelectorAll('input#kcz');
+      const kcz2 = kczInputs.length > 1 ? parseFloat(kczInputs[1].value.replace(/,/g, '')) || 0 : 0;
+      const kwz = zzeog - kcz2;
+      document.getElementById('kwz').value = kwz ? kwz.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+      updatePOWZ(); // kwz 변경시 po-wz도 갱신
+    }
+
+    // po-wz = kwz * 0.006
+    function updatePOWZ() {
+      // po-wz id가 중복이므로 첫 번째 input만 사용
+      const powzInputs = document.querySelectorAll('input#po-wz');
+      const kwz = parseFloat(document.getElementById('kwz').value.replace(/,/g, '')) || 0;
+      const powz = kwz * 0.006;
+      if (powzInputs.length > 0) {
+        powzInputs[0].value = powz ? powz.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+      }
+    }
+
+    // 이벤트 리스너 등록
+    document.getElementById('h-h').addEventListener('input', updateGG);
+    document.getElementById('s-ws').addEventListener('input', updateGG);
+    document.getElementById('s-ds').addEventListener('input', updateGG);
+    document.getElementById('s-fs').addEventListener('input', updateGG);
+
+    document.getElementById('h-hh').addEventListener('input', updateGHG);
+    document.getElementById('s-hws').addEventListener('input', updateGHG);
+
+    // zzeog 값이 바뀔 때도 합산 갱신 필요
+    document.getElementById('zzeog').addEventListener('input', updateSummary);
+
+    // 관련 값이 바뀔 때마다 updateKWZ 호출
+    document.getElementById('zzeog').addEventListener('input', updateKWZ);
+    // kcz(남은돈 이자뺌) 값이 바뀔 때도 호출
+    const kczInputs = document.querySelectorAll('input#kcz');
+    if (kczInputs.length > 1) {
+      kczInputs[1].addEventListener('input', updateKWZ);
+    }
+
+    // kwz 값이 바뀔 때마다 po-wz도 갱신
+    document.getElementById('kwz').addEventListener('input', updatePOWZ);
+
+    // 합산 계산 후 원금 이자뺌도 갱신
+    const prevUpdateSummary = updateSummary;
+    updateSummary = function() {
+      prevUpdateSummary();
+      updateKWZ();
+    };
+
+    // 초기 계산
+    updateGG();
+    updateGHG();
+    updateSummary();
+    updateKWZ();
+    updatePOWZ();
+  </script>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </main>
+
+
 
 </body>
 </html>
