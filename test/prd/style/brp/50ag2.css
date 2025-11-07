@@ -657,7 +657,7 @@ header {
 
 .ba_av{
   color:#fff;
-  max-width: 800px;
+  max-width: 840px;
   width: 100%;
   display: flex;
   z-index: 9;
@@ -1129,7 +1129,7 @@ section:nth-child(2){
 section:nth-child(2) > div{
   padding: 1rem 0;
   margin: 1rem 0;
-  max-width: 800px;
+  max-width: 860px;
   width: 100%;
   color: #000000;
   /* background: #ccc; */
