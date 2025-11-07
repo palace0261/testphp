@@ -708,7 +708,7 @@ header {
 
 .av_b_ul li:nth-of-type(-n+3) img{
   /* filter: opacity(0.5) drop-shadow(0 0 0 #fff); */
-  filter: brightness(0) invert(1);
+  /* filter: brightness(0) invert(1); */
 }
 .av_b_ul li{
   padding:1rem;
@@ -723,7 +723,7 @@ header {
   border: 1px solid #737373;
   text-align: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.5rem;
   /* background: #000000; */
   filter: drop-shadow(2px 4px 6px black);
   background: #020024;
