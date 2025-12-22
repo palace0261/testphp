@@ -8,10 +8,8 @@ section:nth-child(n+3){
   border-top: 1px solid #ebebeb;
   background-color: #fafafa;
 }
-
-
 .bbase > section:nth-of-type(even){
-   /* background: #000000; */
+    background: #f1f1f1; 
 }
 section{
   position: relative;
@@ -32,11 +30,16 @@ section{
   background: #ffffff00;
 }
 
+#srej{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 #xavd li{
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: #ebebeb;
+  background: #ffffff;
   align-items: center;
   padding: 0rem 3rem 2rem;
   border-radius: 0.5rem;
@@ -85,7 +88,7 @@ section:nth-child(n+3) > div{
 }
 
 section:nth-child(n+2) > div h2{
-  font-size: calc(2.5rem + 0.25vw);
+  font-size: calc(2.2rem + 0.25vw);
   word-spacing: -0.05em;
   /* color: #000; */
 }
@@ -1296,6 +1299,14 @@ section:nth-child(2) > div{
 
 
 @media screen and (max-width: 1024px) {
+  #srej li{
+  width: 100%;
+  }
+#srej{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 #container .bas{
   top: 32%;
   width: 90%;
