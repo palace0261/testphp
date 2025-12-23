@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("sss", $sno, $testNo, $testId);
     
     if ($stmt->execute()) {
-        echo "<h2>1218-1 데이터 전송 성공!</h2>";
+        echo "<h2>전송 성공!</h2>";
         echo "<p>sno: " . htmlspecialchars($sno) . "</p>";
         echo "<p>testNo: " . htmlspecialchars($testNo) . "</p>";
         echo "<p>testId: " . htmlspecialchars($testId) . "</p>";
