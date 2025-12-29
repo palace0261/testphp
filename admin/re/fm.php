@@ -37,13 +37,13 @@ if (!$conn->connect_error) {
         </div>
         
         <div style="margin-bottom: 15px;">
-          <label for="testNo">Test Number (testNo):</label>
-          <input type="text" id="testNo" name="testNo" value="" placeholder="테스트 번호 입력" required>
+          <label for="username">Test Number (username):</label>
+          <input type="text" id="username" name="username" value="" placeholder="테스트 번호 입력" required>
         </div>
         
         <div style="margin-bottom: 15px;">
-          <label for="testId">Test ID (testId):</label>
-          <input type="text" id="testId" name="testId" value="" placeholder="테스트 ID 입력" required>
+          <label for="email">Test ID (email):</label>
+          <input type="text" id="email" name="email" value="" placeholder="테스트 ID 입력" required>
         </div>
         
         <input type="submit" value="데이터베이스에 전송" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
@@ -66,16 +66,16 @@ echo "<div style='margin-top: 30px; padding: 20px; border-top: 2px solid #ccc;'>
 echo "<h2>palacedb에서 조회된 데이터</h2>";
 echo "<p style='color: #666;'>다음 자동 생성 번호: <strong style='color: #4CAF50;'>" . $nextSno . "</strong></p>";
 
-// es_testTable에서 sno, testNo, testId 값 조회
-$sql = "SELECT sno, testNo, testId, created_at FROM es_testTable ORDER BY sno DESC";
+// es_testTable에서 sno, username, email 값 조회
+$sql = "SELECT sno, username, email, created_at FROM es_testTable ORDER BY sno DESC";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {
     echo "<table border='1' style='border-collapse: collapse; width: 100%; margin-top: 15px;'>";
     echo "<tr style='background-color: #4CAF50; color: white;'>
             <th style='padding: 12px; text-align: left;'>Serial Number (sno)</th>
-            <th style='padding: 12px; text-align: left;'>Test Number (testNo)</th>
-            <th style='padding: 12px; text-align: left;'>Test ID (testId)</th>
+            <th style='padding: 12px; text-align: left;'>Test Number (username)</th>
+            <th style='padding: 12px; text-align: left;'>Test ID (email)</th>
             <th style='padding: 12px; text-align: left;'>등록일시</th>
           </tr>";
     
@@ -83,8 +83,8 @@ if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
         echo "<tr style='background-color: #f9f9f9;'>";
         echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($row["sno"]) . "</td>";
-        echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($row["testNo"]) . "</td>";
-        echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($row["testId"]) . "</td>";
+        echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($row["username"]) . "</td>";
+        echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($row["email"]) . "</td>";
         echo "<td style='padding: 10px; border: 1px solid #ddd;'>" . 
              (isset($row["created_at"]) ? htmlspecialchars($row["created_at"]) : "N/A") . "</td>";
         echo "</tr>";
