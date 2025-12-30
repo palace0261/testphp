@@ -140,24 +140,65 @@
         .card {
             width: 50px;
             height: 70px;
-            background: white;
-            border: 2px solid #333;
-            border-radius: 5px;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border: 1px solid #ccc;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 3px;
+            padding: 4px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-size: 0.75rem;
             font-weight: bold;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+            user-select: none;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .card.selected {
-            transform: translateY(-10px);
+            transform: translateY(-10px) scale(1.05);
             border-color: #ffd700;
-            box-shadow: 0 4px 8px rgba(255,215,0,0.5);
+            box-shadow: 0 6px 12px rgba(255,215,0,0.4), 0 0 0 2px #ffd700;
+            background: linear-gradient(145deg, #fffef0, #faf8e0);
+        }
+        
+        .card .card-value {
+            font-size: 0.8rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .card .card-suit {
+            font-size: 1.1rem;
+            line-height: 1;
+            margin: 2px 0;
+        }
+        
+        .card .card-value-bottom {
+            font-size: 0.6rem;
+            font-weight: bold;
+            line-height: 1;
+            transform: rotate(180deg);
         }
         
         .card.red {
@@ -309,9 +350,10 @@
         <p><strong>1. 싱글:</strong> 단일 카드</p>
         <p><strong>2. 페어:</strong> 같은 숫자 2장 (같은 색상만 가능)</p>
         <p style="margin-left: 1rem; color: #ffeb3b; font-size: 0.9rem;">• 빨간색: ♦(다이아) + ♥(하트) / 검은색: ♠(스페이드) + ♣(클럽)</p>
+        <p style="margin-left: 1rem; color: #ff6b6b; font-size: 0.85rem;">⚠️ 빨간색+검은색 혼합 불가 (K♦+K♠ ❌ / A♥+A♣ ❌)</p>
         <p><strong>3. 트리플:</strong> 같은 숫자 3장</p>
         <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상 (A-2-3 불가)</p>
-        <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상</p>
+        <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상 (각 페어도 같은 색상)</p>
         <p><strong>6. 쿼드러플:</strong> 같은 숫자 4장 (최강)</p>
       </div>
       
@@ -499,11 +541,14 @@
         gameState.players[3].forEach((card, index) => {
             const cardElement = document.createElement('div');
             cardElement.className = `card ${card.suit === '♦' || card.suit === '♥' ? 'red' : 'black'}`;
+            
+            // 실제 카드처럼 구조화된 HTML
             cardElement.innerHTML = `
-                <div>${card.value}</div>
-                <div style="font-size: 1.2rem;">${card.suit}</div>
-                <div style="transform: rotate(180deg);">${card.value}</div>
+                <div class="card-value">${card.value}</div>
+                <div class="card-suit">${card.suit}</div>
+                <div class="card-value-bottom">${card.value}</div>
             `;
+            
             cardElement.addEventListener('click', () => selectCard(index));
             handElement.appendChild(cardElement);
         });
@@ -939,10 +984,12 @@
             cardElement.className = `card ${card.suit === '♦' || card.suit === '♥' ? 'red' : 'black'}`;
             cardElement.style.position = 'static';
             cardElement.style.cursor = 'default';
+            
+            // 마지막 플레이도 같은 카드 디자인 사용
             cardElement.innerHTML = `
-                <div>${card.value}</div>
-                <div style="font-size: 1.2rem;">${card.suit}</div>
-                <div style="transform: rotate(180deg);">${card.value}</div>
+                <div class="card-value">${card.value}</div>
+                <div class="card-suit">${card.suit}</div>
+                <div class="card-value-bottom">${card.value}</div>
             `;
             lastPlayElement.appendChild(cardElement);
         });
