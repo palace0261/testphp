@@ -23,9 +23,10 @@
 
   <!-- custum -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> <!-- icon -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="stylesheet" href="../css/font.css">
   <link rel="stylesheet" href="../css/base.css">
-  
+
     <style>
         * {
             margin: 0;
@@ -275,6 +276,13 @@
             border-radius: 0.5rem;
             width: 100%;
             max-width: 800px;
+            transition: all 0.3s ease;
+        }
+        
+        .player-hand.my-turn {
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.1);
         }
 
         .player-hand > h3{
@@ -381,6 +389,12 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
+            min-height: 44px; /* 터치 최소 크기 */
+            font-size: 1rem;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
         }
         
         .btn.primary {
@@ -452,6 +466,103 @@
             display: none;
         }
         
+        .victory-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .victory-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 2rem;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            backdrop-filter: blur(15px);
+            animation: victoryPulse 2s ease-in-out infinite alternate;
+        }
+        
+        .victory-title {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #fff176);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            margin-bottom: 1rem;
+            animation: victoryGlow 1.5s ease-in-out infinite alternate;
+        }
+        
+        .victory-subtitle {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .victory-emoji {
+            font-size: 5rem;
+            margin: 1rem 0;
+            animation: victoryBounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes victoryPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        
+        @keyframes victoryGlow {
+            0% { text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+            100% { text-shadow: 0 0 50px rgba(255, 215, 0, 1); }
+        }
+        
+        @keyframes victoryBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .victory-fireworks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: fireworkAnimation 2s ease-out infinite;
+        }
+        
+        @keyframes fireworkAnimation {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 1;
+            }
+            15% {
+                transform: translateY(30vh) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(20vh) scale(0);
+                opacity: 0;
+            }
+        }
+        
         @media (max-width: 768px) {
             .opponents {
                 flex-direction: column;
@@ -485,7 +596,34 @@
             
             .controls {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 1rem;
+            }
+            
+            .btn {
+                padding: 1rem 1.5rem;
+                font-size: 1.1rem;
+                min-height: 50px;
+                width: 100%;
+                border-radius: 0.5rem;
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+                background-color: rgba(76, 175, 80, 0.8);
+            }
+            
+            .btn.primary:active {
+                background-color: rgba(76, 175, 80, 0.8);
+            }
+            
+            .btn.secondary:active {
+                background-color: rgba(117, 117, 117, 0.8);
+            }
+            
+            .btn:disabled {
+                background: #424242 !important;
+                transform: none !important;
+                opacity: 0.6;
             }
         }
     </style>
@@ -621,7 +759,8 @@
         selectedCards: [],
         gameStarted: false,
         passCount: 0,
-        playHistory: [] // 최근 플레이 히스토리 저장 (최대 4개)
+        playHistory: [], // 최근 플레이 히스토리 저장 (최대 4개)
+        isFirstRound: true // 첫 번째 라운드 여부
     };
 
     // Card suits and values
@@ -660,6 +799,7 @@
                     gameState.lastPlayCombo = analyzeCombo(playedCards);
                     gameState.lastPlayer = gameState.currentPlayer;
                     gameState.passCount = 0;
+                    gameState.isFirstRound = false; // 첫 번째 라운드 종료
                     
                     // 플레이 히스토리에 추가
                     addToPlayHistory(playedCards, gameState.currentPlayer);
@@ -926,8 +1066,8 @@
             return;
         }
 
-        // If it's the start of new round (no last play), check if combo includes 3♠
-        if (gameState.lastPlay.length === 0) {
+        // 첫 번째 라운드이고 마지막 플레이가 없을 때만 3♠ 검증
+        if (gameState.isFirstRound && gameState.lastPlay.length === 0) {
             const hasSpade3 = selectedCardObjects.some(card => 
                 card.value === '3' && card.suit === '♠'
             );
@@ -937,6 +1077,12 @@
             } else {
                 playBtn.disabled = true;
             }
+            return;
+        }
+        
+        // 새 라운드 시작 (모든 플레이어가 패스한 후)
+        if (gameState.lastPlay.length === 0) {
+            playBtn.disabled = false;
             return;
         }
 
@@ -1117,8 +1263,8 @@
             return;
         }
         
-        // Check if it's the first play and includes 3♠
-        if (gameState.lastPlay.length === 0) {
+        // 첫 번째 라운드이고 마지막 플레이가 없을 때만 3♠ 검증
+        if (gameState.isFirstRound && gameState.lastPlay.length === 0) {
             const hasSpade3 = selectedCardObjects.some(card => 
                 card.value === '3' && card.suit === '♠'
             );
@@ -1140,13 +1286,16 @@
         gameState.lastPlayer = 3;
         gameState.selectedCards = [];
         gameState.passCount = 0;
+        gameState.isFirstRound = false; // 첫 번째 라운드 종료
         
         // 플레이 히스토리에 추가
         addToPlayHistory(selectedCardObjects, 3);
 
         // Check win condition
         if (gameState.players[3].length === 0) {
-            showMessage('축하합니다! 승리하셨습니다! 🎉');
+            setTimeout(() => {
+                showVictoryMessage('축하합니다! 당신이 승리하셨습니다!', true);
+            }, 500);
             return;
         }
 
@@ -1221,13 +1370,16 @@
             gameState.lastPlayCombo = analyzeCombo(playedCards);
             gameState.lastPlayer = gameState.currentPlayer;
             gameState.passCount = 0;
+            gameState.isFirstRound = false; // 첫 번째 라운드 종료
             
             // 플레이 히스토리에 추가
             addToPlayHistory(playedCards, gameState.currentPlayer);
             
             // Check AI win
             if (aiHand.length === 0) {
-                showMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`);
+                setTimeout(() => {
+                    showVictoryMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`, false);
+                }, 500);
                 return;
             }
         } else {
@@ -1425,6 +1577,16 @@
         document.querySelectorAll('.player').forEach((player, index) => {
             player.classList.toggle('active', index === gameState.currentPlayer);
         });
+        
+        // 플레이어 턴일 때 손패 영역 강조
+        const playerHand = document.querySelector('.player-hand');
+        if (playerHand) {
+            if (gameState.currentPlayer === 3) {
+                playerHand.classList.add('my-turn');
+            } else {
+                playerHand.classList.remove('my-turn');
+            }
+        }
     }
 
     // Update card counts
@@ -1455,6 +1617,46 @@
         document.getElementById('messageText').textContent = text;
         document.getElementById('messageDialog').style.display = 'block';
     }
+    
+    // Show victory message with special effects
+    function showVictoryMessage(text, isPlayerWin = false) {
+        // 기존 다이얼로그 숨기기
+        document.getElementById('messageDialog').style.display = 'none';
+        
+        // 승리 다이얼로그 생성
+        const victoryDiv = document.createElement('div');
+        victoryDiv.className = 'victory-message';
+        victoryDiv.innerHTML = `
+            <div class="victory-fireworks">
+                <div class="firework" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="firework" style="left: 30%; animation-delay: 0.5s;"></div>
+                <div class="firework" style="left: 50%; animation-delay: 1s;"></div>
+                <div class="firework" style="left: 70%; animation-delay: 1.5s;"></div>
+                <div class="firework" style="left: 90%; animation-delay: 2s;"></div>
+            </div>
+            <div class="victory-content">
+                <div class="victory-emoji">${isPlayerWin ? '🎉🏆🎉' : '🤖🏆🤖'}</div>
+                <div class="victory-title">${isPlayerWin ? '승리!' : 'AI 승리'}</div>
+                <div class="victory-subtitle">${text}</div>
+                <button class="btn primary" onclick="hideVictoryMessage()" style="margin-top: 2rem; padding: 1rem 2rem; font-size: 1.2rem; background: linear-gradient(45deg, #ff6b6b, #ee5a24); border: none; border-radius: 0.5rem; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">확인</button>
+            </div>
+        `;
+        
+        document.body.appendChild(victoryDiv);
+        
+        // 애니메이션으로 나타나기
+        setTimeout(() => {
+            victoryDiv.style.display = 'flex';
+        }, 100);
+    }
+    
+    // Hide victory message
+    function hideVictoryMessage() {
+        const victoryDiv = document.querySelector('.victory-message');
+        if (victoryDiv) {
+            victoryDiv.remove();
+        }
+    }
 
     // Hide message dialog
     function hideMessage() {
@@ -1472,7 +1674,8 @@
             selectedCards: [],
             gameStarted: false,
             passCount: 0,
-            playHistory: []
+            playHistory: [],
+            isFirstRound: true
         };
         
         resetToStartScreen();
@@ -1513,7 +1716,13 @@
         
         // Start the game
         initGame();
-        showMessage('게임이 시작되었습니다! 3♠을 포함한 조합(싱글, 페어, 스트레이트 등)으로 시작할 수 있습니다.');
+        
+        // 모바일 터치 지원 재적용
+        setTimeout(() => {
+            addMobileTouchSupport();
+        }, 100);
+        
+        showMessage('게임이 시작되었습니다!');
     }
     
     // Reset to start screen when starting new game
@@ -1531,7 +1740,62 @@
     window.addEventListener('load', () => {
         // Just show the start screen, don't start the game automatically
         resetToStartScreen();
+        
+        // 모바일 터치 이벤트 개선
+        addMobileTouchSupport();
     });
+    
+    // 모바일 터치 지원 개선
+    function addMobileTouchSupport() {
+        const playBtn = document.getElementById('playBtn');
+        const passBtn = document.getElementById('passBtn');
+        
+        // 터치 이벤트 추가
+        if (playBtn) {
+            playBtn.addEventListener('touchstart', function(e) {
+                if (!this.disabled) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(0.98)';
+                }
+            }, { passive: false });
+            
+            playBtn.addEventListener('touchend', function(e) {
+                if (!this.disabled) {
+                    e.preventDefault();
+                    this.style.transform = '';
+                    playCards();
+                }
+            }, { passive: false });
+        }
+        
+        if (passBtn) {
+            passBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.style.transform = 'scale(0.98)';
+            }, { passive: false });
+            
+            passBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.style.transform = '';
+                passturn();
+            }, { passive: false });
+        }
+        
+        // 새 게임 버튼도 터치 지원
+        const newGameBtns = document.querySelectorAll('button[onclick="newGame()"]');
+        newGameBtns.forEach(btn => {
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.style.transform = 'scale(0.98)';
+            }, { passive: false });
+            
+            btn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.style.transform = '';
+                newGame();
+            }, { passive: false });
+        });
+    }
 </script>
 
 </body>
