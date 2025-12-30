@@ -307,7 +307,8 @@
       <h3>🎭 족보 (조합)</h3>
       <div style="text-align: left; margin: 1rem 0;">
         <p><strong>1. 싱글:</strong> 단일 카드</p>
-        <p><strong>2. 페어:</strong> 같은 숫자 2장</p>
+        <p><strong>2. 페어:</strong> 같은 숫자 2장 (같은 색상만 가능)</p>
+        <p style="margin-left: 1rem; color: #ffeb3b; font-size: 0.9rem;">• 빨간색: ♦(다이아) + ♥(하트) / 검은색: ♠(스페이드) + ♣(클럽)</p>
         <p><strong>3. 트리플:</strong> 같은 숫자 3장</p>
         <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상 (A-2-3 불가)</p>
         <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상</p>
@@ -565,6 +566,17 @@
         }
     }
 
+    // Check if cards have same color (red or black)
+    function isSameColor(card1, card2) {
+        const redSuits = ['♦', '♥']; // 다이아, 하트
+        const blackSuits = ['♠', '♣']; // 스페이드, 클럽
+        
+        const card1IsRed = redSuits.includes(card1.suit);
+        const card2IsRed = redSuits.includes(card2.suit);
+        
+        return card1IsRed === card2IsRed;
+    }
+
     // Analyze card combination
     function analyzeCombo(cards) {
         if (cards.length === 0) return { valid: false };
@@ -587,7 +599,7 @@
 
         // Pair
         if (cards.length === 2) {
-            if (cards[0].strength === cards[1].strength) {
+            if (cards[0].strength === cards[1].strength && isSameColor(cards[0], cards[1])) {
                 return {
                     valid: true,
                     type: 'pair',
@@ -682,6 +694,10 @@
         
         for (let i = 0; i < cards.length; i += 2) {
             if (i + 1 >= cards.length || cards[i].strength !== cards[i + 1].strength) {
+                return false;
+            }
+            // 각 페어도 같은 색상이어야 함
+            if (!isSameColor(cards[i], cards[i + 1])) {
                 return false;
             }
             if (i > 0 && cards[i].strength !== cards[i - 2].strength + 1) {
@@ -876,7 +892,7 @@
         // Try pairs
         if (targetCombo.type === 'pair') {
             for (let i = 0; i < hand.length - 1; i++) {
-                if (hand[i].strength === hand[i + 1].strength) {
+                if (hand[i].strength === hand[i + 1].strength && isSameColor(hand[i], hand[i + 1])) {
                     const combo = analyzeCombo([hand[i], hand[i + 1]]);
                     if (canBeat(combo, targetCombo)) {
                         return [i, i + 1];
