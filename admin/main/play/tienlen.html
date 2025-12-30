@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="../css/font.css">
   <link rel="stylesheet" href="../css/base.css">
 
+
     <style>
         * {
             margin: 0;
@@ -51,6 +52,8 @@
         .game-header > h1{
           font-size: calc(1.5rem + 1vw);
         }
+
+        .zqco {display: grid;/* grid-template-columns: 1fr 1fr; */align-items: end;justify-items: center;gap: 2rem;}
         
         .rules-toggle {
             background: #3282b8;
@@ -191,15 +194,15 @@
             gap: 5px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 1rem;
+            /* margin-bottom: 1rem; */
         }
         
         .last-play-list {
-            width: 100%;
-            margin-bottom: 1rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 0.5rem;
-            padding: 1rem;
+            /* width: 100%; */
+            /* margin-bottom: 1rem; */
+            /* background: rgba(255,255,255,0.05); */
+            /* border-radius: 0.5rem; */
+            /* padding: 1rem; */
         }
         
         .last-play-list h4 {
@@ -211,9 +214,15 @@
         
         #playHistoryContainer {
             display: flex;
-            gap: 0.5rem;
+            /* gap: 0.5rem; */
             overflow-x: auto;
-            padding: 0.5rem 0;
+            /* padding: 0.5rem 0; */
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        #playHistoryContainer > div:first-of-type{
+          display: none;
         }
         
         #playHistoryContainer::-webkit-scrollbar {
@@ -237,8 +246,8 @@
             justify-content: center;
             min-width: 80px;
             max-width: 100px;
-            padding: 0.5rem 0.3rem;
-            background: rgba(0,0,0,0.3);
+            /* padding: 0.5rem 0.3rem; */
+            /* background: rgba(0,0,0,0.3); */
             border-radius: 0.3rem;
             font-size: 0.8rem;
             flex-shrink: 0;
@@ -419,14 +428,10 @@
         }
         
         .btn.secondary {
-            background: #757575;
+            background: hsl(354, 81%, 63%);
             color: white;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
         
         .btn:disabled {
             background: #424242;
@@ -614,13 +619,20 @@
             
             .controls {
                 position: fixed;
-                bottom: 0.25rem;
+                width: 100%;
+                background: #11111199;
+                transform: translateX(-50%);
+                left: 50%;
+                bottom: 0%;
+            }
+            
+            .controls > div{
                 display: grid;
                 grid-template-columns: 1fr 1fr 1fr;
-                gap: 1rem;
-                transform: translate(-50%, -50%);
-                left: 50%;
+                /* gap: 1rem; */
                 width: 90%;
+                margin: 1rem auto;
+                /* padding: 1rem 0; */
             }
             
             .btn {
@@ -648,7 +660,7 @@
             }
             
             .btn:disabled {
-                background: #424242 !important;
+                background: hsl(43, 100%, 66%) !important;
                 transform: none !important;
                 opacity: 0.6;
             }
@@ -747,8 +759,8 @@
 
     <!-- Center Play Area -->
     <div class="center-area">
-      <h3>마지막 플레이</h3>
-
+      <h3></h3>
+      <ul class="zqco">
       <div class="last-play-list">
         <div id="playHistoryContainer">
           <p style="color: #999; text-align: center; font-size: 0.9rem;"></p>
@@ -758,6 +770,8 @@
       <div class="last-play" id="lastPlay">
         <p style="color: #999;">카드가 나오지 않았습니다</p>
       </div>
+      </ul>
+
       <p id="lastPlayer">by: -</p>
     </div>
 
@@ -768,10 +782,12 @@
         <!-- Player cards will be inserted here -->
       </div>
       <div class="controls">
+        <div>
         <button class="btn primary" id="playBtn" onclick="playCards()" disabled>Play a card</button>
         <button class="btn secondary" id="passBtn" onclick="passturn()">Pass</button>
         <!-- <button class="btn secondary" onclick="clearSelection()">선택 해제</button> -->
-        <button class="btn primary" onclick="newGame()" style="background: #ff9800;">New Game</button>
+        <button class="btn primary" onclick="newGame()" style="background: hsl(217, 15%, 83%);">New Game</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1457,9 +1473,9 @@
 
     // Find AI play strategy
     function findAIPlay(hand) {
-        // If it's the start of new round (no last play), play lowest single card
+        // If it's the start of new round (no last play), find best combo to play
         if (gameState.lastPlay.length === 0) {
-            return [0];
+            return findBestStartingCombo(hand);
         }
         
         const targetCombo = gameState.lastPlayCombo;
@@ -1499,6 +1515,84 @@
         }
         
         return []; // Can't play, will pass
+    }
+    
+    // Find best starting combo for AI when starting new round
+    function findBestStartingCombo(hand) {
+        const possibleCombos = [];
+        
+        // Single cards
+        for (let i = 0; i < hand.length; i++) {
+            possibleCombos.push({
+                indices: [i],
+                combo: analyzeCombo([hand[i]]),
+                priority: 1
+            });
+        }
+        
+        // Pairs
+        for (let i = 0; i < hand.length - 1; i++) {
+            if (hand[i].strength === hand[i + 1].strength && isSameColor(hand[i], hand[i + 1])) {
+                possibleCombos.push({
+                    indices: [i, i + 1],
+                    combo: analyzeCombo([hand[i], hand[i + 1]]),
+                    priority: 2
+                });
+            }
+        }
+        
+        // Triples
+        for (let i = 0; i < hand.length - 2; i++) {
+            if (hand[i].strength === hand[i + 1].strength && hand[i + 1].strength === hand[i + 2].strength) {
+                possibleCombos.push({
+                    indices: [i, i + 1, i + 2],
+                    combo: analyzeCombo([hand[i], hand[i + 1], hand[i + 2]]),
+                    priority: 3
+                });
+            }
+        }
+        
+        // Straights (3+ cards)
+        for (let start = 0; start < hand.length - 2; start++) {
+            for (let length = 3; length <= Math.min(13, hand.length - start); length++) {
+                const straight = [];
+                for (let i = 0; i < length; i++) {
+                    const cardIndex = start + i;
+                    if (cardIndex < hand.length && 
+                        hand[cardIndex].strength === hand[start].strength + i) {
+                        straight.push(cardIndex);
+                    } else {
+                        break;
+                    }
+                }
+                
+                if (straight.length >= 3) {
+                    const combo = analyzeCombo(straight.map(idx => hand[idx]));
+                    if (combo.valid && combo.type === 'straight') {
+                        possibleCombos.push({
+                            indices: straight,
+                            combo: combo,
+                            priority: 4 + straight.length // 긴 스트레이트일수록 높은 우선순위
+                        });
+                    }
+                }
+            }
+        }
+        
+        if (possibleCombos.length === 0) {
+            return [0]; // 최악의 경우 첫 번째 카드
+        }
+        
+        // 우선순위와 카드 강도를 고려하여 최적의 조합 선택
+        // 낮은 강도의 카드부터, 높은 우선순위 순으로 정렬
+        possibleCombos.sort((a, b) => {
+            // 우선순위가 높은 조합을 선호 (더 많은 카드를 한번에 낼 수 있는 조합)
+            if (a.priority !== b.priority) return b.priority - a.priority;
+            // 같은 우선순위면 낮은 강도의 카드를 선호
+            return a.combo.strength - b.combo.strength;
+        });
+        
+        return possibleCombos[0].indices;
     }
 
     // Render last play
@@ -1712,8 +1806,8 @@
             isFirstRound: true
         };
         
-        resetToStartScreen();
-        showMessage('새 게임을 시작하려면 게임 시작 버튼을 눌러주세요!');
+        // 바로 게임 시작
+        startGameCountdown();
     }
 
     // Game start countdown function
