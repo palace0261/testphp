@@ -47,6 +47,10 @@
             background: rgba(0,0,0,0.3);
             margin-bottom: 1rem;
         }
+
+        .game-header > h1{
+          font-size: calc(1.5rem + 1vw);
+        }
         
         .rules-toggle {
             background: #3282b8;
@@ -57,6 +61,18 @@
             cursor: pointer;
             margin-top: 1rem;
         }
+        
+        .rules-toggle > div{
+          display: flex;
+          gap: 0.5rem;
+          align-items: center;
+        }
+
+        .rules-toggle > div span{
+          font-size: 1.25rem;
+        }
+
+
         
         .rules-panel {
             background: rgba(0,0,0,0.8);
@@ -426,6 +442,7 @@
             padding: 1rem;
             border-radius: 0.5rem;
             font-size: 0.9rem;
+            display: none; /* 초기에는 숨김 */
         }
         
         .pass-indicator {
@@ -464,6 +481,7 @@
             border: 2px solid #ffd700;
             z-index: 1000;
             display: none;
+            text-align: center;
         }
         
         .victory-message {
@@ -595,8 +613,14 @@
             }
             
             .controls {
-                flex-direction: column;
+                position: fixed;
+                bottom: 0.25rem;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
                 gap: 1rem;
+                transform: translate(-50%, -50%);
+                left: 50%;
+                width: 90%;
             }
             
             .btn {
@@ -605,6 +629,9 @@
                 min-height: 50px;
                 width: 100%;
                 border-radius: 0.5rem;
+                font-size: 0.75rem;
+                padding: 0;
+                width: 90%;
             }
             
             .btn:active {
@@ -636,7 +663,12 @@
   <div class="game-header">
     <h1>Tiến Lên (티엔렌) - 북부식</h1>
     <p>베트남 전통 카드게임 • 13장씩 4명이 플레이</p>
-    <button class="rules-toggle" onclick="toggleRules()">규칙 및 족보 보기</button>
+    <button class="rules-toggle" onclick="toggleRules()">
+      <div>
+      <span class="material-symbols-outlined">undereye</span>
+      <span>규칙 및 족보</span>
+      </div>
+    </button>
     
     <div class="rules-panel" id="rulesPanel">
       <h3>🎯 게임 규칙</h3>
@@ -682,7 +714,9 @@
   <!-- Game Start Screen -->
   <div id="gameStartScreen" class="game-start-screen">
     <div class="start-content">
-      <button class="btn primary start-game-btn" onclick="startGameCountdown()">게임 시작</button>
+      <button class="btn primary start-game-btn"
+      style="font-size:calc(1.5rem - 0.25em); padding: 1.5rem 3rem;" 
+      onclick="startGameCountdown()">Start Game</button>
     </div>
   </div>
 
@@ -728,16 +762,16 @@
     </div>
 
     <!-- Player Hand -->
-    <div class="player-hand">
-      <h3>내 카드</h3>
+    <div class="player-hand" style="margin-bottom: calc(3rem + 20vw);">
+      <h3>My Hand</h3>
       <div class="hand-cards" id="playerHand">
         <!-- Player cards will be inserted here -->
       </div>
       <div class="controls">
-        <button class="btn primary" id="playBtn" onclick="playCards()" disabled>선택한 카드 내기</button>
-        <button class="btn secondary" id="passBtn" onclick="passturn()">패스</button>
+        <button class="btn primary" id="playBtn" onclick="playCards()" disabled>Play a card</button>
+        <button class="btn secondary" id="passBtn" onclick="passturn()">Pass</button>
         <!-- <button class="btn secondary" onclick="clearSelection()">선택 해제</button> -->
-        <button class="btn primary" onclick="newGame()" style="background: #ff9800;">새 게임</button>
+        <button class="btn primary" onclick="newGame()" style="background: #ff9800;">New Game</button>
       </div>
     </div>
   </div>
@@ -1714,6 +1748,12 @@
         countdownScreen.style.display = 'none';
         gameBoard.style.display = 'flex';
         
+        // Show game info
+        const gameInfo = document.querySelector('.game-info');
+        if (gameInfo) {
+            gameInfo.style.display = 'block';
+        }
+        
         // Start the game
         initGame();
         
@@ -1730,10 +1770,16 @@
         const startScreen = document.getElementById('gameStartScreen');
         const countdownScreen = document.getElementById('countdownScreen');
         const gameBoard = document.getElementById('gameBoard');
+        const gameInfo = document.querySelector('.game-info');
         
         gameBoard.style.display = 'none';
         countdownScreen.style.display = 'none';
         startScreen.style.display = 'flex';
+        
+        // Hide game info
+        if (gameInfo) {
+            gameInfo.style.display = 'none';
+        }
     }
 
     // Initialize game when page loads (just setup, don't start)
