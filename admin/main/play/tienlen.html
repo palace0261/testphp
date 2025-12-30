@@ -71,6 +71,62 @@
             display: block;
         }
         
+        .game-start-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+        
+        
+        .start-game-btn {
+            font-size: 1.3rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .start-game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        .countdown-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .countdown-content {
+            text-align: center;
+        }
+        
+        #countdownText {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 1s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
         .game-board {
             display: flex;
             flex-direction: column;
@@ -121,6 +177,98 @@
             margin-bottom: 1rem;
         }
         
+        .last-play-list {
+            width: 100%;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .last-play-list h4 {
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        #playHistoryContainer {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+        
+        #playHistoryContainer::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        #playHistoryContainer::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        
+        #playHistoryContainer::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+        
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            max-width: 100px;
+            padding: 0.5rem 0.3rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 0.3rem;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        
+        .history-cards {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 0.3rem;
+            max-width: 90px;
+        }
+        
+        .history-card {
+            width: 20px;
+            height: 28px;
+            background: white;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            line-height: 1;
+        }
+        
+        .history-card.red {
+            color: #ff4444;
+        }
+        
+        .history-card.black {
+            color: #333;
+        }
+        
+        .history-player {
+            color: #ccc;
+            font-size: 0.7rem;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        
         .player-hand {
             background: rgba(0,0,0,0.3);
             padding: 1rem;
@@ -128,32 +276,36 @@
             width: 100%;
             max-width: 800px;
         }
+
+        .player-hand > h3{
+            margin-bottom: 2rem;
+        }
         
         .hand-cards {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
             justify-content: center;
             margin-bottom: 1rem;
         }
         
         .card {
-            width: 50px;
-            height: 70px;
+            width: 75px;
+            height: 105px;
             background: linear-gradient(145deg, #ffffff, #f0f0f0);
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 4px;
+            padding: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.75rem;
+            font-size: 1rem;
             font-weight: bold;
             font-family: 'Arial', sans-serif;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.1);
             position: relative;
             user-select: none;
         }
@@ -165,7 +317,7 @@
             left: 2px;
             right: 2px;
             bottom: 2px;
-            border: 1px solid #e0e0e0;
+            border: 0px solid #e0e0e0;
             border-radius: 6px;
             pointer-events: none;
         }
@@ -183,19 +335,20 @@
         }
         
         .card .card-value {
-            font-size: 0.8rem;
+            font-size: 1.1rem;
             font-weight: bold;
             line-height: 1;
         }
         
         .card .card-suit {
-            font-size: 1.1rem;
+            font-size: 1.6rem;
             line-height: 1;
-            margin: 2px 0;
+            margin: 4px 0;
         }
         
         .card .card-value-bottom {
-            font-size: 0.6rem;
+            opacity: 0;
+            font-size: 0.85rem;
             font-weight: bold;
             line-height: 1;
             transform: rotate(180deg);
@@ -306,13 +459,28 @@
             }
             
             .hand-cards {
-                gap: 2px;
+                gap: 3px;
             }
             
             .card {
-                width: 40px;
-                height: 56px;
-                font-size: 0.7rem;
+                width: 60px;
+                height: 84px;
+                font-size: 0.9rem;
+                padding: 5px;
+                border-radius: 8px;
+            }
+            
+            .card .card-value {
+                font-size: 0.95rem;
+            }
+            
+            .card .card-suit {
+                font-size: 1.3rem;
+                margin: 3px 0;
+            }
+            
+            .card .card-value-bottom {
+                font-size: 0.75rem;
             }
             
             .controls {
@@ -373,8 +541,22 @@
     <div id="passMessage">🚫 패스</div>
   </div>
 
+  <!-- Game Start Screen -->
+  <div id="gameStartScreen" class="game-start-screen">
+    <div class="start-content">
+      <button class="btn primary start-game-btn" onclick="startGameCountdown()">게임 시작</button>
+    </div>
+  </div>
+
+  <!-- Countdown Screen -->
+  <div id="countdownScreen" class="countdown-screen" style="display: none;">
+    <div class="countdown-content">
+      <div id="countdownText">Ready</div>
+    </div>
+  </div>
+
   <!-- Game Board -->
-  <div class="game-board">
+  <div class="game-board" id="gameBoard" style="display: none;">
     <!-- Opponents -->
     <div class="opponents">
       <div class="player" id="player1">
@@ -394,8 +576,15 @@
     <!-- Center Play Area -->
     <div class="center-area">
       <h3>마지막 플레이</h3>
+
+      <div class="last-play-list">
+        <div id="playHistoryContainer">
+          <p style="color: #999; text-align: center; font-size: 0.9rem;"></p>
+        </div>
+      </div>
+
       <div class="last-play" id="lastPlay">
-        <p style="color: #999;">아직 카드가 나오지 않았습니다</p>
+        <p style="color: #999;">카드가 나오지 않았습니다</p>
       </div>
       <p id="lastPlayer">by: -</p>
     </div>
@@ -409,7 +598,7 @@
       <div class="controls">
         <button class="btn primary" id="playBtn" onclick="playCards()" disabled>선택한 카드 내기</button>
         <button class="btn secondary" id="passBtn" onclick="passturn()">패스</button>
-        <button class="btn secondary" onclick="clearSelection()">선택 해제</button>
+        <!-- <button class="btn secondary" onclick="clearSelection()">선택 해제</button> -->
         <button class="btn primary" onclick="newGame()" style="background: #ff9800;">새 게임</button>
       </div>
     </div>
@@ -431,7 +620,8 @@
         lastPlayer: -1,
         selectedCards: [],
         gameStarted: false,
-        passCount: 0
+        passCount: 0,
+        playHistory: [] // 최근 플레이 히스토리 저장 (최대 4개)
     };
 
     // Card suits and values
@@ -447,24 +637,36 @@
         dealCards();
         findStartingPlayer();
         
-        // Force start with 3♠ if current player is AI
+        // Force start with 3♠ (or combo including 3♠) if current player is AI
         if (gameState.currentPlayer !== 3) {
             setTimeout(() => {
-                // Find and play 3♠
                 const aiHand = gameState.players[gameState.currentPlayer];
-                for (let i = 0; i < aiHand.length; i++) {
-                    if (aiHand[i].value === '3' && aiHand[i].suit === '♠') {
-                        const playedCard = aiHand.splice(i, 1)[0];
-                        gameState.lastPlay = [playedCard];
-                        gameState.lastPlayCombo = analyzeCombo([playedCard]);
-                        gameState.lastPlayer = gameState.currentPlayer;
-                        gameState.passCount = 0;
-                        
-                        nextTurn();
-                        renderGame();
-                        updateGameInfo();
-                        break;
-                    }
+                const validStartingPlays = findValidStartingPlays(aiHand);
+                
+                if (validStartingPlays.length > 0) {
+                    // Choose the best starting play (prefer longer combos)
+                    const bestPlay = validStartingPlays.reduce((best, current) => 
+                        current.length > best.length ? current : best
+                    );
+                    
+                    // Play the selected combo
+                    bestPlay.sort((a, b) => b - a); // Sort in descending order for removal
+                    const playedCards = bestPlay.map(index => aiHand[index]);
+                    bestPlay.forEach(index => {
+                        aiHand.splice(index, 1);
+                    });
+                    
+                    gameState.lastPlay = playedCards;
+                    gameState.lastPlayCombo = analyzeCombo(playedCards);
+                    gameState.lastPlayer = gameState.currentPlayer;
+                    gameState.passCount = 0;
+                    
+                    // 플레이 히스토리에 추가
+                    addToPlayHistory(playedCards, gameState.currentPlayer);
+                    
+                    nextTurn();
+                    renderGame();
+                    updateGameInfo();
                 }
             }, 1000);
         }
@@ -523,6 +725,132 @@
                 }
             }
         }
+    }
+    
+    // Find valid starting play combinations that include 3♠
+    function findValidStartingPlays(hand) {
+        const spade3Index = hand.findIndex(card => card.value === '3' && card.suit === '♠');
+        if (spade3Index === -1) return [];
+        
+        const validPlays = [];
+        const spade3Card = hand[spade3Index];
+        
+        // Single 3♠
+        validPlays.push([spade3Index]);
+        
+        // Try pairs with 3♠
+        for (let i = 0; i < hand.length; i++) {
+            if (i !== spade3Index && hand[i].value === '3') {
+                if (isSameColor(spade3Card, hand[i])) {
+                    validPlays.push([spade3Index, i].sort((a, b) => a - b));
+                }
+            }
+        }
+        
+        // Try triples with 3♠
+        const other3s = [];
+        for (let i = 0; i < hand.length; i++) {
+            if (i !== spade3Index && hand[i].value === '3') {
+                other3s.push(i);
+            }
+        }
+        if (other3s.length >= 2) {
+            validPlays.push([spade3Index, ...other3s].sort((a, b) => a - b));
+        }
+        
+        // Try straights starting with 3♠
+        const straightPlays = findStraightsWithCard(hand, spade3Index);
+        validPlays.push(...straightPlays);
+        
+        // Try double straights starting with 3♠ pair
+        for (let play of validPlays) {
+            if (play.length === 2) {
+                const doubleStraightPlays = findDoubleStraightsWithPair(hand, play);
+                validPlays.push(...doubleStraightPlays);
+            }
+        }
+        
+        return validPlays.filter(play => play.length > 0);
+    }
+    
+    // Find straights that include a specific card
+    function findStraightsWithCard(hand, cardIndex) {
+        const targetCard = hand[cardIndex];
+        const straights = [];
+        
+        // Try different straight lengths starting from the target card
+        for (let length = 3; length <= 13; length++) {
+            const straight = [cardIndex];
+            
+            // Find cards for straight going up
+            for (let strength = targetCard.strength + 1; strength <= targetCard.strength + length - 1; strength++) {
+                const nextCard = hand.findIndex((card, idx) => 
+                    card.strength === strength && idx !== cardIndex && !straight.includes(idx)
+                );
+                if (nextCard !== -1) {
+                    straight.push(nextCard);
+                } else {
+                    break;
+                }
+            }
+            
+            if (straight.length >= 3) {
+                straights.push([...straight].sort((a, b) => a - b));
+            }
+        }
+        
+        return straights;
+    }
+    
+    // Find double straights that include a specific pair
+    function findDoubleStraightsWithPair(hand, pairIndices) {
+        if (pairIndices.length !== 2) return [];
+        
+        const pairValue = hand[pairIndices[0]].strength;
+        const doubleStraights = [];
+        
+        // Try to extend the pair into a double straight
+        for (let length = 3; length <= 6; length++) {
+            const doubleStraight = [...pairIndices];
+            
+            // Find pairs for consecutive values
+            for (let strength = pairValue + 1; strength <= pairValue + length - 1; strength++) {
+                const pairs = findPairsForValue(hand, strength, doubleStraight);
+                if (pairs.length >= 2) {
+                    doubleStraight.push(...pairs.slice(0, 2));
+                } else {
+                    break;
+                }
+            }
+            
+            if (doubleStraight.length >= 6 && doubleStraight.length % 2 === 0) {
+                doubleStraights.push([...doubleStraight].sort((a, b) => a - b));
+            }
+        }
+        
+        return doubleStraights;
+    }
+    
+    // Find pairs for a specific value
+    function findPairsForValue(hand, targetStrength, excludeIndices = []) {
+        const candidates = [];
+        for (let i = 0; i < hand.length; i++) {
+            if (!excludeIndices.includes(i) && hand[i].strength === targetStrength) {
+                candidates.push(i);
+            }
+        }
+        
+        const pairs = [];
+        for (let i = 0; i < candidates.length - 1; i++) {
+            for (let j = i + 1; j < candidates.length; j++) {
+                if (isSameColor(hand[candidates[i]], hand[candidates[j]])) {
+                    pairs.push(candidates[i], candidates[j]);
+                    break;
+                }
+            }
+        }
+        
+        return pairs;
     }
 
     // Render game state
@@ -598,9 +926,17 @@
             return;
         }
 
-        // If it's the start of new round (no last play), allow any valid combo
+        // If it's the start of new round (no last play), check if combo includes 3♠
         if (gameState.lastPlay.length === 0) {
-            playBtn.disabled = false;
+            const hasSpade3 = selectedCardObjects.some(card => 
+                card.value === '3' && card.suit === '♠'
+            );
+            
+            if (hasSpade3) {
+                playBtn.disabled = false;
+            } else {
+                playBtn.disabled = true;
+            }
             return;
         }
 
@@ -780,6 +1116,18 @@
             showMessage('올바르지 않은 카드 조합입니다.');
             return;
         }
+        
+        // Check if it's the first play and includes 3♠
+        if (gameState.lastPlay.length === 0) {
+            const hasSpade3 = selectedCardObjects.some(card => 
+                card.value === '3' && card.suit === '♠'
+            );
+            
+            if (!hasSpade3) {
+                showMessage('게임 시작 시에는 반드시 3♠을 포함한 조합을 내야 합니다.');
+                return;
+            }
+        }
 
         // Remove cards from player's hand
         gameState.selectedCards.sort((a, b) => b - a); // Sort in descending order
@@ -792,6 +1140,9 @@
         gameState.lastPlayer = 3;
         gameState.selectedCards = [];
         gameState.passCount = 0;
+        
+        // 플레이 히스토리에 추가
+        addToPlayHistory(selectedCardObjects, 3);
 
         // Check win condition
         if (gameState.players[3].length === 0) {
@@ -870,6 +1221,9 @@
             gameState.lastPlayCombo = analyzeCombo(playedCards);
             gameState.lastPlayer = gameState.currentPlayer;
             gameState.passCount = 0;
+            
+            // 플레이 히스토리에 추가
+            addToPlayHistory(playedCards, gameState.currentPlayer);
             
             // Check AI win
             if (aiHand.length === 0) {
@@ -997,6 +1351,60 @@
         const playerNames = ['AI 1', 'AI 2', 'AI 3', '나'];
         lastPlayerElement.textContent = `by: ${playerNames[gameState.lastPlayer]}`;
     }
+    
+    // 플레이 히스토리에 추가하는 함수
+    function addToPlayHistory(cards, playerIndex) {
+        const playerNames = ['AI 1', 'AI 2', 'AI 3', '나'];
+        const historyItem = {
+            cards: [...cards],
+            player: playerNames[playerIndex],
+            playerIndex: playerIndex
+        };
+        
+        // 최신 플레이를 맨 앞에 추가
+        gameState.playHistory.unshift(historyItem);
+        
+        // 최대 4개까지만 유지
+        if (gameState.playHistory.length > 4) {
+            gameState.playHistory = gameState.playHistory.slice(0, 4);
+        }
+        
+        renderPlayHistory();
+    }
+    
+    // 플레이 히스토리를 렌더링하는 함수
+    function renderPlayHistory() {
+        const container = document.getElementById('playHistoryContainer');
+        
+        if (gameState.playHistory.length === 0) {
+            container.innerHTML = '<p style="color: #999; text-align: center; font-size: 0.9rem;">아직 기록이 없습니다</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        gameState.playHistory.forEach(item => {
+            const historyDiv = document.createElement('div');
+            historyDiv.className = 'history-item';
+            
+            const cardsDiv = document.createElement('div');
+            cardsDiv.className = 'history-cards';
+            
+            item.cards.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `history-card ${card.suit === '♦' || card.suit === '♥' ? 'red' : 'black'}`;
+                cardDiv.innerHTML = `<div>${card.value}</div><div>${card.suit}</div>`;
+                cardsDiv.appendChild(cardDiv);
+            });
+            
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'history-player';
+            playerDiv.textContent = item.player;
+            
+            historyDiv.appendChild(cardsDiv);
+            historyDiv.appendChild(playerDiv);
+            container.appendChild(historyDiv);
+        });
+    }
 
     // Show pass indicator
     function showPassIndicator(playerName) {
@@ -1063,17 +1471,66 @@
             lastPlayer: -1,
             selectedCards: [],
             gameStarted: false,
-            passCount: 0
+            passCount: 0,
+            playHistory: []
         };
         
-        initGame();
-        showMessage('새 게임이 시작되었습니다!');
+        resetToStartScreen();
+        showMessage('새 게임을 시작하려면 게임 시작 버튼을 눌러주세요!');
     }
 
-    // Initialize game when page loads
-    window.addEventListener('load', () => {
+    // Game start countdown function
+    async function startGameCountdown() {
+        const startScreen = document.getElementById('gameStartScreen');
+        const countdownScreen = document.getElementById('countdownScreen');
+        const gameBoard = document.getElementById('gameBoard');
+        const countdownText = document.getElementById('countdownText');
+        
+        // Hide start screen, show countdown
+        startScreen.style.display = 'none';
+        countdownScreen.style.display = 'flex';
+        
+        // Countdown sequence
+        const countdownSequence = ['Ready', '3', '2', '1', 'Start!'];
+        
+        for (let i = 0; i < countdownSequence.length; i++) {
+            countdownText.textContent = countdownSequence[i];
+            countdownText.style.animation = 'none';
+            // Force reflow
+            countdownText.offsetHeight;
+            countdownText.style.animation = 'pulse 1s ease-in-out';
+            
+            if (i < countdownSequence.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+        }
+        
+        // Hide countdown, show game board
+        countdownScreen.style.display = 'none';
+        gameBoard.style.display = 'flex';
+        
+        // Start the game
         initGame();
-        showMessage('게임이 시작되었습니다! 3♠을 가진 플레이어가 먼저 시작합니다.');
+        showMessage('게임이 시작되었습니다! 3♠을 포함한 조합(싱글, 페어, 스트레이트 등)으로 시작할 수 있습니다.');
+    }
+    
+    // Reset to start screen when starting new game
+    function resetToStartScreen() {
+        const startScreen = document.getElementById('gameStartScreen');
+        const countdownScreen = document.getElementById('countdownScreen');
+        const gameBoard = document.getElementById('gameBoard');
+        
+        gameBoard.style.display = 'none';
+        countdownScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+    }
+
+    // Initialize game when page loads (just setup, don't start)
+    window.addEventListener('load', () => {
+        // Just show the start screen, don't start the game automatically
+        resetToStartScreen();
     });
 </script>
 
