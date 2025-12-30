@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <!-- head -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="티엔렌 - 쉐딩형 Card Game">
+  <meta name="keywords" content="티엔렌, Tiến Lên, Card Game, 쉐딩형">
+  <meta name="author" content="티엔렌">
+  <meta name="robots" content="index,follow">
+
+  <meta property="og:title" content="티엔렌 - 쉐딩형 Card Game">
+  <meta property="og:description" content="티엔렌 - 쉐딩형 Card Game">
+  <meta property="og:image" content="/">
+  <meta property="og:url" content="/">
+  <meta property="og:type" content="website"> 
+  <meta property="og:site_name" content="티엔렌 - 쉐딩형 Card Game">
+
+  <link rel="canonical" href="/">
+  <link rel="icon" href="/" type="image/x-icon">
+
+  <title>Tiến Lên - 북부식 카드게임</title>
+
+  <!-- custum -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> <!-- icon -->
+  <link rel="stylesheet" href="../css/font.css">
+  <link rel="stylesheet" href="../css/base.css">
+  
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR','Apple SD Gothic Neo','Malgun gothic','Helvetica','Dotum',sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f4c75, #3282b8);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-header {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+        }
+        
+        .rules-toggle {
+            background: #3282b8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .rules-panel {
+            background: rgba(0,0,0,0.8);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .rules-panel.show {
+            display: block;
+        }
+        
+        .game-board {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        
+        .opponents {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .player {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .player.active {
+            background: rgba(255,255,0,0.3);
+            border: 2px solid #ffd700;
+        }
+        
+        .center-area {
+            background: rgba(0,0,0,0.5);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 2px dashed #666;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .last-play {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .player-hand {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .hand-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .card {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .card.selected {
+            transform: translateY(-10px);
+            border-color: #ffd700;
+            box-shadow: 0 4px 8px rgba(255,215,0,0.5);
+        }
+        
+        .card.red {
+            color: #d32f2f;
+        }
+        
+        .card.black {
+            color: #333;
+        }
+        
+        .card-back {
+            background: linear-gradient(45deg, #1565c0, #0d47a1);
+            color: white;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .win-probability {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            text-align: center;
+            border: 2px solid #4caf50;
+        }
+        
+        .probability-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f44336 0%, #ff9800 30%, #4caf50 70%, #2196f3 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn.primary {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn.secondary {
+            background: #757575;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            background: #424242;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .game-info {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.8);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .pass-indicator {
+            position: fixed;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background: rgba(255, 152, 0, 0.9);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            font-size: 1rem;
+            border: 2px solid #ff9800;
+            display: none;
+            z-index: 100;
+            animation: fadeInOut 2s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-50%) translateX(20px); }
+            20% { opacity: 1; transform: translateY(-50%) translateX(0); }
+            80% { opacity: 1; transform: translateY(-50%) translateX(0); }
+            100% { opacity: 0; transform: translateY(-50%) translateX(20px); }
+        }
+        
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            border: 2px solid #ffd700;
+            z-index: 1000;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .opponents {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .hand-cards {
+                gap: 2px;
+            }
+            
+            .card {
+                width: 40px;
+                height: 56px;
+                font-size: 0.7rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<!-- /head -->
+
+</head>
+<body>
+  
+  <!-- Game Header -->
+  <div class="game-header">
+    <h1>Tiến Lên (티엔렌) - 북부식</h1>
+    <p>베트남 전통 카드게임 • 13장씩 4명이 플레이</p>
+    <button class="rules-toggle" onclick="toggleRules()">규칙 및 족보 보기</button>
+    
+    <div class="rules-panel" id="rulesPanel">
+      <h3>🎯 게임 규칙</h3>
+      <ul style="text-align: left; margin: 1rem 0;">
+        <li><strong>목표:</strong> 13장의 카드를 가장 먼저 모두 내는 사람이 승리</li>
+        <li><strong>시작:</strong> 3♠을 가진 플레이어가 첫 번째로 카드를 냄</li>
+        <li><strong>진행:</strong> 시계방향으로 더 강한 카드/조합을 내거나 패스</li>
+        <li><strong>패스:</strong> 모든 플레이어가 패스하면 마지막에 카드를 낸 사람이 새로 시작</li>
+      </ul>
+      
+      <h3>📊 카드 강도 (약함 → 강함)</h3>
+      <p><strong>숫자:</strong> 3 &lt; 4 &lt; 5 &lt; 6 &lt; 7 &lt; 8 &lt; 9 &lt; 10 &lt; J &lt; Q &lt; K &lt; A &lt; 2</p>
+      <p><strong>무늬:</strong> ♠(스페이드) &lt; ♣(클럽) &lt; ♦(다이아) &lt; ♥(하트)</p>
+      
+      <h3>🎭 족보 (조합)</h3>
+      <div style="text-align: left; margin: 1rem 0;">
+        <p><strong>1. 싱글:</strong> 단일 카드</p>
+        <p><strong>2. 페어:</strong> 같은 숫자 2장</p>
+        <p><strong>3. 트리플:</strong> 같은 숫자 3장</p>
+        <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상 (A-2-3 불가)</p>
+        <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상</p>
+        <p><strong>6. 쿼드러플:</strong> 같은 숫자 4장 (최강)</p>
+      </div>
+      
+      <p style="color: #ffd700; font-weight: bold;">💡 2는 가장 강한 카드지만, 스트레이트의 끝에만 사용 가능 (K-A-2)</p>
+    </div>
+  </div>
+
+  <!-- Game Info -->
+  <div class="game-info">
+    <div>턴: <span id="currentTurn">Player</span></div>
+    <div>남은 카드: <span id="cardsLeft">13</span>장</div>
+    <div>선택된 카드: <span id="selectedCount">0</span>장</div>
+  </div>
+
+  <!-- Pass Indicator -->
+  <div class="pass-indicator" id="passIndicator">
+    <div id="passMessage">🚫 패스</div>
+  </div>
+
+  <!-- Game Board -->
+  <div class="game-board">
+    <!-- Opponents -->
+    <div class="opponents">
+      <div class="player" id="player1">
+        <h4>AI 1</h4>
+        <p><span id="p1Cards">13</span>장</p>
+      </div>
+      <div class="player" id="player2">
+        <h4>AI 2</h4>
+        <p><span id="p2Cards">13</span>장</p>
+      </div>
+      <div class="player" id="player3">
+        <h4>AI 3</h4>
+        <p><span id="p3Cards">13</span>장</p>
+      </div>
+    </div>
+
+    <!-- Center Play Area -->
+    <div class="center-area">
+      <h3>마지막 플레이</h3>
+      <div class="last-play" id="lastPlay">
+        <p style="color: #999;">아직 카드가 나오지 않았습니다</p>
+      </div>
+      <p id="lastPlayer">by: -</p>
+    </div>
+
+    <!-- Player Hand -->
+    <div class="player-hand">
+      <h3>내 카드</h3>
+      <div class="hand-cards" id="playerHand">
+        <!-- Player cards will be inserted here -->
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="playBtn" onclick="playCards()" disabled>선택한 카드 내기</button>
+        <button class="btn secondary" id="passBtn" onclick="passturn()">패스</button>
+        <button class="btn secondary" onclick="clearSelection()">선택 해제</button>
+        <button class="btn primary" onclick="newGame()" style="background: #ff9800;">새 게임</button>
+      </div>
+      
+      <!-- Win Probability Display -->
+      <div class="win-probability" id="winProbability" style="display: none;">
+        <h4>🏆 승리 확률</h4>
+        <div class="probability-bar">
+          <div class="probability-fill" id="probabilityFill" style="width: 0%;"></div>
+        </div>
+        <div>
+          <strong id="probabilityText">0%</strong>
+          <span id="probabilityReason"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Dialog -->
+  <div class="message" id="messageDialog">
+    <p id="messageText"></p>
+    <button class="btn primary" onclick="hideMessage()" style="margin-top: 1rem;">확인</button>
+  </div>
+
+  <script>
+    // Game State
+    let gameState = {
+        deck: [],
+        players: [[], [], [], []], // AI1, AI2, AI3, Player
+        currentPlayer: 0,
+        lastPlay: [],
+        lastPlayer: -1,
+        selectedCards: [],
+        gameStarted: false,
+        passCount: 0
+    };
+
+    // Card suits and values
+    const suits = ['♠', '♣', '♦', '♥'];
+    const values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
+    const valueOrder = { '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14, '2': 15 };
+    const suitOrder = { '♠': 1, '♣': 2, '♦': 3, '♥': 4 };
+
+    // Initialize game
+    function initGame() {
+        createDeck();
+        shuffleDeck();
+        dealCards();
+        findStartingPlayer();
+        
+        // Force start with 3♠ if current player is AI
+        if (gameState.currentPlayer !== 3) {
+            setTimeout(() => {
+                // Find and play 3♠
+                const aiHand = gameState.players[gameState.currentPlayer];
+                for (let i = 0; i < aiHand.length; i++) {
+                    if (aiHand[i].value === '3' && aiHand[i].suit === '♠') {
+                        const playedCard = aiHand.splice(i, 1)[0];
+                        gameState.lastPlay = [playedCard];
+                        gameState.lastPlayCombo = analyzeCombo([playedCard]);
+                        gameState.lastPlayer = gameState.currentPlayer;
+                        gameState.passCount = 0;
+                        
+                        nextTurn();
+                        renderGame();
+                        updateGameInfo();
+                        break;
+                    }
+                }
+            }, 1000);
+        }
+        
+        renderGame();
+        updateGameInfo();
+    }
+
+    // Create standard 52-card deck
+    function createDeck() {
+        gameState.deck = [];
+        for (let suit of suits) {
+            for (let value of values) {
+                gameState.deck.push({
+                    value: value,
+                    suit: suit,
+                    strength: valueOrder[value],
+                    suitStrength: suitOrder[suit]
+                });
+            }
+        }
+    }
+
+    // Shuffle deck
+    function shuffleDeck() {
+        for (let i = gameState.deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [gameState.deck[i], gameState.deck[j]] = [gameState.deck[j], gameState.deck[i]];
+        }
+    }
+
+    // Deal 13 cards to each player
+    function dealCards() {
+        gameState.players = [[], [], [], []];
+        for (let i = 0; i < 52; i++) {
+            gameState.players[i % 4].push(gameState.deck[i]);
+        }
+        
+        // Sort each player's hand
+        gameState.players.forEach(hand => {
+            hand.sort((a, b) => {
+                if (a.strength !== b.strength) return a.strength - b.strength;
+                return a.suitStrength - b.suitStrength;
+            });
+        });
+    }
+
+    // Find player with 3 of spades
+    function findStartingPlayer() {
+        for (let i = 0; i < 4; i++) {
+            for (let card of gameState.players[i]) {
+                if (card.value === '3' && card.suit === '♠') {
+                    gameState.currentPlayer = i;
+                    gameState.gameStarted = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    // Render game state
+    function renderGame() {
+        renderPlayerHand();
+        renderLastPlay();
+        updateActivePlayer();
+        updateCardCounts();
+    }
+
+    // Render player's hand
+    function renderPlayerHand() {
+        const handElement = document.getElementById('playerHand');
+        handElement.innerHTML = '';
+        
+        gameState.players[3].forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.className = `card ${card.suit === '♦' || card.suit === '♥' ? 'red' : 'black'}`;
+            cardElement.innerHTML = `
+                <div>${card.value}</div>
+                <div style="font-size: 1.2rem;">${card.suit}</div>
+                <div style="transform: rotate(180deg);">${card.value}</div>
+            `;
+            cardElement.addEventListener('click', () => selectCard(index));
+            handElement.appendChild(cardElement);
+        });
+    }
+
+    // Select/deselect card
+    function selectCard(index) {
+        const cardElement = document.getElementById('playerHand').children[index];
+        const selectedIndex = gameState.selectedCards.indexOf(index);
+        
+        if (selectedIndex > -1) {
+            gameState.selectedCards.splice(selectedIndex, 1);
+            cardElement.classList.remove('selected');
+        } else {
+            gameState.selectedCards.push(index);
+            cardElement.classList.add('selected');
+        }
+        
+        updateGameInfo();
+        updateWinProbability();
+        validatePlay();
+    }
+
+    // Clear selection
+    function clearSelection() {
+        gameState.selectedCards = [];
+        document.querySelectorAll('.card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        updateGameInfo();
+        updateWinProbability();
+        validatePlay();
+    }
+
+    // Validate if selected cards can be played
+    function validatePlay() {
+        const playBtn = document.getElementById('playBtn');
+        
+        if (gameState.selectedCards.length === 0) {
+            playBtn.disabled = true;
+            return;
+        }
+
+        const selectedCardObjects = gameState.selectedCards.map(i => gameState.players[3][i]);
+        const combo = analyzeCombo(selectedCardObjects);
+        
+        if (!combo.valid) {
+            playBtn.disabled = true;
+            return;
+        }
+
+        // If it's the start of new round (no last play), allow any valid combo
+        if (gameState.lastPlay.length === 0) {
+            playBtn.disabled = false;
+            return;
+        }
+
+        if (canBeat(combo, gameState.lastPlayCombo)) {
+            playBtn.disabled = false;
+        } else {
+            playBtn.disabled = true;
+        }
+    }
+
+    // Analyze card combination
+    function analyzeCombo(cards) {
+        if (cards.length === 0) return { valid: false };
+        
+        cards.sort((a, b) => {
+            if (a.strength !== b.strength) return a.strength - b.strength;
+            return a.suitStrength - b.suitStrength;
+        });
+
+        // Single card
+        if (cards.length === 1) {
+            return {
+                valid: true,
+                type: 'single',
+                strength: cards[0].strength,
+                suitStrength: cards[0].suitStrength,
+                cards: cards
+            };
+        }
+
+        // Pair
+        if (cards.length === 2) {
+            if (cards[0].strength === cards[1].strength) {
+                return {
+                    valid: true,
+                    type: 'pair',
+                    strength: cards[0].strength,
+                    suitStrength: Math.max(cards[0].suitStrength, cards[1].suitStrength),
+                    cards: cards
+                };
+            }
+            return { valid: false };
+        }
+
+        // Triple
+        if (cards.length === 3) {
+            if (cards[0].strength === cards[1].strength && cards[1].strength === cards[2].strength) {
+                return {
+                    valid: true,
+                    type: 'triple',
+                    strength: cards[0].strength,
+                    suitStrength: Math.max(cards[0].suitStrength, cards[1].suitStrength, cards[2].suitStrength),
+                    cards: cards
+                };
+            }
+            
+            // Check for straight
+            if (isStraight(cards)) {
+                return {
+                    valid: true,
+                    type: 'straight',
+                    strength: cards[cards.length - 1].strength,
+                    suitStrength: cards[cards.length - 1].suitStrength,
+                    cards: cards
+                };
+            }
+            return { valid: false };
+        }
+
+        // Quadruple
+        if (cards.length === 4) {
+            if (cards[0].strength === cards[1].strength && 
+                cards[1].strength === cards[2].strength && 
+                cards[2].strength === cards[3].strength) {
+                return {
+                    valid: true,
+                    type: 'quadruple',
+                    strength: cards[0].strength,
+                    suitStrength: Math.max(...cards.map(c => c.suitStrength)),
+                    cards: cards
+                };
+            }
+        }
+
+        // Straight (5+ cards)
+        if (cards.length >= 3 && isStraight(cards)) {
+            return {
+                valid: true,
+                type: 'straight',
+                strength: cards[cards.length - 1].strength,
+                suitStrength: cards[cards.length - 1].suitStrength,
+                cards: cards
+            };
+        }
+
+        // Double straight (3+ pairs)
+        if (cards.length >= 6 && cards.length % 2 === 0) {
+            if (isDoubleStraight(cards)) {
+                return {
+                    valid: true,
+                    type: 'doubleStraight',
+                    strength: cards[cards.length - 1].strength,
+                    suitStrength: Math.max(...cards.slice(-2).map(c => c.suitStrength)),
+                    cards: cards
+                };
+            }
+        }
+
+        return { valid: false };
+    }
+
+    // Check if cards form a straight
+    function isStraight(cards) {
+        for (let i = 1; i < cards.length; i++) {
+            if (cards[i].strength !== cards[i-1].strength + 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Check if cards form a double straight
+    function isDoubleStraight(cards) {
+        if (cards.length % 2 !== 0) return false;
+        
+        for (let i = 0; i < cards.length; i += 2) {
+            if (i + 1 >= cards.length || cards[i].strength !== cards[i + 1].strength) {
+                return false;
+            }
+            if (i > 0 && cards[i].strength !== cards[i - 2].strength + 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Check if combo1 can beat combo2
+    function canBeat(combo1, combo2) {
+        if (!combo1.valid || !combo2.valid) return false;
+        
+        // Quadruple beats everything
+        if (combo1.type === 'quadruple') return true;
+        if (combo2.type === 'quadruple') return false;
+        
+        // Same type comparison
+        if (combo1.type === combo2.type && combo1.cards.length === combo2.cards.length) {
+            if (combo1.strength > combo2.strength) return true;
+            if (combo1.strength === combo2.strength && combo1.suitStrength > combo2.suitStrength) return true;
+        }
+        
+        return false;
+    }
+
+    // Play selected cards
+    function playCards() {
+        if (gameState.currentPlayer !== 3) return;
+        
+        const selectedCardObjects = gameState.selectedCards.map(i => gameState.players[3][i]);
+        const combo = analyzeCombo(selectedCardObjects);
+        
+        if (!combo.valid) {
+            showMessage('올바르지 않은 카드 조합입니다.');
+            return;
+        }
+
+        // Remove cards from player's hand
+        gameState.selectedCards.sort((a, b) => b - a); // Sort in descending order
+        gameState.selectedCards.forEach(index => {
+            gameState.players[3].splice(index, 1);
+        });
+
+        gameState.lastPlay = selectedCardObjects;
+        gameState.lastPlayCombo = combo;
+        gameState.lastPlayer = 3;
+        gameState.selectedCards = [];
+        gameState.passCount = 0;
+
+        // Check win condition
+        if (gameState.players[3].length === 0) {
+            showMessage('축하합니다! 승리하셨습니다! 🎉');
+            return;
+        }
+
+        nextTurn();
+        renderGame();
+        updateGameInfo();
+    }
+
+    // Pass turn
+    function passturn() {
+        if (gameState.currentPlayer !== 3) return;
+        
+        gameState.passCount++;
+        
+        // Show pass indicator instead of center message
+        showPassIndicator('나');
+        
+        // If all players pass, clear the table and return to last player
+        if (gameState.passCount >= 3) {
+            setTimeout(() => {
+                gameState.lastPlay = [];
+                gameState.lastPlayCombo = null;
+                gameState.passCount = 0;
+                
+                // Set current player to the one who played the last cards
+                gameState.currentPlayer = gameState.lastPlayer;
+                
+                updateActivePlayer();
+                renderGame();
+                updateGameInfo();
+                
+                // If the last player was AI, let them start
+                if (gameState.currentPlayer !== 3) {
+                    setTimeout(() => aiTurn(), 1000);
+                } else {
+                    // Update validation for player's turn after clearing
+                    validatePlay();
+                }
+            }, 1500);
+            return; // Don't call nextTurn() here
+        }
+        
+        nextTurn();
+        updateGameInfo();
+    }
+
+    // Next turn
+    function nextTurn() {
+        gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
+        
+        if (gameState.currentPlayer !== 3) {
+            setTimeout(() => aiTurn(), 1000);
+        }
+        
+        updateActivePlayer();
+    }
+
+    // AI turn
+    function aiTurn() {
+        const aiHand = gameState.players[gameState.currentPlayer];
+        const playableCards = findAIPlay(aiHand);
+        
+        if (playableCards.length > 0) {
+            // AI plays cards
+            playableCards.sort((a, b) => b - a);
+            const playedCards = playableCards.map(index => aiHand[index]);
+            playableCards.forEach(index => {
+                aiHand.splice(index, 1);
+            });
+            
+            gameState.lastPlay = playedCards;
+            gameState.lastPlayCombo = analyzeCombo(playedCards);
+            gameState.lastPlayer = gameState.currentPlayer;
+            gameState.passCount = 0;
+            
+            // Check AI win
+            if (aiHand.length === 0) {
+                showMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`);
+                return;
+            }
+        } else {
+            // AI passes
+            gameState.passCount++;
+            
+            // Show AI pass indicator
+            const playerNames = ['AI 1', 'AI 2', 'AI 3', '나'];
+            showPassIndicator(playerNames[gameState.currentPlayer]);
+            
+            // If all players pass, clear the table and return to last player
+            if (gameState.passCount >= 3) {
+                setTimeout(() => {
+                    gameState.lastPlay = [];
+                    gameState.lastPlayCombo = null;
+                    gameState.passCount = 0;
+                    
+                    // Set current player to the one who played the last cards
+                    gameState.currentPlayer = gameState.lastPlayer;
+                    
+                    updateActivePlayer();
+                    renderGame();
+                    updateGameInfo();
+                    
+                    // If the last player was AI, let them start
+                    if (gameState.currentPlayer !== 3) {
+                        setTimeout(() => aiTurn(), 1000);
+                    } else {
+                        // Update validation for player's turn after clearing
+                        validatePlay();
+                    }
+                }, 1500);
+                return; // Don't call nextTurn() here
+            }
+        }
+        
+        nextTurn();
+        renderGame();
+        updateGameInfo();
+    }
+
+    // Find AI play strategy
+    function findAIPlay(hand) {
+        // If it's the start of new round (no last play), play lowest single card
+        if (gameState.lastPlay.length === 0) {
+            return [0];
+        }
+        
+        const targetCombo = gameState.lastPlayCombo;
+        
+        // Try to find matching combo that can beat the last play
+        for (let i = 0; i < hand.length; i++) {
+            if (targetCombo.type === 'single') {
+                const combo = analyzeCombo([hand[i]]);
+                if (canBeat(combo, targetCombo)) {
+                    return [i];
+                }
+            }
+        }
+        
+        // Try pairs
+        if (targetCombo.type === 'pair') {
+            for (let i = 0; i < hand.length - 1; i++) {
+                if (hand[i].strength === hand[i + 1].strength) {
+                    const combo = analyzeCombo([hand[i], hand[i + 1]]);
+                    if (canBeat(combo, targetCombo)) {
+                        return [i, i + 1];
+                    }
+                }
+            }
+        }
+        
+        // Try triples
+        if (targetCombo.type === 'triple') {
+            for (let i = 0; i < hand.length - 2; i++) {
+                if (hand[i].strength === hand[i + 1].strength && hand[i + 1].strength === hand[i + 2].strength) {
+                    const combo = analyzeCombo([hand[i], hand[i + 1], hand[i + 2]]);
+                    if (canBeat(combo, targetCombo)) {
+                        return [i, i + 1, i + 2];
+                    }
+                }
+            }
+        }
+        
+        return []; // Can't play, will pass
+    }
+
+    // Render last play
+    function renderLastPlay() {
+        const lastPlayElement = document.getElementById('lastPlay');
+        const lastPlayerElement = document.getElementById('lastPlayer');
+        
+        if (gameState.lastPlay.length === 0) {
+            lastPlayElement.innerHTML = '<p style="color: #999;">아직 카드가 나오지 않았습니다</p>';
+            lastPlayerElement.textContent = 'by: -';
+            return;
+        }
+        
+        // Check if it's a pass - don't show in center area
+        if (gameState.lastPlay === 'PASS') {
+            // Keep showing the previous cards, don't clear the center
+            return;
+        }
+        
+        lastPlayElement.innerHTML = '';
+        gameState.lastPlay.forEach(card => {
+            const cardElement = document.createElement('div');
+            cardElement.className = `card ${card.suit === '♦' || card.suit === '♥' ? 'red' : 'black'}`;
+            cardElement.style.position = 'static';
+            cardElement.style.cursor = 'default';
+            cardElement.innerHTML = `
+                <div>${card.value}</div>
+                <div style="font-size: 1.2rem;">${card.suit}</div>
+                <div style="transform: rotate(180deg);">${card.value}</div>
+            `;
+            lastPlayElement.appendChild(cardElement);
+        });
+        
+        const playerNames = ['AI 1', 'AI 2', 'AI 3', '나'];
+        lastPlayerElement.textContent = `by: ${playerNames[gameState.lastPlayer]}`;
+    }
+
+    // Show pass indicator
+    function showPassIndicator(playerName) {
+        const passIndicator = document.getElementById('passIndicator');
+        const passMessage = document.getElementById('passMessage');
+        
+        passMessage.textContent = `🚫 ${playerName} 패스`;
+        passIndicator.style.display = 'block';
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            passIndicator.style.display = 'none';
+        }, 2000);
+    }
+
+    // Update active player indicator
+    function updateActivePlayer() {
+        document.querySelectorAll('.player').forEach((player, index) => {
+            player.classList.toggle('active', index === gameState.currentPlayer);
+        });
+    }
+
+    // Update card counts
+    function updateCardCounts() {
+        document.getElementById('p1Cards').textContent = gameState.players[0].length;
+        document.getElementById('p2Cards').textContent = gameState.players[1].length;
+        document.getElementById('p3Cards').textContent = gameState.players[2].length;
+        document.getElementById('cardsLeft').textContent = gameState.players[3].length;
+    }
+
+    // Update game info
+    function updateGameInfo() {
+        const playerNames = ['AI 1', 'AI 2', 'AI 3', '나'];
+        document.getElementById('currentTurn').textContent = playerNames[gameState.currentPlayer];
+        document.getElementById('selectedCount').textContent = gameState.selectedCards.length;
+        
+        updateCardCounts();
+        updateWinProbability();
+    }
+
+    // Toggle rules panel
+    function toggleRules() {
+        const panel = document.getElementById('rulesPanel');
+        panel.classList.toggle('show');
+    }
+
+    // Show message dialog
+    function showMessage(text) {
+        document.getElementById('messageText').textContent = text;
+        document.getElementById('messageDialog').style.display = 'block';
+    }
+
+    // Hide message dialog
+    function hideMessage() {
+        document.getElementById('messageDialog').style.display = 'none';
+    }
+
+    // Start new game
+    function newGame() {
+        gameState = {
+            deck: [],
+            players: [[], [], [], []],
+            currentPlayer: 0,
+            lastPlay: [],
+            lastPlayer: -1,
+            selectedCards: [],
+            gameStarted: false,
+            passCount: 0
+        };
+        
+        initGame();
+        showMessage('새 게임이 시작되었습니다!');
+    }
+
+    // Initialize game when page loads
+    window.addEventListener('load', () => {
+        initGame();
+        showMessage('게임이 시작되었습니다! 3♠을 가진 플레이어가 먼저 시작합니다.');
+    });
+</script>
+
+</body>
+</html>

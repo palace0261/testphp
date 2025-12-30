@@ -13,6 +13,9 @@ body
 {
     margin: 0;
     padding: 0;
+    background-color: var(--secondary-color);
+    font-family: var(--font-family);
+    color: var(--black);
 }
 details
 {
@@ -39,5 +42,7 @@ section > div{
 :root
 {
     --black : #111;
+    --primary-color: #4CAF50;
+    --secondary-color: #ffffff;
     --font-family: 'Noto Sans KR','Apple SD Gothic Neo','Malgun gothic','Helvetica','Dotum',sans-serif;
 }
