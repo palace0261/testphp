@@ -426,7 +426,7 @@
         }
         
         #playBtn{
-            background: #60ff40;
+            background: #5ee742;
         }
         
         .btn.primary:disabled {
@@ -1391,17 +1391,21 @@
         // 플레이 히스토리에 추가
         addToPlayHistory(selectedCardObjects, 3);
 
-        // Check win condition
-        if (gameState.players[3].length === 0) {
-            setTimeout(() => {
-                showVictoryMessage('축하합니다! 승리하셨습니다!', true);
-            }, 500);
-            return;
-        }
-
-        nextTurn();
+        // Check win condition BEFORE UI updates
+        const playerWon = gameState.players[3].length === 0;
+        
+        // Always update UI first
         renderGame();
         updateGameInfo();
+        
+        // Handle victory or continue game
+        if (playerWon) {
+            setTimeout(() => {
+                showVictoryMessage('축하합니다! 승리하셨습니다!', true);
+            }, 300);
+        } else {
+            nextTurn();
+        }
     }
 
     // Pass turn
@@ -1446,15 +1450,24 @@
     function nextTurn() {
         gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
         
+        updateActivePlayer();
+        
+        // Only call AI turn if it's actually an AI's turn
         if (gameState.currentPlayer !== 3) {
             setTimeout(() => aiTurn(), 1000);
+        } else {
+            // Player's turn - update play validation
+            validatePlay();
         }
-        
-        updateActivePlayer();
     }
 
     // AI turn
     function aiTurn() {
+        // Safety check: only run if it's actually an AI's turn
+        if (gameState.currentPlayer === 3) {
+            return;
+        }
+        
         const aiHand = gameState.players[gameState.currentPlayer];
         const playableCards = findAIPlay(aiHand);
         
@@ -1475,12 +1488,20 @@
             // 플레이 히스토리에 추가
             addToPlayHistory(playedCards, gameState.currentPlayer);
             
-            // Check AI win
-            if (aiHand.length === 0) {
+            // Check AI win BEFORE UI updates
+            const aiWon = aiHand.length === 0;
+            
+            // Always update UI first
+            renderGame();
+            updateGameInfo();
+            
+            // Handle victory or continue game
+            if (aiWon) {
                 setTimeout(() => {
                     showVictoryMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`, false);
-                }, 500);
-                return;
+                }, 300);
+            } else {
+                nextTurn();
             }
         } else {
             // AI passes
@@ -1514,11 +1535,9 @@
                 }, 1500);
                 return; // Don't call nextTurn() here
             }
+            
+            nextTurn();
         }
-        
-        nextTurn();
-        renderGame();
-        updateGameInfo();
     }
 
     // Find AI play strategy
