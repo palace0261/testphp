@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="../css/base.css">
 
 
+
     <style>
         * {
             margin: 0;
@@ -187,6 +188,7 @@
             justify-content: center;
             width: 90%;
             max-width: 600px;
+            min-height: 300px;
         }
         
         .last-play {
@@ -320,6 +322,7 @@
             gap: 8px;
             justify-content: center;
             margin-bottom: 1rem;
+            min-height: 200px;
         }
         
         .card {
@@ -422,10 +425,16 @@
             touch-action: manipulation;
         }
         
-        .btn.primary {
-            background: #4caf50;
-            color: white;
+        #playBtn{
+            background: #30cc90;
         }
+        
+        .btn.primary:disabled {
+            background: #424242 !important;
+            color: #888 !important;
+            cursor: not-allowed;
+        }
+        
         
         .btn.secondary {
             background: hsl(354, 81%, 63%);
@@ -433,11 +442,6 @@
         }
         
         
-        .btn:disabled {
-            background: #424242;
-            cursor: not-allowed;
-            transform: none;
-        }
         
         .game-info {
             position: fixed;
@@ -448,6 +452,7 @@
             border-radius: 0.5rem;
             font-size: 0.9rem;
             display: none; /* 초기에는 숨김 */
+            z-index: 1;
         }
         
         .pass-indicator {
@@ -474,48 +479,58 @@
             100% { opacity: 0; transform: translateY(-50%) translateX(20px); }
         }
         
-        .message {
+      .message {
             position: fixed;
             top: 50%;
             left: 50%;
+            /* width: 100vw; */
+            /* height: 100vw; */
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.9);
             color: white;
             padding: 1rem 2rem;
             border-radius: 0.5rem;
-            border: 2px solid #ffd700;
             z-index: 1000;
             display: none;
             text-align: center;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            align-content: center;
+            flex-wrap: wrap;
         }
-        
         .victory-message {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* width: 60%; */
+            /* height: 50%; */
+            /* background: rgba(0, 0, 0, 0.85); */
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            backdrop-filter: blur(10px);
+            /* backdrop-filter: blur(10px); */
+            border-radius: 1rem;
+            /* padding: 0rem; */
+            /* height: 100%; */
         }
         
         .victory-content {
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 3rem;
+            background: rgb(0 0 0 / 91%);
+            /* padding: 3rem; */
             border-radius: 2rem;
-            border: 3px solid #ffd700;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
-            backdrop-filter: blur(15px);
-            animation: victoryPulse 2s ease-in-out infinite alternate;
+            /* border: 3px solid #ffd700; */
+            /* box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); */
+            /* backdrop-filter: blur(15px); */
+            /* animation: victoryPulse 2s ease-in-out infinite alternate; */
+            /* padding: 2rem; */
         }
         
         .victory-title {
-            font-size: 4rem;
+            font-size: 2rem;
             font-weight: bold;
             background: linear-gradient(45deg, #ffd700, #ffed4e, #fff176);
             background-clip: text;
@@ -527,15 +542,16 @@
         }
         
         .victory-subtitle {
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+            font-size: 1.25rem;
+            /* color: #fff; */
+            margin-bottom: 1rem;
+            /* opacity: 0.9; */
+            padding: 2rem;
         }
         
         .victory-emoji {
-            font-size: 5rem;
-            margin: 1rem 0;
+            font-size: 2rem;
+            padding: 3rem;
             animation: victoryBounce 1s ease-in-out infinite;
         }
         
@@ -555,11 +571,11 @@
         }
         
         .victory-fireworks {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
+            /* position: absolute; */
+            /* width: 50%; */
+            /* height: 50%; */
+            /* pointer-events: none; */
+            /* overflow: hidden; */
         }
         
         .firework {
@@ -638,7 +654,6 @@
             .btn {
                 padding: 1rem 1.5rem;
                 font-size: 1.1rem;
-                min-height: 50px;
                 width: 100%;
                 border-radius: 0.5rem;
                 font-size: 0.75rem;
@@ -648,22 +663,13 @@
             
             .btn:active {
                 transform: scale(0.98);
-                background-color: rgba(76, 175, 80, 0.8);
             }
             
-            .btn.primary:active {
-                background-color: rgba(76, 175, 80, 0.8);
-            }
             
             .btn.secondary:active {
                 background-color: rgba(117, 117, 117, 0.8);
             }
             
-            .btn:disabled {
-                background: hsl(43, 100%, 66%) !important;
-                transform: none !important;
-                opacity: 0.6;
-            }
         }
     </style>
 <!-- /head -->
@@ -673,7 +679,7 @@
   
   <!-- Game Header -->
   <div class="game-header">
-    <h1>Tiến Lên (티엔렌) - 북부식</h1>
+    <h1>Tiến Lên (티엔렌) - 북부식 12-31</h1>
     <p>베트남 전통 카드게임 • 13장씩 4명이 플레이</p>
     <button class="rules-toggle" onclick="toggleRules()">
       <div>
@@ -702,12 +708,14 @@
         <p style="margin-left: 1rem; color: #ffeb3b; font-size: 0.9rem;">• 빨간색: ♦(다이아) + ♥(하트) / 검은색: ♠(스페이드) + ♣(클럽)</p>
         <p style="margin-left: 1rem; color: #ff6b6b; font-size: 0.85rem;">⚠️ 빨간색+검은색 혼합 불가 (K♦+K♠ ❌ / A♥+A♣ ❌)</p>
         <p><strong>3. 트리플:</strong> 같은 숫자 3장</p>
-        <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상 (A-2-3 불가)</p>
+        <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상, 같은 색상</p>
+        <p style="margin-left: 1rem; color: #ffeb3b; font-size: 0.9rem;">• 빨간색: ♦(다이아) + ♥(하트) / 검은색: ♠(스페이드) + ♣(클럽)</p>
+        <p style="margin-left: 1rem; color: #ff6b6b; font-size: 0.85rem;">⚠️ 숫자 2는 스트레이트에 포함 불가 (3-4-5 ✅ / Q-K-A ✅ / K-A-2 ❌)</p>
         <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상 (각 페어도 같은 색상)</p>
         <p><strong>6. 쿼드러플:</strong> 같은 숫자 4장 (최강)</p>
       </div>
       
-      <p style="color: #ffd700; font-weight: bold;">💡 2는 가장 강한 카드지만, 스트레이트의 끝에만 사용 가능 (K-A-2)</p>
+      <p style="color: #ffd700; font-weight: bold;">💡 2는 가장 강한 카드지만, 스트레이트에는 전혀 사용할 수 없습니다</p>
     </div>
   </div>
 
@@ -966,7 +974,14 @@
     // Find straights that include a specific card
     function findStraightsWithCard(hand, cardIndex) {
         const targetCard = hand[cardIndex];
+        
+        // Cannot create straight if target card is a '2'
+        if (targetCard.value === '2') {
+            return [];
+        }
+        
         const straights = [];
+        const targetColor = isRed(targetCard) ? 'red' : 'black';
         
         // Try different straight lengths starting from the target card
         for (let length = 3; length <= 13; length++) {
@@ -975,7 +990,11 @@
             // Find cards for straight going up
             for (let strength = targetCard.strength + 1; strength <= targetCard.strength + length - 1; strength++) {
                 const nextCard = hand.findIndex((card, idx) => 
-                    card.strength === strength && idx !== cardIndex && !straight.includes(idx)
+                    card.strength === strength && 
+                    card.value !== '2' &&  // Cannot include 2s in straights
+                    idx !== cardIndex && 
+                    !straight.includes(idx) &&
+                    (isRed(card) ? 'red' : 'black') === targetColor  // 같은 색상인지 확인
                 );
                 if (nextCard !== -1) {
                     straight.push(nextCard);
@@ -1154,6 +1173,11 @@
         return card1IsRed === card2IsRed;
     }
 
+    // Check if card is red
+    function isRed(card) {
+        return card.suit === '♦' || card.suit === '♥';
+    }
+
     // Analyze card combination
     function analyzeCombo(cards) {
         if (cards.length === 0) return { valid: false };
@@ -1257,6 +1281,23 @@
 
     // Check if cards form a straight
     function isStraight(cards) {
+        // Check if any card is a '2' - straights cannot contain 2s
+        for (let card of cards) {
+            if (card.value === '2') {
+                return false;
+            }
+        }
+        
+        // Check if all cards have the same color (red or black)
+        const firstColor = isRed(cards[0]) ? 'red' : 'black';
+        for (let i = 1; i < cards.length; i++) {
+            const currentColor = isRed(cards[i]) ? 'red' : 'black';
+            if (currentColor !== firstColor) {
+                return false;
+            }
+        }
+        
+        // Check if cards are consecutive
         for (let i = 1; i < cards.length; i++) {
             if (cards[i].strength !== cards[i-1].strength + 1) {
                 return false;
@@ -1305,6 +1346,10 @@
     function playCards() {
         if (gameState.currentPlayer !== 3) return;
         
+        // Disable play button immediately when clicked
+        const playBtn = document.getElementById('playBtn');
+        playBtn.disabled = true;
+        
         const selectedCardObjects = gameState.selectedCards.map(i => gameState.players[3][i]);
         const combo = analyzeCombo(selectedCardObjects);
         
@@ -1338,20 +1383,30 @@
         gameState.passCount = 0;
         gameState.isFirstRound = false; // 첫 번째 라운드 종료
         
+        // 선택된 카드들의 selected 클래스 제거
+        document.querySelectorAll('#playerHand .card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
         // 플레이 히스토리에 추가
         addToPlayHistory(selectedCardObjects, 3);
 
-        // Check win condition
-        if (gameState.players[3].length === 0) {
-            setTimeout(() => {
-                showVictoryMessage('축하합니다! 당신이 승리하셨습니다!', true);
-            }, 500);
-            return;
+        // Check win condition BEFORE calling nextTurn to avoid UI conflicts
+        const playerWon = gameState.players[3].length === 0;
+        
+        if (!playerWon) {
+            nextTurn();
         }
-
-        nextTurn();
+        
         renderGame();
         updateGameInfo();
+        
+        // Show victory message after UI update
+        if (playerWon) {
+            setTimeout(() => {
+                showVictoryMessage('축하합니다! 승리하셨습니다!', true);
+            }, 300);
+        }
     }
 
     // Pass turn
@@ -1425,13 +1480,8 @@
             // 플레이 히스토리에 추가
             addToPlayHistory(playedCards, gameState.currentPlayer);
             
-            // Check AI win
-            if (aiHand.length === 0) {
-                setTimeout(() => {
-                    showVictoryMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`, false);
-                }, 500);
-                return;
-            }
+            // Check AI win BEFORE calling nextTurn to avoid UI conflicts
+            const aiWon = aiHand.length === 0;
         } else {
             // AI passes
             gameState.passCount++;
@@ -1464,11 +1514,23 @@
                 }, 1500);
                 return; // Don't call nextTurn() here
             }
+            
+            const aiWon = false;
         }
         
-        nextTurn();
+        if (!aiWon) {
+            nextTurn();
+        }
+        
         renderGame();
         updateGameInfo();
+        
+        // Show AI victory message after UI update
+        if (aiWon) {
+            setTimeout(() => {
+                showVictoryMessage(`AI ${gameState.currentPlayer + 1}이 승리했습니다! 다시 도전해보세요.`, false);
+            }, 300);
+        }
     }
 
     // Find AI play strategy
@@ -1514,6 +1576,47 @@
             }
         }
         
+        // Try straights
+        if (targetCombo.type === 'straight') {
+            for (let start = 0; start < hand.length - 2; start++) {
+                // Skip if starting card is a '2' (straights cannot contain 2s)
+                if (hand[start].value === '2') continue;
+                
+                for (let length = targetCombo.cards.length; length <= Math.min(13, hand.length - start); length++) {
+                    const straight = [];
+                    
+                    // Check if we can form a straight of same color
+                    let validStraight = true;
+                    const firstColor = isRed(hand[start]) ? 'red' : 'black';
+                    
+                    for (let i = 0; i < length; i++) {
+                        const cardIndex = start + i;
+                        if (cardIndex < hand.length && 
+                            hand[cardIndex].strength === hand[start].strength + i &&
+                            hand[cardIndex].value !== '2') {  // Cannot include 2s in straights
+                            const currentColor = isRed(hand[cardIndex]) ? 'red' : 'black';
+                            if (currentColor === firstColor) {
+                                straight.push(cardIndex);
+                            } else {
+                                validStraight = false;
+                                break;
+                            }
+                        } else {
+                            validStraight = false;
+                            break;
+                        }
+                    }
+                    
+                    if (validStraight && straight.length >= 3) {
+                        const combo = analyzeCombo(straight.map(idx => hand[idx]));
+                        if (combo.valid && combo.type === 'straight' && canBeat(combo, targetCombo)) {
+                            return straight;
+                        }
+                    }
+                }
+            }
+        }
+        
         return []; // Can't play, will pass
     }
     
@@ -1552,21 +1655,35 @@
             }
         }
         
-        // Straights (3+ cards)
+        // Straights (3+ cards) - check color consistency
         for (let start = 0; start < hand.length - 2; start++) {
+            // Skip if starting card is a '2' (straights cannot contain 2s)
+            if (hand[start].value === '2') continue;
+            
             for (let length = 3; length <= Math.min(13, hand.length - start); length++) {
                 const straight = [];
+                let validStraight = true;
+                const firstColor = isRed(hand[start]) ? 'red' : 'black';
+                
                 for (let i = 0; i < length; i++) {
                     const cardIndex = start + i;
                     if (cardIndex < hand.length && 
-                        hand[cardIndex].strength === hand[start].strength + i) {
-                        straight.push(cardIndex);
+                        hand[cardIndex].strength === hand[start].strength + i &&
+                        hand[cardIndex].value !== '2') {  // Cannot include 2s in straights
+                        const currentColor = isRed(hand[cardIndex]) ? 'red' : 'black';
+                        if (currentColor === firstColor) {
+                            straight.push(cardIndex);
+                        } else {
+                            validStraight = false;
+                            break;
+                        }
                     } else {
+                        validStraight = false;
                         break;
                     }
                 }
                 
-                if (straight.length >= 3) {
+                if (validStraight && straight.length >= 3) {
                     const combo = analyzeCombo(straight.map(idx => hand[idx]));
                     if (combo.valid && combo.type === 'straight') {
                         possibleCombos.push({
@@ -1743,7 +1860,7 @@
     // Show message dialog
     function showMessage(text) {
         document.getElementById('messageText').textContent = text;
-        document.getElementById('messageDialog').style.display = 'block';
+        document.getElementById('messageDialog').style.display = 'flex';
     }
     
     // Show victory message with special effects
@@ -1766,7 +1883,14 @@
                 <div class="victory-emoji">${isPlayerWin ? '🎉🏆🎉' : '🤖🏆🤖'}</div>
                 <div class="victory-title">${isPlayerWin ? '승리!' : 'AI 승리'}</div>
                 <div class="victory-subtitle">${text}</div>
-                <button class="btn primary" onclick="hideVictoryMessage()" style="margin-top: 2rem; padding: 1rem 2rem; font-size: 1.2rem; background: linear-gradient(45deg, #ff6b6b, #ee5a24); border: none; border-radius: 0.5rem; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">확인</button>
+                <button class="btn primary" onclick="hideVictoryMessage()" style="
+    color: #fff;
+    background: #cccccc00;
+    margin-bottom: 1rem;
+    width: 50%;
+    border-radius: 0;
+    border: 1px solid;
+    ">확인</button>
             </div>
         `;
         
@@ -1810,7 +1934,7 @@
         startGameCountdown();
     }
 
-    // Game start countdown function
+    // Game start countdown function (temporarily disabled)
     async function startGameCountdown() {
         const startScreen = document.getElementById('gameStartScreen');
         const countdownScreen = document.getElementById('countdownScreen');
@@ -1819,26 +1943,26 @@
         
         // Hide start screen, show countdown
         startScreen.style.display = 'none';
-        countdownScreen.style.display = 'flex';
+        // countdownScreen.style.display = 'flex';
         
-        // Countdown sequence
-        const countdownSequence = ['Ready', '3', '2', '1', 'Start!'];
+        // Countdown sequence - TEMPORARILY COMMENTED OUT
+        // const countdownSequence = ['Ready', '3', '2', '1', 'Start!'];
         
-        for (let i = 0; i < countdownSequence.length; i++) {
-            countdownText.textContent = countdownSequence[i];
-            countdownText.style.animation = 'none';
-            // Force reflow
-            countdownText.offsetHeight;
-            countdownText.style.animation = 'pulse 1s ease-in-out';
-            
-            if (i < countdownSequence.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            } else {
-                await new Promise(resolve => setTimeout(resolve, 800));
-            }
-        }
+        // for (let i = 0; i < countdownSequence.length; i++) {
+        //     countdownText.textContent = countdownSequence[i];
+        //     countdownText.style.animation = 'none';
+        //     // Force reflow
+        //     countdownText.offsetHeight;
+        //     countdownText.style.animation = 'pulse 1s ease-in-out';
+        //     
+        //     if (i < countdownSequence.length - 1) {
+        //         await new Promise(resolve => setTimeout(resolve, 1000));
+        //     } else {
+        //         await new Promise(resolve => setTimeout(resolve, 800));
+        //     }
+        // }
         
-        // Hide countdown, show game board
+        // Hide countdown, show game board immediately
         countdownScreen.style.display = 'none';
         gameBoard.style.display = 'flex';
         
@@ -1856,7 +1980,6 @@
             addMobileTouchSupport();
         }, 100);
         
-        showMessage('게임이 시작되었습니다!');
     }
     
     // Reset to start screen when starting new game
@@ -1896,6 +2019,7 @@
                 if (!this.disabled) {
                     e.preventDefault();
                     this.style.transform = 'scale(0.98)';
+                    this.style.backgroundColor = '#45a049';
                 }
             }, { passive: false });
             
@@ -1903,6 +2027,11 @@
                 if (!this.disabled) {
                     e.preventDefault();
                     this.style.transform = '';
+                    this.style.backgroundColor = '#4caf50';
+                    setTimeout(() => {
+                        this.blur();
+                        this.style.removeProperty('background-color');
+                    }, 200);
                     playCards();
                 }
             }, { passive: false });
