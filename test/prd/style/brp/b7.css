@@ -9,7 +9,7 @@ section:nth-child(n+3){
   background-color: #fafafa;
 }
 .bbase > section:nth-of-type(even){
-    background: #f1f1f1; 
+    /* background: #f1f1f1; */
 }
 section{
   position: relative;
@@ -39,7 +39,7 @@ section{
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: #ffffff;
+  background: #f0f0f0;
   align-items: center;
   padding: 0rem 3rem 2rem;
   border-radius: 0.5rem;
@@ -73,6 +73,7 @@ section:nth-child(n+3) > div{
   margin: 0 auto;
   min-height: 16rem;
   padding: calc(3rem + 0.25vw) 0;
+  text-align: center;
 }
 .rl_sdu ul li span{
   font-size: var(--size-cb);
@@ -102,6 +103,7 @@ section:nth-child(n+2) > div > li span
   display: block;
   word-spacing: -0.05em;
   color: #333333;
+  margin: 1rem 0 2rem;
 }
 
 .g_duct > div > span+div img:first-child{

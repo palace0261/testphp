@@ -106,6 +106,105 @@
 
 
 
+
+
+
+      <style>
+      .av_d {
+        position: relative;
+        padding: 60px 40px;
+        background: #ffffff;
+        margin: 40px 0;
+      }
+
+      .av_d::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: calc(50% - 20px);
+        transform: translateX(-50%) rotate(45deg);
+        width: 10px;
+        height: 10px;
+        background: #4e8fff;
+        border-radius: 2px;
+      }
+
+      .av_d::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: calc(50% + 20px);
+        transform: translateX(-50%) rotate(45deg);
+        width: 10px;
+        height: 10px;
+        background: #4e8fff;
+        border-radius: 2px;
+      }
+
+      .av_d .center-diamond {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        width: 15px;
+        height: 15px;
+        background: #4e8fff;
+        border-radius: 2px;
+        z-index: 1;
+        margin: 0;
+      }
+
+
+      @media (max-width: 768px) {
+        .av_d::before,
+        .av_d::after{
+        width: 8px;
+        height: 8px;
+        top: -6px;
+        margin: 0;
+        }
+        .av_d .center-diamond {
+        width: 10px;
+        height: 10px;
+        top: -8px;
+        margin: 0;
+        }
+      }
+      </style>
+      
+      <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const sections = document.querySelectorAll('.av_d');
+        sections.forEach(section => {
+          const diamond = document.createElement('div');
+          diamond.className = 'center-diamond';
+          section.appendChild(diamond);
+        });
+      });
+      </script>
+
+
+    <section>
+      <div style="min-height: 5rem;">
+
+      </div>
+    </section>
+
+    <section class="av_sc">
+      <div class="av_d">
+        <h2>펌웨어 업그레이드</h2>
+        <span>
+        이미지 처리 알로기즘 개선과 최적화 기술을 적용하여 보다 뛰어난 화질을 제공하며 왜곡 보정 기능이 향상되었습니다.
+        </span>
+          
+        <div class="ad_s">
+          <div><img src="../../img/b7/upb7a.png">
+        </div>
+      </div>
+      </div>
+    </section>
+
+
     <section class="av_sc">
       <div class="av_d">
         <h2>SONY Image Sensor</h2>
@@ -174,6 +273,30 @@
           <div><img src="../../img/b7/bit10x.png">
            <span>화질 저하 없이 클리어 줌인/아웃 할 있어 먼 거리에서도 선명한 화질로 보실 수 있습니다.</span>
         </div>
+       </div>
+      </div>
+    </section>
+
+    <section class="av_sc">
+      <div class="av_d">
+        <h2>AI 자동 초첨, 자동 익스포저</h2>
+        <span>BOLIN AI 기술을 적용하여 피사체 얼출을 분석하여 스마트한 자동 초점 및 자동 익스포저 기능을 제공하여 복잡한 조명 환경에서도 더욱 빠르고 정확한 이미지 품질을 제공합니다</span>
+
+        <div class="ad_s">
+          <div><img src="../../img/b7/b7fa.png">
+        </div >
+       </div>
+      </div>
+    </section>
+
+    <section class="av_sc">
+      <div class="av_d">
+        <h2>Movement Matters</h2>
+        <span>부드럽고 조용하며 정밀한 움직임을 제공합니다 (Pan: ±170°, Tilt: +90° to -30°)</span>
+
+        <div class="ad_s">
+          <div><img src="../../img/b7/pt7.png">
+        </div >
        </div>
       </div>
     </section>
@@ -363,6 +486,21 @@
       </div>
     </section>
 
+    
+
+    <section class="av_sc">
+      <div class="av_d">
+        <h2>1년 무상 품질보증</h2>
+        <span>
+        소다미디어에서 PTZ 카메라를 구매 후 1년 무상 A/S를 보증합니다.(보증 제외 사항: 사용자의 부주의(충격, 침수 등), 임의 분해/개조, 비정상적 사용으로 인한 고장은 유상 수리 대상입니다.)
+        </span>
+        <div class="ad_s">
+        <div><img src="../../img/b7/z1b7a.png">
+        </div>
+       </div>
+      </div>
+    </section>
+
     <section class="av_sc spec-section">
       <style>
         .tab-content { display: grid; gap: 14px; max-width: 1100px; margin: 0 auto; }
@@ -380,52 +518,31 @@
         .btn.load-more { display:inline-flex; align-items:center; gap:8px; margin: 6px auto 0; background:#2a7cff; color:#fff; padding:10px 14px; border-radius:10px; border:0; cursor:pointer; box-shadow: 0 6px 18px rgba(42,124,255,0.18); }
         @media (max-width: 760px) {
           .tab-content tbody tr{display: flex; flex-wrap:wrap; flex-direction: column;}
+        }
       </style>
 
       <div class="av_d">
         <h2>SPECIFICATIONS</h2>
-
         <div class="tab-content">
-          <!-- Camera -->
-          <div class="tab-pane" aria-labelledby="tab-header-camera">
+          <div class="tab-pane">
             <div class="table-wrapper">
               <table class="table">
                 <tbody>
                   <tr>
                     <th colspan="2">Image Sensor</th>
-                    <td>Sony Progressive scan CMOS image sensor 1/2.8 type</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Number of effective pixels</th>
-                    <td>1920X1080, 2.13 MP</td>
+                    <td>Sony Progressive scan CMOS 1/2.8", 2.13 MP</td>
                   </tr>
                   <tr>
                     <th colspan="2">Zoom</th>
                     <td>Optical Zoom 20X, Digital Zoom 16X</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Focal Length</th>
-                    <td>f= 5.2 mm (Wide) to 104 mm (Tele)</td>
+                    <th colspan="2">SDI Output</th>
+                    <td>3G-SDI (BNC x1), 1080p60/50/30/25, 720p60/50/30/25</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Aperture</th>
-                    <td>F1.6 (Wide) to F3.0 (Tele)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Horizontal Angle of View</th>
-                    <td>55.8° (W) ~ 3.2° (T)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Vertical Angle of View</th>
-                    <td>-</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Min. object distance</th>
-                    <td>10mm (Wide)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Min. Illumination</th>
-                    <td>0.5lux（color），0.1lux（black）</td>
+                    <th colspan="2">HDMI Output</th>
+                    <td>HDMI 1.4 Type A, 1080p60/50/30/25, 720p60/50/30/25</td>
                   </tr>
                   <tr>
                     <th colspan="2">Shutter Speed</th>
@@ -437,499 +554,43 @@
                   </tr>
                   <tr>
                     <th colspan="2">White Balance</th>
-                    <td>Auto, Indoor, Outdoor, OPW, ATW, Manual, SVL USER</td>
+                    <td>Auto, Indoor, Outdoor, Manual</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Exposure</th>
-                    <td>Auto, Manual, Shutter/Iris priority</td>
+                    <th colspan="2">Pan/Tilt Movement</th>
+                    <td>Pan: ±170°, Tilt: +90° to -30°</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Image Adjustment</th>
-                    <td>Brightness, Color(Saturation), Contrast, Sharpness, HUE</td>
+                    <th colspan="2">Minimum Illumination</th>
+                    <td>0.5lux (color), 0.1lux (B&W)</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Back Light Compensation</th>
-                    <td>On/Off</td>
+                    <th colspan="2">Control Interface</th>
+                    <td>RS422, IP Control, IR Remote</td>
                   </tr>
                   <tr>
-                    <th colspan="2">E-Flip</th>
-                    <td>On/Off</td>
+                    <th colspan="2">Preset</th>
+                    <td>255 positions (9 on remote)</td>
                   </tr>
                   <tr>
-                    <th colspan="2">WDR</th>
-                    <td>On/Off</td>
+                    <th colspan="2">Connectors</th>
+                    <td>HDMI, 3G-SDI, RJ45, USB Type-C, DC12V</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Image Stabilizer</th>
-                    <td>-</td>
+                    <th colspan="2">Environment</th>
+                    <td>-10°C to +50°C, ≤80% Humidity</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Defog</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Mirror</th>
-                    <td>Horizontal</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Day/Night</th>
-                    <td>On/Off</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Contrast</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Gain</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Hue</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Matrix</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Black Level</th>
-                    <td>-</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Gamma</th>
-                    <td>Yes, 4 levels (0.45, 0.50, 0.55, 0.63)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">High Sensitivity</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Scene</th>
-                    <td>Default, Clear, Bright, Soft</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Focus Zone</th>
-                    <td>Face Priority, All Area, Upper Area, Central Area, Lower Area</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">AI Face Detection Focus</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">AI Face Auto Exposure</th>
-                    <td>Yes</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Noise Reduction</th>
-                    <td>2D/3D, 0-100</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">S/N Ratio</th>
-                    <td>≥50db</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">OSD</th>
-                    <td>Editable</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- HDMI -->
-          <div class="tab-pane" id="tab-b7-220-hdmi-signal-system-169" role="tabpanel" aria-labelledby="tab-header-b7-220-hdmi-signal-system-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">Video Format - HDMI</th>
-                    <td>1920x1080p:60/59.94/50/30/29.97/25; 1280x720p:60/59.94/50/30/25</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Format</th>
-                    <td>8bit(RGB), 12bit(YUV422)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Space</th>
-                    <td>YUV, RGB</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">OSD Menu Display</th>
-                    <td>YES</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- SDI -->
-          <div class="tab-pane" id="tab-b7-220-sdi-signal-system-169" role="tabpanel" aria-labelledby="tab-header-b7-220-sdi-signal-system-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">SDI Video Format</th>
-                    <td>1080p:60/59.94/50/30/29.97/25; 720p:60/59.94/50/30/25</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Precision</th>
-                    <td>8bit(SDI), YCbCr, 4:2:2</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Color Space</th>
-                    <td>YUV</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Standard</th>
-                    <td>3G-SDI, SMPTE424M/SMPTE292M, TE 425-A(3Gb/s), with SMPTE352 SDI Metadata Supported</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">True Dual Output</th>
-                    <td>SDI and HDMI have same video format when HDMI outputs FHD and lower.</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">OSD Menu Display</th>
-                    <td>YES</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- USB -->
-          <div class="tab-pane" id="tab-b7-220-usb-signal-system-169" role="tabpanel" aria-labelledby="tab-header-b7-220-usb-signal-system-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">USB Port</th>
-                    <td>USB2.0, Type C</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Encoder</th>
-                    <td>H.264/MJPEG/YUV2</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">USB Video Format</th>
-                    <td>1920×1080p60/50/30/25fps, 1280X720p60/50/30/25fps</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Compatible Integration</th>
-                    <td>UVC, UAC</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Video Conference Compatibility</th>
-                    <td>Most video conference platforms in the market</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Network / IP -->
-          <div class="tab-pane" id="tab-b7-220-network-ip-streaming-169" role="tabpanel" aria-labelledby="tab-header-b7-220-network-ip-streaming-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">Video Codec</th>
-                    <td>MJPEG, AVC/HEVC-H.264/265 by SoC</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Network Interface</th>
-                    <td>RJ45 port - Standard 1Gbps Ethernet</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">IP Video - 1st Stream</th>
-                    <td>1080p60/59.94/50/30/29.97/25; 720p60/59.94/50/30/25</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">IP Video - 2nd Stream</th>
-                    <td>704x576, 640x480, 640x360, 576x480, 352x228; Frame Rate P30/25</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">True Dual Output</th>
-                    <td>IP and HDMI can be output with different formats (SDI and HDMI will be the same; USB is same as IP)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">IP Protocols</th>
-                    <td>TCP/IP, ICMP, ARP, RTP, UDP, HTTP, DNS, DHCP, FTP, NTP</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Application Protocols</th>
-                    <td>RTP, RTSP, RTMP, RTMPS, SRT</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Multi-stream</th>
-                    <td>2 Streams（Up to 8 viewers at the same time）</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Audio Compression</th>
-                    <td>AAC-LC, Broadband Audio Encoding</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Compatible Integration</th>
-                    <td>ONVIF2.4 (Profile S), VISCA Over IP</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">OSD</th>
-                    <td>Customized OSD</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Browser Support</th>
-                    <td>HTML5 support for Edge, Chrome, Firefox, Safari</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Latency - Codec</th>
-                    <td>&lt;150ms at 1080p60</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1" rowspan="2">Bandwidth</th>
-                    <th colspan="1"></th>
-                    <td>1-11Mbps at 1080p60</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1"></th>
-                    <td>Results may vary depending on network configuration and management settings.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Interface -->
-          <div class="tab-pane" id="tab-b7-220-interface-169" role="tabpanel" aria-labelledby="tab-header-b7-220-interface-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">HDMI Video Output</th>
-                    <td>HDMI 1.4 X1 Type A</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">IP Video Stream</th>
-                    <td>Up to 1080p60</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">SDI Video Output</th>
-                    <td>3G-SDI, standard / 75 Ω (BNC x 1)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Camera Control Interface</th>
-                    <td>RJ45 X1 - RS422, RJ45 X1 - IP Control, IR Remote Control</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Control Protocol</th>
-                    <td>VISCA, VISCA Over IP, Pelco P/D, Onvif</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">LAN Port</th>
-                    <td>RJ45 X1 (1000BASE-T Ethernet port)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">USB Port</th>
-                    <td>USB2.0, Type C</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">USB Protocol</th>
-                    <td>UVC, UAC</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Synchronization</th>
-                    <td>Internal synchronization</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Tally Light</th>
-                    <td>Tally lamp in front, Red and Green Color</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Dip Switch</th>
-                    <td>Camera bottom panel: 8 PIN x 2</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Firmware Upgrade</th>
-                    <td>Upgrade via IP for camera system MCU and Encoder</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">IR ID</th>
-                    <td>ID selector for IR controller, total 3</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1" rowspan="2">Power Connector Type</th>
-                    <th colspan="1"></th>
-                    <td>DC12V (IEC60130-10 (JEITA standard RC-5320A) TYPE4)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1"></th>
-                    <td>INPUT: RJ45, PoE (IEEE802.3af)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1" rowspan="2">Audio Input</th>
-                    <th colspan="1"></th>
-                    <td>USB port to 3.5mm audio jack</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1"></th>
-                    <td>AAC（Bit Rate 48K*/64k/96K/128k; Sampling Rate 44.1k/48k）</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1" rowspan="2">Audio Output</th>
-                    <th colspan="1"></th>
-                    <td>USB port to 3.5mm audio jack - (Not Activated)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="1"></th>
-                    <td>Embedded with HDMI, SDI, IP, USB streaming, 24bit Stereo, sample rate: 44.1KHz, 48KHz, PCM24</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Audio S/N Ratio</th>
-                    <td>≥85dB</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Audio THD+N</th>
-                    <td>≤0.05%</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Audio Noise (RMS)</th>
-                    <td>≤-90dB</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Mechanical -->
-          <div class="tab-pane" id="tab-b7-220-mechanical-169" role="tabpanel" aria-labelledby="tab-header-b7-220-mechanical-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">Pan Movement</th>
-                    <td>Horizontal: ±170° continuous pan (Zoom Adaptive Speed Range: 0.05°〜100°/s)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Tilt Movement</th>
-                    <td>Vertical: +90° to -30° (Zoom Adaptive Speed Range: 0.05°〜70°/s)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Speed Proportional</th>
-                    <td>Pan/Tilt speed proportional to zoom range</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Preset Position</th>
-                    <td>255 positions, Speed 100°/s, Accuracy: 0.05° — 9 presets on remote controller</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Preset Speed</th>
-                    <td>0~5 Level Adjustable</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Preset Memory</th>
-                    <td>YES (Picture Profile Preset for image parameters)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Motionless Preset</th>
-                    <td>On/Off</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">PTZ Trace Memory</th>
-                    <td>Yes, 4 (Supported via IP interface)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Cruise</th>
-                    <td>Yes, 12</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Adaptive PT</th>
-                    <td>Zoom range adaptive Pan/Tilt speed</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Pan/Tilt Direction</th>
-                    <td>Normal, Invert</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Quietness</th>
-                    <td>NC35 or less</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Home Position</th>
-                    <td>Support</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Environmental</th>
-                    <td>Indoor</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- General -->
-          <div class="tab-pane" id="tab-b7-220-general-169" role="tabpanel" aria-labelledby="tab-header-b7-220-general-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">Body</th>
-                    <td>Partial Magnesium Alloy</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Mount</th>
-                    <td>Ceiling mount, Wall mount, Tripod</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Size of Tripod Screw Hole</th>
-                    <td>1/4”-20UNC with safety joint</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Operating Temperature</th>
-                    <td>-10 to +50 °C (32 to 130 °F)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Operating Humidity</th>
-                    <td>≤80% Suitable for Use</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Power Input</th>
-                    <td>DC±12V, PoE+ (IEEE802.3 at Type 1 Class 4)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Power Consumption</th>
-                    <td>Min: 10W (static); Max: 13W (fully loaded)</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Dimension</th>
-                    <td>179mm (L) x 140mm (W) x 211mm (H)</td>
+                    <th colspan="2">Size</th>
+                    <td>179 x 140 x 211 mm</td>
                   </tr>
                   <tr>
                     <th colspan="2">Weight</th>
-                    <td>1.5kg (Net weight)</td>
+                    <td>1.5kg</td>
                   </tr>
                   <tr>
-                    <th colspan="2">Body Color</th>
-                    <td>Available in Black, White</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Accessory -->
-          <div class="tab-pane" id="tab-b7-220-accessory-169" role="tabpanel" aria-labelledby="tab-header-b7-220-accessory-169">
-            <div class="table-wrapper">
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <th colspan="2">Power Supply</th>
-                    <td>12VDC 2A X1, Universal various power core.</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Remote Controller</th>
-                    <td>Full Function IR Controller X1</td>
-                  </tr>
-                  <tr>
-                    <th colspan="2">Serial Control Adaptor</th>
-                    <td>RS232/RS422 adapter cable x1 for serial RS232/422 control</td>
+                    <th colspan="2">Power</th>
+                    <td>DC12V 2A or PoE+ (10-13W)</td>
                   </tr>
                 </tbody>
               </table>
