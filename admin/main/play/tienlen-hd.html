@@ -693,6 +693,7 @@
       <ul style="text-align: left; margin: 1rem 0;">
         <li><strong>목표:</strong> 13장의 카드를 가장 먼저 모두 내는 사람이 승리</li>
         <li><strong>시작:</strong> 3♠을 가진 플레이어가 첫 번째로 카드를 냄</li>
+        <li><strong>스트레이트 규칙:</strong> 스페이드 3으로 시작하는 스트레이트는 같은 모양만 사용 가능</li>
         <li><strong>진행:</strong> 시계방향으로 더 강한 카드/조합을 내거나 패스</li>
         <li><strong>싱글카드 규칙:</strong> 싱글카드가 나온 후에는 같은 무늬의 카드만 낼 수 있음 (단, 숫자 2는 예외)</li>
         <li><strong>패스:</strong> 모든 플레이어가 패스하면 마지막에 카드를 낸 사람이 새로 시작</li>
@@ -713,6 +714,7 @@
         <p><strong>3. 트리플:</strong> 같은 숫자 3장</p>
         <p><strong>4. 스트레이트:</strong> 연속된 숫자 3장 이상, 같은 무늬</p>
         <p style="margin-left: 1rem; color: #ffeb3b; font-size: 0.9rem;">• 모든 카드가 같은 무늬여야 함 (♠♠♠, ♣♣♣, ♦♦♦, ♥♥♥)</p>
+        <p style="margin-left: 1rem; color: #4cd137; font-size: 0.85rem;">✅ 3♠ 포함 스트레이트: 반드시 모든 카드가 같은 무늬여야 함</p>
         <p style="margin-left: 1rem; color: #ff6b6b; font-size: 0.85rem;">⚠️ 숫자 2는 스트레이트에 포함 불가 (3-4-5 ✅ / Q-K-A ✅ / K-A-2 ❌)</p>
         <p><strong>5. 더블 스트레이트:</strong> 연속된 페어 3쌍 이상 (모든 카드가 같은 무늬)</p>
         <p><strong>6. 쿼드러플:</strong> 같은 숫자 4장 (최강)</p>
@@ -1371,6 +1373,27 @@
             }
             
             // Different suits are not allowed when lastPlaySuit is set (except for 2)
+            return false;
+        }
+        
+        // Straight rule: must play same suit if last play was a straight
+        if (combo1.type === 'straight' && combo2.type === 'straight') {
+            // 스트레이트는 같은 모양의 카드만 낼 수 있음
+            if (combo1.cards.length === combo2.cards.length) {
+                // 모든 카드가 같은 모양이어야 함
+                const firstSuit = combo2.cards[0].suit;
+                if (!combo1.cards.every(card => card.suit === firstSuit)) {
+                    return false; // 다른 모양이 섞여있으면 불가
+                }
+                
+                // 같은 모양이고 더 강한 수에서 시작하면 가능
+                if (combo1.strength > combo2.strength) {
+                    return true;
+                }
+                if (combo1.strength === combo2.strength && combo1.suitStrength > combo2.suitStrength) {
+                    return true;
+                }
+            }
             return false;
         }
         
