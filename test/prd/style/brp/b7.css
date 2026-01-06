@@ -18,6 +18,9 @@ section{
   /* border-top: 1px solid; */
 }
 
+.av_sc{
+  padding: calc(1rem + 0.25vw) 0;
+}
 #container section:nth-child(5),
 #container section:nth-child(7),
 #container section:nth-child(9),
