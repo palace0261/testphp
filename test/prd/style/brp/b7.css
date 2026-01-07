@@ -1369,6 +1369,9 @@ section:nth-child(2) > div{
   font-size: calc(1rem + 0.25vw);
 }
 
+  #container section:nth-child(n+1) > div {
+    padding: 1rem;
+  }
   
 }
 
