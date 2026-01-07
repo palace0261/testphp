@@ -25,8 +25,8 @@
   bottom: 1rem;
 }
 
-section:nth-child(n+3){
-  padding-bottom: 3rem;
+section:nth-child(n+2){
+  padding-bottom: 1rem;
   /* border-top: 1px solid #ebebeb; */
   /* background-color: #fafafa; */
 }
@@ -132,7 +132,7 @@ section:nth-child(n+2) > div > li span
   display: block;
   word-spacing: -0.05em;
   color: #333333;
-  margin: 1rem 0 2rem;
+  margin: 1rem 0 1rem;
 }
 
 .g_duct > div > span+div img:first-child{
