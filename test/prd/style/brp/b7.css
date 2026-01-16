@@ -1389,7 +1389,7 @@ section:nth-child(2) > div{
 }
 
   #container section:nth-child(n+1) > div {
-    padding: 1rem;
+    padding: 3rem 1rem;
   }
   
 }
