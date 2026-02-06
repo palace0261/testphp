@@ -39,7 +39,7 @@
 section:nth-child(n+2){
   padding-bottom: 1rem;
   /* border-top: 1px solid #ebebeb; */
-  /* background-color: #fafafa; */
+  background-color: #1b1b1b;
 }
 .bbase > section:nth-of-type(even){
     /* background: #f1f1f1; */
@@ -58,7 +58,7 @@ section{
 #container section:nth-child(7),
 #container section:nth-child(9),
 #container section:nth-child(11){
-  /* background: var(--color-b); */
+  background: var(--color-b);
 }
 
 .pduct{
@@ -131,7 +131,7 @@ section:nth-child(n+3) > div{
 section:nth-child(n+2) > div h2{
   font-size: calc(2.2rem + 0.25vw);
   word-spacing: -0.05em;
-  /* color: #000; */
+  color: #fbfbfb;
 }
 
 section:nth-child(n+2) > div > span,
@@ -142,7 +142,7 @@ section:nth-child(n+2) > div > li span
   padding: 0.5rem 0;
   display: block;
   word-spacing: -0.05em;
-  color: #333333;
+  color: #ebebebfb;
   margin: 1rem 0 1rem;
 }
 
