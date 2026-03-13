@@ -1,130 +1,194 @@
 <?php
-declare(strict_types=1);
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-header('Content-Type: text/html; charset=utf-8');
+$dbHost = 'svc.sel4.cloudtype.app:31446';
+$dbUser = 'root';
+$dbPass = 'palace0261@@';
+$dbName = 'palace0261';
 
-if (isset($_GET['phpinfo']) && $_GET['phpinfo'] === '1') {
-    phpinfo();
-    exit;
+$tableName = 'es_testTable';
+$startAutoIncrement = 33;
+
+$message = '';
+$formError = '';
+$dbError = '';
+$listError = '';
+$schemaWarning = '';
+$rows = [];
+
+function h(string $value): string
+{
+  return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-$messages = [];
-$errors = [];
+function ensureTable(mysqli $conn, string $dbName, string $tableName, int $startAutoIncrement): string
+{
+  $warning = '';
 
-// .env 지원 (vlucas/phpdotenv)
-$projectRoot = realpath(__DIR__ . '/../../') ?: (__DIR__ . '/../../');
-$autoloadPath = $projectRoot . '/vendor/autoload.php';
-$envPath = $projectRoot . '/.env';
+  // 1) 테이블 생성 (없으면)
+  $createSql = "
+    CREATE TABLE IF NOT EXISTS `{$tableName}` (
+      `sno` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `testno` BIGINT UNSIGNED NULL,
+      `title` VARCHAR(255) NOT NULL,
+      `detail` TEXT NOT NULL,
+      PRIMARY KEY (`sno`)
+      , UNIQUE KEY `ux_testno` (`testno`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  ";
+  $conn->query($createSql);
+
+  // 1-0) 기존 테이블에 testno가 없을 수 있으므로 추가 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `testno` BIGINT UNSIGNED NULL AFTER `sno`"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
+    }
+  }
+
+  // 1-0-1) testno 중복 방지(유니크 인덱스) 보장
+  try {
+    $conn->query("ALTER TABLE `{$tableName}` ADD UNIQUE KEY `ux_testno` (`testno`)");
+  } catch (Throwable $e) {
+    // 1061: Duplicate key name (이미 존재)
+    // 1062: Duplicate entry (기존 데이터에 중복 testno가 존재)
+    if ($e instanceof mysqli_sql_exception) {
+      $code = (int)$e->getCode();
+      if ($code === 1061) {
+        // already exists
+      } elseif ($code === 1062) {
+        $warning = '기존 데이터에 testno 중복이 있어 DB 유니크 제약(ux_testno)을 만들지 못했습니다. 중복 데이터를 정리한 뒤 다시 시도하세요.';
+      } else {
+        $warning = 'DB 유니크 제약(ux_testno) 설정 중 오류: ' . $e->getMessage();
+      }
+    } else {
+      $warning = 'DB 유니크 제약(ux_testno) 설정 중 오류: ' . $e->getMessage();
+    }
+  }
+
+  // 1-1) 기존 테이블에 created_at이 없을 수 있으므로 추가 시도
+  // (이미 있으면 Duplicate column 에러가 나는데, 그 경우는 무시)
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    // 그 외(권한 등)는 상위에서 처리/표시될 수 있으므로 재throw하지 않음
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(목록 조회에서 created_at 없는 경우 fallback 처리)
+    }
+  }
+
+  // 2) AUTO_INCREMENT 시작값을 최소 33으로 보장
+  // MySQL은 현재 값보다 낮게 설정하면 자동으로 무시(또는 유지)하므로 안전합니다.
+  $conn->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$startAutoIncrement}");
+
+  return $warning;
+}
 
 try {
-  if (is_file($autoloadPath)) {
-    require_once $autoloadPath;
-    $dotenvClass = 'Dotenv\\Dotenv';
-    if (class_exists($dotenvClass)) {
-      $dotenvClass::createImmutable($projectRoot)->safeLoad();
+  $conn = mysqli_connect($dbHost, $dbUser, $dbPass, $dbName);
+  $conn->set_charset('utf8mb4');
+
+  $schemaWarning = ensureTable($conn, $dbName, $tableName, $startAutoIncrement);
+
+  // 폼에 표시할 다음 testno 계산 (없으면 1부터)
+  $nextTestno = 1;
+  try {
+    $res = $conn->query("SELECT COALESCE(MAX(`testno`), 0) AS max_testno FROM `{$tableName}`");
+    $maxRow = $res->fetch_assoc();
+    $nextTestno = ((int)($maxRow['max_testno'] ?? 0)) + 1;
+  } catch (Throwable $e) {
+    // testno 컬럼이 아직 없거나(기존 테이블), 권한 문제인 경우에도 폼은 동작하게 둠
+    $nextTestno = 1;
+  }
+
+  $testnoValue = (string)($_POST['testno'] ?? (string)$nextTestno);
+
+  if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    $testno = trim((string)($_POST['testno'] ?? ''));
+    $title = trim((string)($_POST['title'] ?? ''));
+    $detail = trim((string)($_POST['detail'] ?? ''));
+
+    if ($title === '' || $detail === '') {
+      $formError = 'title, detail을 모두 입력해주세요.';
+    } elseif ($testno === '' || !ctype_digit($testno)) {
+      $formError = 'testno 값이 올바르지 않습니다.';
+    } else {
+      $testnoInt = (int)$testno;
+
+      // 1) 서버에서 중복 사전 체크
+      try {
+        $chk = $conn->prepare("SELECT 1 FROM `{$tableName}` WHERE `testno` = ? LIMIT 1");
+        $chk->bind_param('i', $testnoInt);
+        $chk->execute();
+        $chkRes = $chk->get_result();
+        $exists = $chkRes && $chkRes->fetch_row();
+        $chk->close();
+        if ($exists) {
+          $formError = '이미 존재하는 testno 입니다. (중복 저장 불가)';
+        }
+      } catch (Throwable $e) {
+        // get_result 미지원 환경이거나 권한 문제가 있어도, 아래 INSERT에서 DB 유니크 제약으로 최종 방어
+      }
+
+      // 2) DB 유니크 제약으로 최종 중복 차단 + 중복키 처리
+      if ($formError === '') {
+        try {
+          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`) VALUES (?, ?, ?)");
+          $stmt->bind_param('iss', $testnoInt, $title, $detail);
+          $stmt->execute();
+          $newSno = $stmt->insert_id;
+          $stmt->close();
+
+          $message = "저장되었습니다. sno={$newSno}, testno={$testnoInt}";
+        } catch (mysqli_sql_exception $e) {
+          if ((int)$e->getCode() === 1062) {
+            $formError = '이미 존재하는 testno 입니다. (DB에서 중복 차단됨)';
+          } else {
+            throw $e;
+          }
+        }
+      }
     }
-  } elseif (is_file($envPath)) {
-    $errors[] = '.env 파일은 존재하지만 vendor/autoload.php가 없어 로드할 수 없습니다. (composer install 필요)';
+  }
+
+  // db-list: 저장된 내역 조회
+  try {
+    try {
+      $result = $conn->query(
+        "SELECT `sno`, `testno`, `title`, `detail`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+      );
+    } catch (Throwable $e1) {
+      try {
+        // created_at만 없는 경우
+        $result = $conn->query(
+          "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        );
+      } catch (Throwable $e2) {
+        // testno도 없는 경우
+        $result = $conn->query(
+          "SELECT `sno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        );
+      }
+    }
+    while ($row = $result->fetch_assoc()) {
+      $rows[] = $row;
+    }
+  } catch (Throwable $e) {
+    $listError = $e->getMessage();
   }
 } catch (Throwable $e) {
-  $errors[] = '.env 로드 실패: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
-
-// 환경변수: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, DB_TABLE
-$dbHost = getenv('DB_HOST') ?: 'svc.sel4.cloudtype.app';
-$dbPort = getenv('DB_PORT') ?: '31446';
-$dbName = getenv('DB_NAME') ?: 'palace0261';
-$dbUser = getenv('DB_USER') ?: 'palace0261';
-$dbPass = getenv('DB_PASS');
-$dbPass = ($dbPass === false) ? '' : (string)$dbPass;
-$dbTable = getenv('DB_TABLE') ?: 'es_testTable';
-
-if ($dbPass === '') {
-    $errors[] = 'DB_PASS 환경변수가 설정되어 있지 않습니다. (예: DB_PASS)';
-}
-
-if (!preg_match('/^[A-Za-z0-9_]+$/', $dbTable)) {
-    $errors[] = 'DB_TABLE 값이 안전하지 않습니다. 영문/숫자/언더스코어(_)만 허용됩니다.';
-}
-
-$pdo = null;
-$tableColumns = [];
-
-if (empty($errors)) {
-  try {
-    $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
-    $pdo = new PDO($dsn, $dbUser, $dbPass, [
-      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-      PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-      PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-
-    // 테이블 컬럼 목록 조회 (스키마 기반 자동 감지)
-    $colStmt = $pdo->prepare(
-      'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :db AND TABLE_NAME = :tbl'
-    );
-    $colStmt->execute([':db' => $dbName, ':tbl' => $dbTable]);
-    $tableColumns = $colStmt->fetchAll(PDO::FETCH_COLUMN);
-  } catch (Throwable $e) {
-    $errors[] = 'DB 연결 오류: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  $dbError = $e->getMessage();
+} finally {
+  if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
   }
-}
-
-$columnSet = array_fill_keys($tableColumns, true);
-
-if ($pdo && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $payload = [
-        'sno' => trim((string)($_POST['sno'] ?? '')),
-        'testNo' => trim((string)($_POST['testNo'] ?? '')),
-        'testId' => trim((string)($_POST['testId'] ?? '')),
-        'title' => trim((string)($_POST['title'] ?? '')),
-        'detail' => trim((string)($_POST['detail'] ?? '')),
-    ];
-
-    $insertCols = [];
-    $params = [];
-
-    foreach ($payload as $col => $value) {
-        if ($value === '') {
-            continue;
-        }
-        if (!isset($columnSet[$col])) {
-            continue;
-        }
-        $insertCols[] = $col;
-        $params[":" . $col] = $value;
-    }
-
-    if (count($insertCols) === 0) {
-      $errors[] = '저장할 값이 없습니다. (테이블 컬럼과 일치하는 입력값이 필요합니다.)';
-    } else {
-        try {
-            $quotedCols = array_map(static fn($c) => "`{$c}`", $insertCols);
-            $placeholders = array_map(static fn($c) => ":{$c}", $insertCols);
-            $sql = sprintf(
-                'INSERT INTO `%s` (%s) VALUES (%s)',
-                $dbTable,
-                implode(', ', $quotedCols),
-                implode(', ', $placeholders)
-            );
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            $messages[] = '저장 완료 (INSERT 성공)';
-        } catch (Throwable $e) {
-            $errors[] = '저장 실패: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        }
-    }
-}
-
-$recentRows = [];
-if ($pdo && empty($errors) && !empty($dbTable)) {
-    try {
-        $orderBy = isset($columnSet['sno']) ? ' ORDER BY `sno` DESC' : '';
-        $sql = sprintf('SELECT * FROM `%s`%s LIMIT 20', $dbTable, $orderBy);
-        $recentRows = $pdo->query($sql)->fetchAll();
-    } catch (Throwable $e) {
-      $errors[] = '조회 실패: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
 }
 ?>
 
@@ -133,100 +197,86 @@ if ($pdo && empty($errors) && !empty($dbTable)) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Database test</title>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    .box { padding: 10px 12px; border-radius: 8px; margin: 10px 0; }
-    .box-error { border: 1px solid #d33; background: #fff5f5; color: #8a1f1f; }
-    .box-ok { border: 1px solid #2e7d32; background: #f1fff2; color: #1b5e20; }
-    form > div { margin: 8px 0; }
-    label { display: inline-block; width: 64px; }
-    input { padding: 6px 8px; min-width: 240px; }
-    table { border-collapse: collapse; }
-    th { background: #f6f6f6; }
-  </style>
+  <title>es_testTable 입력</title>
 </head>
 <body>
 
-  <h3>Database test</h3>
+<!-- 입력 폼
+  <h1>입력 폼</h1>
+  <p>DB: <?= h($dbName) ?> / Table: <?= h($tableName) ?></p>
+  <p>sno: BIGINT AUTO_INCREMENT (최소 <?= (int)$startAutoIncrement ?>부터 시작)</p>
+ -->
 
-  <?php if (!empty($messages)): ?>
-    <div class="box box-ok">
-      <?php foreach ($messages as $m): ?>
-        <p><?php echo htmlspecialchars($m, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
-      <?php endforeach; ?>
-    </div>
+
+  <?php if ($message !== ''): ?>
+    <p style="color: green;"><?= h($message) ?></p>
   <?php endif; ?>
 
-  <?php if (!empty($errors)): ?>
-    <div class="box box-error">
-      <?php foreach ($errors as $err): ?>
-        <p><?php echo $err; ?></p>
-      <?php endforeach; ?>
-    </div>
+  <?php if ($formError !== ''): ?>
+    <p style="color: red;"><?= h($formError) ?></p>
   <?php endif; ?>
 
-  <div>
-    <p>
-      host=<?php echo htmlspecialchars($dbHost, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
-      port=<?php echo htmlspecialchars((string)$dbPort, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
-      db=<?php echo htmlspecialchars($dbName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
-      user=<?php echo htmlspecialchars($dbUser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>,
-      table=<?php echo htmlspecialchars($dbTable, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>
-    </p>
+  <?php if ($dbError !== ''): ?>
+    <p style="color: red;">DB 오류: <?= h($dbError) ?></p>
+  <?php endif; ?>
 
-    <?php if (!empty($tableColumns)): ?>
-      <p>테이블 컬럼: <?php echo htmlspecialchars(implode(', ', $tableColumns), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></p>
-    <?php endif; ?>
+  <?php if ($schemaWarning !== ''): ?>
+    <p style="color: #b26a00;">스키마 경고: <?= h($schemaWarning) ?></p>
+  <?php endif; ?>
 
-    <form method="post">
-      <div>
-        <label for="sno">sno</label>
-        <input type="text" id="sno" name="sno" value="<?php echo htmlspecialchars((string)($_POST['sno'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-      </div>
-      <div>
-        <label for="testNo">testNo</label>
-        <input type="text" id="testNo" name="testNo" value="<?php echo htmlspecialchars((string)($_POST['testNo'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-      </div>
-      <div>
-        <label for="testId">testId</label>
-        <input type="text" id="testId" name="testId" value="<?php echo htmlspecialchars((string)($_POST['testId'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-      </div>
-      <div>
-        <label for="title">title</label>
-        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars((string)($_POST['title'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-      </div>
-      <div>
-        <label for="detail">detail</label>
-        <input type="text" id="detail" name="detail" value="<?php echo htmlspecialchars((string)($_POST['detail'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-      </div>
-      <div>
-        <button type="submit">submit</button>
-      </div>
-    </form>
-  </div>
+  <form method="post" action="">
+    <div>
+      <label for="testno">testno</label><br>
+      <input type="text" id="testno" name="testno" value="<?= h((string)($testnoValue ?? '')) ?>" readonly>
+    </div>
+    <div>
+      <label for="title">title</label><br>
+      <input type="text" id="title" name="title" value="<?= h((string)($_POST['title'] ?? '')) ?>" required>
+    </div>
+    <div style="margin-top: 8px;">
+      <label for="detail">detail</label><br>
+      <textarea id="detail" name="detail" rows="4" cols="40" required><?= h((string)($_POST['detail'] ?? '')) ?></textarea>
+    </div>
+    <div style="margin-top: 8px;">
+      <button type="submit">Submit</button>
+    </div>
+  </form>
 
-  <?php if (!empty($recentRows)): ?>
-    <h4>최근 20건</h4>
-    <table border="1" cellpadding="6" cellspacing="0">
-      <thead>
-        <tr>
-          <?php foreach (array_keys($recentRows[0]) as $key): ?>
-            <th><?php echo htmlspecialchars((string)$key, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></th>
-          <?php endforeach; ?>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($recentRows as $row): ?>
+  <section id="db-list">
+    <h2>db-list</h2>
+
+    <?php if ($dbError !== ''): ?>
+      <p>DB 연결/초기화 오류로 목록을 표시하지 못했습니다.</p>
+    <?php elseif ($listError !== ''): ?>
+      <p>조회 중 오류가 있어 목록을 표시하지 못했습니다.</p>
+      <p style="color: red;">조회 오류: <?= h($listError) ?></p>
+    <?php elseif (count($rows) === 0): ?>
+      <p>저장된 데이터가 없습니다.</p>
+    <?php else: ?>
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
           <tr>
-            <?php foreach ($row as $val): ?>
-              <td><?php echo htmlspecialchars((string)$val, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></td>
-            <?php endforeach; ?>
+            <th>sno</th>
+            <th>testno</th>
+            <th>title</th>
+            <th>detail</th>
+            <th>created_at</th>
           </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  <?php endif; ?>
-
+        </thead>
+        <tbody>
+          <?php foreach ($rows as $r): ?>
+            <tr>
+              <td><?= h((string)($r['sno'] ?? '')) ?></td>
+              <td><?= h((string)($r['testno'] ?? '')) ?></td>
+              <td><?= h((string)($r['title'] ?? '')) ?></td>
+              <td><pre style="margin:0;white-space:pre-wrap;"><?= h((string)($r['detail'] ?? '')) ?></pre></td>
+              <td><?= h((string)($r['created_at'] ?? '')) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    <?php endif; ?>
+  </section>
+  
 </body>
 </html>
