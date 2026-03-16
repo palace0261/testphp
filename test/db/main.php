@@ -16,6 +16,24 @@ $listError = '';
 $schemaWarning = '';
 $rows = [];
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'error_log.php';
+
+function log_to_error_log(string $level, string $message, string $stage, array $context = []): void
+{
+  try {
+    $payload = [
+      'level' => $level,
+      'message' => $message,
+      'page' => (string)($_SERVER['REQUEST_URI'] ?? ''),
+      'stage' => $stage,
+      'context' => $context,
+    ];
+    append_error_log($payload);
+  } catch (Throwable $e) {
+    // 로깅 실패는 페이지 동작에 영향 주지 않음
+  }
+}
+
 function h(string $value): string
 {
   return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -168,10 +186,24 @@ try {
           if ((int)$e->getCode() === 1062) {
             $formError = '이미 존재하는 testno 입니다. (DB에서 중복 차단됨)';
           } else {
+            log_to_error_log('error', $e->getMessage(), 'insert', [
+              'code' => (int)$e->getCode(),
+              'table' => $tableName,
+              'testno' => $testnoInt,
+            ]);
             throw $e;
           }
         }
       }
+    }
+
+    if ($formError !== '') {
+      log_to_error_log('warn', $formError, 'validation', [
+        'testno' => $testno,
+        'title_len' => strlen($title),
+        'detail_len' => strlen($detail),
+        'totprc_raw' => $totprcRaw,
+      ]);
     }
   }
 
@@ -206,9 +238,16 @@ try {
     }
   } catch (Throwable $e) {
     $listError = $e->getMessage();
+    log_to_error_log('error', $listError, 'list', [
+      'table' => $tableName,
+    ]);
   }
 } catch (Throwable $e) {
   $dbError = $e->getMessage();
+  log_to_error_log('error', $dbError, 'db_init', [
+    'table' => $tableName,
+    'db' => $dbName,
+  ]);
 } finally {
   if (isset($conn) && $conn instanceof mysqli) {
     $conn->close();
