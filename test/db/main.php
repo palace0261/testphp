@@ -50,7 +50,7 @@ function ensureTable(mysqli $conn, string $dbName, string $tableName, int $start
       `testno` BIGINT UNSIGNED NULL,
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
-      `totprc` VARCHAR(255) NOT NULL,
+      `totprc` VARCHAR(255) NOT NULL DEFAULT '',
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -92,13 +92,22 @@ function ensureTable(mysqli $conn, string $dbName, string $tableName, int $start
   // 1-0-2) 기존 테이블에 totprc가 없을 수 있으므로 추가 시도
   try {
     $conn->query(
-      "ALTER TABLE `{$tableName}` ADD COLUMN `totprc` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `detail`"
+      "ALTER TABLE `{$tableName}` ADD COLUMN `totprc` VARCHAR(255) NOT NULL DEFAULT '' AFTER `detail`"
     );
   } catch (Throwable $e) {
     // 1060: Duplicate column name
     if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
       // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
     }
+  }
+
+  // 1-0-2-1) 기존 totprc 타입이 숫자일 수 있으므로 title과 동일하게 문자열로 변경 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` MODIFY COLUMN `totprc` VARCHAR(255) NOT NULL DEFAULT ''"
+    );
+  } catch (Throwable $e) {
+    // 권한/환경 문제 등은 무시
   }
 
   // 1-1) 기존 테이블에 created_at이 없을 수 있으므로 추가 시도
@@ -145,17 +154,14 @@ try {
     $testno = trim((string)($_POST['testno'] ?? ''));
     $title = trim((string)($_POST['title'] ?? ''));
     $detail = trim((string)($_POST['detail'] ?? ''));
-    $totprcRaw = trim((string)($_POST['totprc'] ?? ''));
+    $totprc = trim((string)($_POST['totprc'] ?? ''));
 
-    if ($title === '' || $detail === '') {
-      $formError = 'title, detail을 모두 입력해주세요.';
+    if ($title === '' || $detail === '' || $totprc === '') {
+      $formError = 'title, detail, totprc를 모두 입력해주세요.';
     } elseif ($testno === '' || !ctype_digit($testno)) {
       $formError = 'testno 값이 올바르지 않습니다.';
-    } elseif ($totprcRaw !== '' && !ctype_digit($totprcRaw)) {
-      $formError = 'totprc 값이 올바르지 않습니다. (숫자만 입력)';
     } else {
       $testnoInt = (int)$testno;
-      $totprcInt = ($totprcRaw === '') ? 0 : (int)$totprcRaw;
 
       // 1) 서버에서 중복 사전 체크
       try {
@@ -176,7 +182,7 @@ try {
       if ($formError === '') {
         try {
           $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`) VALUES (?, ?, ?, ?)");
-          $stmt->bind_param('issi', $testnoInt, $title, $detail, $totprcInt);
+          $stmt->bind_param('isss', $testnoInt, $title, $detail, $totprc);
           $stmt->execute();
           $newSno = $stmt->insert_id;
           $stmt->close();
@@ -202,7 +208,7 @@ try {
         'testno' => $testno,
         'title_len' => strlen($title),
         'detail_len' => strlen($detail),
-        'totprc_raw' => $totprcRaw,
+        'totprc_len' => strlen($totprc),
       ]);
     }
   }
@@ -302,7 +308,7 @@ try {
     </div>
     <div style="margin-top: 8px;">
       <label for="totprc">totprc</label><br>
-      <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" readonly>
+      <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" required>
     </div>
     <div style="margin-top: 8px;">
       <button type="submit">Submit</button>

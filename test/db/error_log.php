@@ -22,7 +22,6 @@ function append_error_log(array $payload, ?string $logFilePath = null): bool
 		$message = 'unknown error';
 	}
 
-	// 과도한 로그/개인정보 유출 방지(가벼운 가드)
 	$maxLen = 8000;
 	if (strlen($message) > $maxLen) {
 		$message = substr($message, 0, $maxLen) . '…';
@@ -44,10 +43,8 @@ function append_error_log(array $payload, ?string $logFilePath = null): bool
 		return false;
 	}
 
-	// 라인 단위 저장
 	$line = $json . "\n";
 	if (strlen($line) > 20000) {
-		// 비정상적으로 큰 payload는 저장하지 않음
 		return false;
 	}
 
@@ -64,7 +61,6 @@ function _error_log_read_request_payload(): array
 {
 	$contentType = (string)($_SERVER['CONTENT_TYPE'] ?? '');
 
-	// JSON
 	if (stripos($contentType, 'application/json') !== false) {
 		$raw = file_get_contents('php://input');
 		if (is_string($raw) && $raw !== '') {
@@ -75,22 +71,17 @@ function _error_log_read_request_payload(): array
 		}
 	}
 
-	// form-urlencoded / multipart
 	if (!empty($_POST) && is_array($_POST)) {
 		$payload = $_POST;
-
-		// context가 문자열(JSON)로 오는 경우
 		if (isset($payload['context']) && is_string($payload['context'])) {
 			$maybe = json_decode($payload['context'], true);
 			if (is_array($maybe)) {
 				$payload['context'] = $maybe;
 			}
 		}
-
 		return $payload;
 	}
 
-	// fallback: raw body를 message로 저장
 	$raw = file_get_contents('php://input');
 	if (is_string($raw) && $raw !== '') {
 		return ['message' => $raw];
@@ -106,11 +97,9 @@ function _error_log_send_json(int $statusCode, array $data): void
 	echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
-// 직접 호출된 경우에만 처리
 $isDirect = isset($_SERVER['SCRIPT_FILENAME']) && realpath((string)$_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__);
 if ($isDirect) {
 	$method = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-
 	if ($method !== 'POST') {
 		_error_log_send_json(405, ['ok' => false, 'error' => 'POST only']);
 		exit;
@@ -118,7 +107,6 @@ if ($isDirect) {
 
 	$payload = _error_log_read_request_payload();
 	$ok = append_error_log($payload);
-
 	if ($ok) {
 		_error_log_send_json(200, ['ok' => true]);
 		exit;
