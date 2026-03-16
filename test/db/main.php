@@ -50,7 +50,7 @@ function ensureTable(mysqli $conn, string $dbName, string $tableName, int $start
       `testno` BIGINT UNSIGNED NULL,
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
-      `totprc` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      `totprc` VARCHAR(255) NOT NULL,
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -302,7 +302,7 @@ try {
     </div>
     <div style="margin-top: 8px;">
       <label for="totprc">totprc</label><br>
-      <input type="number" id="totprc" name="totprc" min="0" step="1" value="<?= h((string)($_POST['totprc'] ?? '0')) ?>">
+      <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" readonly>
     </div>
     <div style="margin-top: 8px;">
       <button type="submit">Submit</button>
