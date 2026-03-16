@@ -32,6 +32,7 @@ function ensureTable(mysqli $conn, string $dbName, string $tableName, int $start
       `testno` BIGINT UNSIGNED NULL,
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
+      `totprc` BIGINT UNSIGNED NOT NULL DEFAULT 0,
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -67,6 +68,18 @@ function ensureTable(mysqli $conn, string $dbName, string $tableName, int $start
       }
     } else {
       $warning = 'DB 유니크 제약(ux_testno) 설정 중 오류: ' . $e->getMessage();
+    }
+  }
+
+  // 1-0-2) 기존 테이블에 totprc가 없을 수 있으므로 추가 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `totprc` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `detail`"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
     }
   }
 
@@ -114,13 +127,17 @@ try {
     $testno = trim((string)($_POST['testno'] ?? ''));
     $title = trim((string)($_POST['title'] ?? ''));
     $detail = trim((string)($_POST['detail'] ?? ''));
+    $totprcRaw = trim((string)($_POST['totprc'] ?? ''));
 
     if ($title === '' || $detail === '') {
       $formError = 'title, detail을 모두 입력해주세요.';
     } elseif ($testno === '' || !ctype_digit($testno)) {
       $formError = 'testno 값이 올바르지 않습니다.';
+    } elseif ($totprcRaw !== '' && !ctype_digit($totprcRaw)) {
+      $formError = 'totprc 값이 올바르지 않습니다. (숫자만 입력)';
     } else {
       $testnoInt = (int)$testno;
+      $totprcInt = ($totprcRaw === '') ? 0 : (int)$totprcRaw;
 
       // 1) 서버에서 중복 사전 체크
       try {
@@ -140,8 +157,8 @@ try {
       // 2) DB 유니크 제약으로 최종 중복 차단 + 중복키 처리
       if ($formError === '') {
         try {
-          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`) VALUES (?, ?, ?)");
-          $stmt->bind_param('iss', $testnoInt, $title, $detail);
+          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`) VALUES (?, ?, ?, ?)");
+          $stmt->bind_param('issi', $testnoInt, $title, $detail, $totprcInt);
           $stmt->execute();
           $newSno = $stmt->insert_id;
           $stmt->close();
@@ -162,19 +179,26 @@ try {
   try {
     try {
       $result = $conn->query(
-        "SELECT `sno`, `testno`, `title`, `detail`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
       );
     } catch (Throwable $e1) {
       try {
         // created_at만 없는 경우
         $result = $conn->query(
-          "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          "SELECT `sno`, `testno`, `title`, `detail`, `totprc` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
         );
       } catch (Throwable $e2) {
         // testno도 없는 경우
-        $result = $conn->query(
-          "SELECT `sno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
-        );
+        try {
+          // totprc도 없는 경우
+          $result = $conn->query(
+            "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          );
+        } catch (Throwable $e3) {
+          $result = $conn->query(
+            "SELECT `sno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          );
+        }
       }
     }
     while ($row = $result->fetch_assoc()) {
@@ -238,12 +262,16 @@ try {
       <textarea id="detail" name="detail" rows="4" cols="40" required><?= h((string)($_POST['detail'] ?? '')) ?></textarea>
     </div>
     <div style="margin-top: 8px;">
+      <label for="totprc">totprc</label><br>
+      <input type="number" id="totprc" name="totprc" min="0" step="1" value="<?= h((string)($_POST['totprc'] ?? '0')) ?>">
+    </div>
+    <div style="margin-top: 8px;">
       <button type="submit">Submit</button>
     </div>
   </form>
 
   <section id="db-list">
-    <h2>db-list</h2>
+    <h2>b2b-db-list</h2>
 
     <?php if ($dbError !== ''): ?>
       <p>DB 연결/초기화 오류로 목록을 표시하지 못했습니다.</p>
@@ -260,6 +288,7 @@ try {
             <th>testno</th>
             <th>title</th>
             <th>detail</th>
+            <th>totprc</th>
             <th>created_at</th>
           </tr>
         </thead>
@@ -270,6 +299,7 @@ try {
               <td><?= h((string)($r['testno'] ?? '')) ?></td>
               <td><?= h((string)($r['title'] ?? '')) ?></td>
               <td><pre style="margin:0;white-space:pre-wrap;"><?= h((string)($r['detail'] ?? '')) ?></pre></td>
+              <td><?= h((string)($r['totprc'] ?? '')) ?></td>
               <td><?= h((string)($r['created_at'] ?? '')) ?></td>
             </tr>
           <?php endforeach; ?>
