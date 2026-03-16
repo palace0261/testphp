@@ -257,11 +257,11 @@ try {
   <form method="post" action="">
     <div>
       <label for="testno">testno</label><br>
-      <input type="text" id="testno" name="testno" value="<?= h((string)($testnoValue ?? '')) ?>" readonly>
+      <input type="text" id="testno" name="testno" value="<?= h((string)($testnoValue ?? '')) ?>" hidden>
     </div>
     <div>
       <label for="title">title</label><br>
-      <input type="text" id="title" name="title" value="<?= h((string)($_POST['title'] ?? '')) ?>" required>
+      <input type="text" id="title" name="title" value="<?= h((string)($_POST['title'] ?? '')) ?>" hidden>
     </div>
     <div style="margin-top: 8px;">
       <label for="detail">detail</label><br>
@@ -269,10 +269,10 @@ try {
     </div>
     <div style="margin-top: 8px;">
       <label for="totprc">totprc</label><br>
-      <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" required>
+      <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" hidden>
     </div>
     <div style="margin-top: 8px;">
-      <button type="submit">Submit</button>
+      <button type="submit"></button>
     </div>
   </form>
 
