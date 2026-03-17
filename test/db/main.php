@@ -35,6 +35,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
       `totprc` VARCHAR(255) NOT NULL DEFAULT '',
       `orderstt` VARCHAR(255) NOT NULL DEFAULT '1',
       `inno` VARCHAR(255) NOT NULL DEFAULT '',
+      `tasks` LONGTEXT NULL,
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -150,6 +151,28 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
     }
   }
 
+  // 1-2) 기존 테이블에 tasks가 없을 수 있으므로 추가 시도
+  // LONGTEXT는 MySQL 버전에 따라 DEFAULT를 허용하지 않으므로 NULL로 둡니다.
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `tasks` LONGTEXT NULL AFTER `inno`"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
+    }
+  }
+
+  // 1-2-1) tasks 타입 보정 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` MODIFY COLUMN `tasks` LONGTEXT NULL"
+    );
+  } catch (Throwable $e) {
+    // 권한/환경 문제 등은 무시
+  }
+
   // 2) AUTO_INCREMENT 시작값을 최소 33으로 보장
   // MySQL은 현재 값보다 낮게 설정하면 자동으로 무시(또는 유지)하므로 안전합니다.
   $conn->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$startAutoIncrement}");
@@ -201,6 +224,26 @@ try {
           $formError = '업데이트 중 오류: ' . $e->getMessage();
         }
       }
+    } elseif (($_POST['mode'] ?? '') === 'update_tasks') {
+      // row tasks만 업데이트(서버 전송)
+      $sno = trim((string)($_POST['sno'] ?? ''));
+      $tasks = (string)($_POST['tasks'] ?? '');
+
+      if ($sno === '' || !ctype_digit($sno)) {
+        $formError = 'sno 값이 올바르지 않습니다.';
+      } else {
+        $snoInt = (int)$sno;
+        try {
+          $stmt = $conn->prepare("UPDATE `{$tableName}` SET `tasks` = ? WHERE `sno` = ?");
+          $stmt->bind_param('si', $tasks, $snoInt);
+          $stmt->execute();
+          $affected = $stmt->affected_rows;
+          $stmt->close();
+          $message = "tasks 저장되었습니다. sno={$snoInt} (affected={$affected})";
+        } catch (Throwable $e) {
+          $formError = 'tasks 저장 중 오류: ' . $e->getMessage();
+        }
+      }
     } else {
     $testno = trim((string)($_POST['testno'] ?? ''));
     $title = trim((string)($_POST['title'] ?? ''));
@@ -211,6 +254,7 @@ try {
       $orderstt = '1';
     }
     $inno = trim((string)($_POST['inno'] ?? ''));
+    $tasks = (string)($_POST['tasks'] ?? '');
 
     if ($title === '' || $detail === '' || $totprc === '') {
       $formError = 'title, detail, totprc를 모두 입력해주세요.';
@@ -237,8 +281,8 @@ try {
       // 2) DB 유니크 제약으로 최종 중복 차단 + 중복키 처리
       if ($formError === '') {
         try {
-          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`) VALUES (?, ?, ?, ?, ?, ?)");
-          $stmt->bind_param('isssss', $testnoInt, $title, $detail, $totprc, $orderstt, $inno);
+          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`, `tasks`) VALUES (?, ?, ?, ?, ?, ?, ?)");
+          $stmt->bind_param('issssss', $testnoInt, $title, $detail, $totprc, $orderstt, $inno, $tasks);
           $stmt->execute();
           $newSno = $stmt->insert_id;
           $stmt->close();
@@ -260,32 +304,32 @@ try {
   try {
     try {
       $result = $conn->query(
-        "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`, `tasks`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
       );
     } catch (Throwable $e1) {
       try {
         // orderstt/inno가 없고 created_at만 있는 경우
         $result = $conn->query(
-          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `tasks`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
         );
       } catch (Throwable $e1_1) {
         try {
           // created_at만 없는 경우
         $result = $conn->query(
-          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`, `tasks` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
         );
         } catch (Throwable $e2) {
           try {
             // orderstt/inno/created_at가 없는 경우 (totprc만 있는 구버전)
             $result = $conn->query(
-              "SELECT `sno`, `testno`, `title`, `detail`, `totprc` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+              "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `tasks` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
             );
           } catch (Throwable $e2_1) {
             // testno도 없는 경우
             try {
               // totprc도 없는 경우
               $result = $conn->query(
-                "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+                "SELECT `sno`, `testno`, `title`, `detail`, `tasks` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
               );
             } catch (Throwable $e3) {
               $result = $conn->query(
@@ -370,6 +414,10 @@ try {
       <label for="inno">inno</label><br>
       <input type="text" id="inno" name="inno" value="<?= h((string)($_POST['inno'] ?? '')) ?>" hidden>
     </div>
+    <div>
+      <label for="tasks">tasks</label><br>
+      <input type="text" id="tasks" name="tasks" value="<?= h((string)($_POST['tasks'] ?? '')) ?>" hidden>
+    </div>
     <div style="margin-top: 8px; opacity: 0; height: 0; overflow: hidden;">
       <button type="submit"></button>
     </div>
@@ -396,6 +444,7 @@ try {
             <th>totprc</th>
             <th>orderstt</th>
             <th>inno</th>
+            <th>tasks</th>
             <th>created_at</th>
             <th>save</th>
           </tr>
@@ -403,7 +452,10 @@ try {
         <tbody>
           <?php foreach ($rows as $r): ?>
             <tr>
-              <?php $rowFormId = 'rowform_' . (string)($r['sno'] ?? ''); ?>
+              <?php
+                $rowFormId = 'rowform_' . (string)($r['sno'] ?? '');
+                $rowTasksFormId = 'rowform_tasks_' . (string)($r['sno'] ?? '');
+              ?>
               <td><?= h((string)($r['sno'] ?? '')) ?></td>
               <td><?= h((string)($r['testno'] ?? '')) ?></td>
               <td><?= h((string)($r['title'] ?? '')) ?></td>
@@ -422,12 +474,22 @@ try {
               <td>
                 <input type="checkbox" name="inno">
               </td>
+              <td>
+                <input type="text" name="tasks" value="<?= h((string)($r['tasks'] ?? '')) ?>" form="<?= h($rowTasksFormId) ?>">
+              </td>
               <td><?= h((string)($r['created_at'] ?? '')) ?></td>
               <td>
                 <form id="<?= h($rowFormId) ?>" method="post" action="">
                   <input type="hidden" name="mode" value="update">
                   <input type="hidden" name="sno" value="<?= h((string)($r['sno'] ?? '')) ?>">
                   <button type="button" class="row-change" onclick="showRowSubmit(this)">변경</button>
+                  <button type="submit" class="row-submit" style="display:none;">submit</button>
+                </form>
+
+                <form id="<?= h($rowTasksFormId) ?>" method="post" action="" style="margin-top:6px;">
+                  <input type="hidden" name="mode" value="update_tasks">
+                  <input type="hidden" name="sno" value="<?= h((string)($r['sno'] ?? '')) ?>">
+                  <button type="button" class="row-change" onclick="showRowSubmit(this)">tasks변경</button>
                   <button type="submit" class="row-submit" style="display:none;">submit</button>
                 </form>
               </td>
