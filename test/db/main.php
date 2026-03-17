@@ -229,13 +229,12 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>es_testTable 입력</title>
 </head>
+<style>
+    label {
+        opacity: 0;
+    }
+</style>
 <body>
-
-<!-- 입력 폼
-  <h1>입력 폼</h1>
-  <p>DB: <?= h($dbName) ?> / Table: <?= h($tableName) ?></p>
-  <p>sno: BIGINT AUTO_INCREMENT (최소 <?= (int)$startAutoIncrement ?>부터 시작)</p>
- -->
 
 
   <?php if ($message !== ''): ?>
@@ -253,8 +252,6 @@ try {
   <?php if ($schemaWarning !== ''): ?>
     <p style="color: #b26a00;">스키마 경고: <?= h($schemaWarning) ?></p>
   <?php endif; ?>
-
-  <a href="https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/test/db/flowapi.php">flowapi</a>
 
   <form method="post" action="">
     <div>
