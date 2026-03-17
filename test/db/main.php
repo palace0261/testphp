@@ -97,7 +97,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   // 1-0-3) 기존 테이블에 orderstt가 없을 수 있으므로 추가 시도
   try {
     $conn->query(
-      "ALTER TABLE `{$tableName}` ADD COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT '' AFTER `totprc`"
+      "ALTER TABLE `{$tableName}` ADD COLUMN `orderstt` VARCHAR(255) NOT 1 DEFAULT '' AFTER `totprc`"
     );
   } catch (Throwable $e) {
     // 1060: Duplicate column name
