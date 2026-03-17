@@ -33,7 +33,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
       `totprc` VARCHAR(255) NOT NULL DEFAULT '',
-      `orderstt` VARCHAR(255) NOT 1 DEFAULT '',
+      `orderstt` VARCHAR(255) NOT NULL DEFAULT '1',
       `inno` VARCHAR(255) NOT NULL DEFAULT '',
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
@@ -97,7 +97,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   // 1-0-3) 기존 테이블에 orderstt가 없을 수 있으므로 추가 시도
   try {
     $conn->query(
-      "ALTER TABLE `{$tableName}` ADD COLUMN `orderstt` VARCHAR(255) NOT 1 DEFAULT '' AFTER `totprc`"
+      "ALTER TABLE `{$tableName}` ADD COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT '1' AFTER `totprc`"
     );
   } catch (Throwable $e) {
     // 1060: Duplicate column name
@@ -109,7 +109,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   // 1-0-3-1) 기존 orderstt 타입이 숫자일 수 있으므로 문자열로 변경 시도
   try {
     $conn->query(
-      "ALTER TABLE `{$tableName}` MODIFY COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT ''"
+      "ALTER TABLE `{$tableName}` MODIFY COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT '1'"
     );
   } catch (Throwable $e) {
     // 권한/환경 문제 등은 무시
@@ -181,6 +181,9 @@ try {
     if (($_POST['mode'] ?? '') === 'update') {
       $sno = trim((string)($_POST['sno'] ?? ''));
       $orderstt = trim((string)($_POST['orderstt'] ?? ''));
+      if ($orderstt === '' || !in_array($orderstt, ['1', '2', '3', '4'], true)) {
+        $orderstt = '1';
+      }
       $inno = trim((string)($_POST['inno'] ?? ''));
 
       if ($sno === '' || !ctype_digit($sno)) {
@@ -204,6 +207,9 @@ try {
     $detail = trim((string)($_POST['detail'] ?? ''));
     $totprc = trim((string)($_POST['totprc'] ?? ''));
     $orderstt = trim((string)($_POST['orderstt'] ?? ''));
+    if ($orderstt === '' || !in_array($orderstt, ['1', '2', '3', '4'], true)) {
+      $orderstt = '1';
+    }
     $inno = trim((string)($_POST['inno'] ?? ''));
 
     if ($title === '' || $detail === '' || $totprc === '') {
@@ -358,7 +364,7 @@ try {
     </div>
     <div>
       <label for="orderstt">orderstt</label><br>
-      <input type="text" id="orderstt" name="orderstt" value="<?= h((string)($_POST['orderstt'] ?? '')) ?>" hidden>
+      <input type="text" id="orderstt" name="orderstt" value="<?= h((string)($_POST['orderstt'] ?? '1')) ?>" hidden>
     </div>
     <div>
       <label for="inno">inno</label><br>
