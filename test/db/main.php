@@ -271,7 +271,7 @@ try {
       <label for="totprc">totprc</label><br>
       <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" hidden>
     </div>
-    <div style="margin-top: 8px;">
+    <div style="margin-top: 8px; opacity: 0; height: 0; overflow: hidden;">
       <button type="submit"></button>
     </div>
   </form>
