@@ -113,6 +113,127 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   return $warning;
 }
 
+function getRequestHeaderValue(string $name): string
+{
+  $target = strtolower($name);
+
+  if (function_exists('getallheaders')) {
+    $headers = getallheaders();
+    if (is_array($headers)) {
+      foreach ($headers as $k => $v) {
+        if (strtolower((string)$k) === $target) {
+          return (string)$v;
+        }
+      }
+    }
+  }
+
+  $serverKey = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+  if (isset($_SERVER[$serverKey])) {
+    return (string)$_SERVER[$serverKey];
+  }
+
+  return '';
+}
+
+// 다른 페이지에서 이 파일로 POST해서 Flow Task를 생성할 수 있도록 API 모드 제공
+// - JSON: { action: "sendFlowTask", ...payload }
+// - Form: action=sendFlowTask&...
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+  $contentType = (string)($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '');
+  $rawBody = '';
+  $jsonBody = [];
+  if (stripos($contentType, 'application/json') !== false) {
+    $rawBody = (string)file_get_contents('php://input');
+    $decoded = json_decode($rawBody, true);
+    if (is_array($decoded)) {
+      $jsonBody = $decoded;
+    }
+  }
+
+  $action = (string)($_POST['action'] ?? $jsonBody['action'] ?? '');
+  if ($action === 'sendFlowTask') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    if (!function_exists('curl_init')) {
+      http_response_code(500);
+      echo json_encode(['ok' => false, 'error' => 'PHP cURL 확장이 없어 Flow API 호출을 할 수 없습니다.'], JSON_UNESCAPED_UNICODE);
+      exit;
+    }
+
+    $apiKey = trim((string)($jsonBody['apiKey'] ?? $_POST['apiKey'] ?? ''));
+    if ($apiKey === '') {
+      $apiKey = trim(getRequestHeaderValue('x-flow-api-key'));
+    }
+
+    if ($apiKey === '') {
+      http_response_code(400);
+      echo json_encode(['ok' => false, 'error' => 'x-flow-api-key (또는 apiKey)가 필요합니다.'], JSON_UNESCAPED_UNICODE);
+      exit;
+    }
+
+    $payload = $jsonBody;
+    if (!is_array($payload) || $payload === []) {
+      $payload = $_POST;
+    }
+
+    $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.com');
+    $title = (string)($payload['title'] ?? '');
+    $contents = (string)($payload['contents'] ?? '');
+    $status = (string)($payload['status'] ?? 'request');
+    $workers = $payload['workers'] ?? [['workerId' => 'palace790@gmail.com']];
+
+    if (!is_array($workers)) {
+      $workers = [['workerId' => (string)$workers]];
+    }
+
+    $flowBody = [
+      'registerId' => $registerId,
+      'title' => $title,
+      'contents' => $contents,
+      'status' => $status,
+      'workers' => $workers,
+    ];
+
+    $url = 'https://api.flow.team/v1/posts/projects/2829048/tasks';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+      'Content-Type: application/json',
+      'x-flow-api-key: ' . $apiKey,
+    ]);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($flowBody, JSON_UNESCAPED_UNICODE));
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+    $respBody = curl_exec($ch);
+    $curlErr = curl_error($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($respBody === false) {
+      http_response_code(502);
+      echo json_encode(['ok' => false, 'error' => 'Flow API 호출 실패: ' . $curlErr], JSON_UNESCAPED_UNICODE);
+      exit;
+    }
+
+    $decodedResp = json_decode((string)$respBody, true);
+    $ok = $httpCode >= 200 && $httpCode < 300;
+    http_response_code($ok ? 200 : 400);
+    echo json_encode(
+      [
+        'ok' => $ok,
+        'httpCode' => $httpCode,
+        'request' => $flowBody,
+        'response' => (is_array($decodedResp) ? $decodedResp : (string)$respBody),
+      ],
+      JSON_UNESCAPED_UNICODE
+    );
+    exit;
+  }
+}
+
 try {
   $conn = mysqli_connect($dbHost, $dbUser, $dbPass, $dbName);
   $conn->set_charset('utf8mb4');
