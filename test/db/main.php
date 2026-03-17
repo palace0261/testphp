@@ -33,7 +33,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
       `totprc` VARCHAR(255) NOT NULL DEFAULT '',
-      `orderstt` VARCHAR(255) NOT NULL DEFAULT '',
+      `orderstt` VARCHAR(255) NOT 1 DEFAULT '',
       `inno` VARCHAR(255) NOT NULL DEFAULT '',
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
