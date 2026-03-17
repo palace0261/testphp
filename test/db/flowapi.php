@@ -20,6 +20,10 @@
   </style>
 </head>
 <body>
+
+<a href="https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/test/db/main.php">db main</a>
+
+
   <h2>자동메일 발송 전 Flow API 전송</h2>
   <div>
     <label>API Key:</label>

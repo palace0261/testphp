@@ -254,6 +254,8 @@ try {
     <p style="color: #b26a00;">스키마 경고: <?= h($schemaWarning) ?></p>
   <?php endif; ?>
 
+  <a href="https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/test/db/flowapi.php">flowapi</a>
+
   <form method="post" action="">
     <div>
       <label for="testno">testno</label><br>
