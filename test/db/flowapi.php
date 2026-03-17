@@ -130,7 +130,9 @@ try {
     $nextTestno = 1;
   }
 
-  $testnoValue = (string)($_POST['testno'] ?? (string)$nextTestno);
+  // 처음 접속(GET) 시에는 testno를 자동으로 채우지 않음.
+  // 사용자가 입력한 경우(POST)만 값 유지.
+  $testnoValue = (string)($_POST['testno'] ?? '');
 
   if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $testno = trim((string)($_POST['testno'] ?? ''));
