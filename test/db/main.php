@@ -33,6 +33,8 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
       `title` VARCHAR(255) NOT NULL,
       `detail` TEXT NOT NULL,
       `totprc` VARCHAR(255) NOT NULL DEFAULT '',
+      `orderstt` VARCHAR(255) NOT NULL DEFAULT '',
+      `inno` VARCHAR(255) NOT NULL DEFAULT '',
       PRIMARY KEY (`sno`)
       , UNIQUE KEY `ux_testno` (`testno`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -92,6 +94,48 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
     // 권한/환경 문제 등은 무시
   }
 
+  // 1-0-3) 기존 테이블에 orderstt가 없을 수 있으므로 추가 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT '' AFTER `totprc`"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
+    }
+  }
+
+  // 1-0-3-1) 기존 orderstt 타입이 숫자일 수 있으므로 문자열로 변경 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` MODIFY COLUMN `orderstt` VARCHAR(255) NOT NULL DEFAULT ''"
+    );
+  } catch (Throwable $e) {
+    // 권한/환경 문제 등은 무시
+  }
+
+  // 1-0-4) 기존 테이블에 inno가 없을 수 있으므로 추가 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` ADD COLUMN `inno` VARCHAR(255) NOT NULL DEFAULT '' AFTER `orderstt`"
+    );
+  } catch (Throwable $e) {
+    // 1060: Duplicate column name
+    if (!($e instanceof mysqli_sql_exception) || (int)$e->getCode() !== 1060) {
+      // 무시(권한/환경 문제는 이후 화면에 표시될 수 있음)
+    }
+  }
+
+  // 1-0-4-1) 기존 inno 타입이 숫자일 수 있으므로 문자열로 변경 시도
+  try {
+    $conn->query(
+      "ALTER TABLE `{$tableName}` MODIFY COLUMN `inno` VARCHAR(255) NOT NULL DEFAULT ''"
+    );
+  } catch (Throwable $e) {
+    // 권한/환경 문제 등은 무시
+  }
+
   // 1-1) 기존 테이블에 created_at이 없을 수 있으므로 추가 시도
   // (이미 있으면 Duplicate column 에러가 나는데, 그 경우는 무시)
   try {
@@ -133,10 +177,34 @@ try {
   $testnoValue = (string)($_POST['testno'] ?? (string)$nextTestno);
 
   if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    // row 업데이트(서버 전송)
+    if (($_POST['mode'] ?? '') === 'update') {
+      $sno = trim((string)($_POST['sno'] ?? ''));
+      $orderstt = trim((string)($_POST['orderstt'] ?? ''));
+      $inno = trim((string)($_POST['inno'] ?? ''));
+
+      if ($sno === '' || !ctype_digit($sno)) {
+        $formError = 'sno 값이 올바르지 않습니다.';
+      } else {
+        $snoInt = (int)$sno;
+        try {
+          $stmt = $conn->prepare("UPDATE `{$tableName}` SET `orderstt` = ?, `inno` = ? WHERE `sno` = ?");
+          $stmt->bind_param('ssi', $orderstt, $inno, $snoInt);
+          $stmt->execute();
+          $affected = $stmt->affected_rows;
+          $stmt->close();
+          $message = "업데이트되었습니다. sno={$snoInt} (affected={$affected})";
+        } catch (Throwable $e) {
+          $formError = '업데이트 중 오류: ' . $e->getMessage();
+        }
+      }
+    } else {
     $testno = trim((string)($_POST['testno'] ?? ''));
     $title = trim((string)($_POST['title'] ?? ''));
     $detail = trim((string)($_POST['detail'] ?? ''));
     $totprc = trim((string)($_POST['totprc'] ?? ''));
+    $orderstt = trim((string)($_POST['orderstt'] ?? ''));
+    $inno = trim((string)($_POST['inno'] ?? ''));
 
     if ($title === '' || $detail === '' || $totprc === '') {
       $formError = 'title, detail, totprc를 모두 입력해주세요.';
@@ -163,8 +231,8 @@ try {
       // 2) DB 유니크 제약으로 최종 중복 차단 + 중복키 처리
       if ($formError === '') {
         try {
-          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`) VALUES (?, ?, ?, ?)");
-          $stmt->bind_param('isss', $testnoInt, $title, $detail, $totprc);
+          $stmt = $conn->prepare("INSERT INTO `{$tableName}` (`testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`) VALUES (?, ?, ?, ?, ?, ?)");
+          $stmt->bind_param('isssss', $testnoInt, $title, $detail, $totprc, $orderstt, $inno);
           $stmt->execute();
           $newSno = $stmt->insert_id;
           $stmt->close();
@@ -179,31 +247,46 @@ try {
         }
       }
     }
+    }
   }
 
   // db-list: 저장된 내역 조회
   try {
     try {
       $result = $conn->query(
-        "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
       );
     } catch (Throwable $e1) {
       try {
-        // created_at만 없는 경우
+        // orderstt/inno가 없고 created_at만 있는 경우
         $result = $conn->query(
-          "SELECT `sno`, `testno`, `title`, `detail`, `totprc` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `created_at` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
         );
-      } catch (Throwable $e2) {
-        // testno도 없는 경우
+      } catch (Throwable $e1_1) {
         try {
-          // totprc도 없는 경우
-          $result = $conn->query(
-            "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
-          );
-        } catch (Throwable $e3) {
-          $result = $conn->query(
-            "SELECT `sno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
-          );
+          // created_at만 없는 경우
+        $result = $conn->query(
+          "SELECT `sno`, `testno`, `title`, `detail`, `totprc`, `orderstt`, `inno` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+        );
+        } catch (Throwable $e2) {
+          try {
+            // orderstt/inno/created_at가 없는 경우 (totprc만 있는 구버전)
+            $result = $conn->query(
+              "SELECT `sno`, `testno`, `title`, `detail`, `totprc` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+            );
+          } catch (Throwable $e2_1) {
+            // testno도 없는 경우
+            try {
+              // totprc도 없는 경우
+              $result = $conn->query(
+                "SELECT `sno`, `testno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+              );
+            } catch (Throwable $e3) {
+              $result = $conn->query(
+                "SELECT `sno`, `title`, `detail` FROM `{$tableName}` ORDER BY `sno` DESC LIMIT 100"
+              );
+            }
+          }
         }
       }
     }
@@ -230,8 +313,11 @@ try {
   <title>es_testTable 입력</title>
 </head>
 <style>
-    label {
+  #insert-form, #insert-form label {
         opacity: 0;
+        height: 0;
+        position: absolute;
+        z-index: 0;
     }
 </style>
 <body>
@@ -253,7 +339,7 @@ try {
     <p style="color: #b26a00;">스키마 경고: <?= h($schemaWarning) ?></p>
   <?php endif; ?>
 
-  <form method="post" action="">
+  <form id="insert-form" method="post" action="">
     <div>
       <label for="testno">testno</label><br>
       <input type="text" id="testno" name="testno" value="<?= h((string)($testnoValue ?? '')) ?>" hidden>
@@ -269,6 +355,14 @@ try {
     <div style="margin-top: 8px;">
       <label for="totprc">totprc</label><br>
       <input type="text" id="totprc" name="totprc" value="<?= h((string)($_POST['totprc'] ?? '')) ?>" hidden>
+    </div>
+    <div>
+      <label for="orderstt">orderstt</label><br>
+      <input type="text" id="orderstt" name="orderstt" value="<?= h((string)($_POST['orderstt'] ?? '')) ?>" hidden>
+    </div>
+    <div>
+      <label for="inno">inno</label><br>
+      <input type="text" id="inno" name="inno" value="<?= h((string)($_POST['inno'] ?? '')) ?>" hidden>
     </div>
     <div style="margin-top: 8px; opacity: 0; height: 0; overflow: hidden;">
       <button type="submit"></button>
@@ -294,24 +388,62 @@ try {
             <th>title</th>
             <th>detail</th>
             <th>totprc</th>
+            <th>orderstt</th>
+            <th>inno</th>
             <th>created_at</th>
+            <th>save</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($rows as $r): ?>
             <tr>
+              <?php $rowFormId = 'rowform_' . (string)($r['sno'] ?? ''); ?>
               <td><?= h((string)($r['sno'] ?? '')) ?></td>
               <td><?= h((string)($r['testno'] ?? '')) ?></td>
               <td><?= h((string)($r['title'] ?? '')) ?></td>
               <td><pre style="margin:0;white-space:pre-wrap;"><?= h((string)($r['detail'] ?? '')) ?></pre></td>
               <td><?= h((string)($r['totprc'] ?? '')) ?></td>
+              <td>
+                <?= h((string)($r['orderstt'] ?? '')) ?>
+                <select name="orderstt" form="<?= h($rowFormId) ?>">
+                  <?php $curOrderstt = (string)($r['orderstt'] ?? ''); ?>
+                  <option value="1" <?= $curOrderstt === '1' ? 'selected' : '' ?>>주문접수</option>
+                  <option value="2" <?= $curOrderstt === '2' ? 'selected' : '' ?>>입금완료</option>
+                  <option value="3" <?= $curOrderstt === '3' ? 'selected' : '' ?>>출고완료</option>
+                  <option value="4" <?= $curOrderstt === '4' ? 'selected' : '' ?>>취소반품</option>
+                </select>
+              </td>
+              <td>
+                <input type="checkbox" name="inno">
+              </td>
               <td><?= h((string)($r['created_at'] ?? '')) ?></td>
+              <td>
+                <form id="<?= h($rowFormId) ?>" method="post" action="">
+                  <input type="hidden" name="mode" value="update">
+                  <input type="hidden" name="sno" value="<?= h((string)($r['sno'] ?? '')) ?>">
+                  <button type="button" class="row-change" onclick="showRowSubmit(this)">변경</button>
+                  <button type="submit" class="row-submit" style="display:none;">submit</button>
+                </form>
+              </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
     <?php endif; ?>
   </section>
+
+  <script>
+    function showRowSubmit(btn) {
+      try {
+        var form = btn && btn.closest ? btn.closest('form') : null;
+        if (!form) return;
+        var submitBtn = form.querySelector('.row-submit');
+        if (submitBtn) submitBtn.style.display = 'inline-block';
+      } catch (e) {
+        // no-op
+      }
+    }
+  </script>
   
 </body>
 </html>
