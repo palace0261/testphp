@@ -318,14 +318,11 @@ try {
       const contents = document.getElementById('contents').value;
 
       const testnoKey = normalizeTestnoKey(testnoEl ? testnoEl.value : '');
-      if (!testnoKey || !Object.prototype.hasOwnProperty.call(detailByTestno, testnoKey)) {
-        console.warn('전송 차단: b2b-db-list에 없는 testno 입니다.', testnoKey);
-        return Promise.reject('입력한 testno가 b2b-db-list에 존재할 때만 전송할 수 있습니다.');
-      }
+      console.log('전송 시작:', { testno: testnoKey });
       
       if (!apiKey) {
         console.warn('API 키가 없습니다.');
-        return Promise.reject('API 키를 입력해주세요.');
+        return Promise.reject(new Error('API 키를 입력해주세요.'));
       }
       
       const options = {
@@ -360,18 +357,6 @@ try {
           throw err;
         });
     }
-
-    // 페이지 로드 시 자동으로 API 전송
-    window.addEventListener('load', function() {
-      console.log('페이지 로드 완료 - 자동 API 전송 시작');
-      sendFlowTeamApi()
-        .then(data => {
-          console.log('자동 API 전송 성공:', data);
-        })
-        .catch(err => {
-          console.warn('자동 API 전송 실패:', err.message);
-        });
-    });
 
     // 수동 전송 버튼 클릭 이벤트
     document.getElementById('submitBtn').addEventListener('click', function(e) {
