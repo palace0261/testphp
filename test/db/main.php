@@ -364,10 +364,7 @@ try {
 </head>
 <style>
   #insert-form, #insert-form label {
-        opacity: 0;
-        height: 0;
-        position: absolute;
-        z-index: 0;
+    display: none;
     }
 </style>
 <body>
@@ -424,7 +421,7 @@ try {
   </form>
 
   <section id="db-list">
-    <h2>b2b-db-list</h2>
+    <h2>B2B DB List</h2>
 
     <?php if ($dbError !== ''): ?>
       <p>DB 연결/초기화 오류로 목록을 표시하지 못했습니다.</p>
@@ -437,15 +434,15 @@ try {
       <table border="1" cellpadding="6" cellspacing="0">
         <thead>
           <tr>
-            <th>sno</th>
-            <th>testno</th>
-            <th>title</th>
-            <th>detail</th>
-            <th>totprc</th>
-            <th>orderstt</th>
-            <th>inno</th>
-            <th>tasks</th>
-            <th>created_at</th>
+            <th>No</th>
+            <th>주문번호</th>
+            <th>주문자명</th>
+            <th>주문정보</th>
+            <th>주문금액</th>
+            <th>주문상태</th>
+            <th>배송정보</th>
+            <th>업무번호</th>
+            <th>생성일자</th>
             <th>save</th>
           </tr>
         </thead>
@@ -475,7 +472,8 @@ try {
                 <input type="checkbox" name="inno">
               </td>
               <td>
-                <input type="text" name="tasks" value="<?= h((string)($r['tasks'] ?? '')) ?>" form="<?= h($rowTasksFormId) ?>">
+                <?= h((string)($r['tasks'] ?? '')) ?>
+                <input type="text" name="tasks" value="<?= h((string)($r['tasks'] ?? '')) ?>" form="<?= h($rowTasksFormId) ?>" hidden>
               </td>
               <td><?= h((string)($r['created_at'] ?? '')) ?></td>
               <td>
@@ -489,8 +487,8 @@ try {
                 <form id="<?= h($rowTasksFormId) ?>" method="post" action="" style="margin-top:6px;">
                   <input type="hidden" name="mode" value="update_tasks">
                   <input type="hidden" name="sno" value="<?= h((string)($r['sno'] ?? '')) ?>">
-                  <button type="button" class="row-change" onclick="showRowSubmit(this)">tasks변경</button>
-                  <button type="submit" class="row-submit" style="display:none;">submit</button>
+                  <!-- <button type="button" class="row-change" onclick="showRowSubmit(this)">tasks변경</button> -->
+                  <button type="submit" class="row-submit" style="display:none;">저장</button>
                 </form>
               </td>
             </tr>
