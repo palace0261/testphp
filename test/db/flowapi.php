@@ -339,7 +339,7 @@ try {
         }),
       };
       
-      return fetch('https://api.flow.team/v1/chats/3926704/messages', options)
+      return fetch('https://api.flow.team/v1/chats/1082063/messages', options)
         .then(response => {
           console.log('응답 상태:', response.status, response.statusText);
           if (!response.ok) {
