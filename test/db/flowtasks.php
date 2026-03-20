@@ -195,7 +195,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       'workers' => $workers,
     ];
 
-    $url = 'https://api.flow.team/v1/posts/projects/2828992/tasks';
+    $url = 'https://api.flow.team/v1/posts/projects/2828992';
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -467,7 +467,7 @@ try {
         }),
       };
       
-      return fetch('https://api.flow.team/v1/posts/projects/2828992/tasks', options)
+      return fetch('https://api.flow.team/v1/posts/projects/2828992', options)
         .then(response => {
           console.log('응답 상태:', response.status, response.statusText);
           if (!response.ok) {
