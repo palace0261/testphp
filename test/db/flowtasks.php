@@ -458,12 +458,6 @@ try {
           registerId: 'palace790@gmail.com',
           title: testnoKey,
           contents: contents,
-          status: 'request',
-          workers: [
-            {
-              workerId: 'palace790@gmail.com',
-            },
-          ],
         }),
       };
       
