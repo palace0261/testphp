@@ -39,7 +39,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   ";
   $conn->query($createSql);
 
-  // 1-0) 기존 테이블에 testno가 없을 수 있으므로 추가 시도
+  // 1-0) 기존 테이블에 testno가 없을 수 있으므로 추가 시a도
   try {
     $conn->query(
       "ALTER TABLE `{$tableName}` ADD COLUMN `testno` BIGINT UNSIGNED NULL AFTER `sno`"
@@ -180,7 +180,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.com');
     $title = (string)($payload['title'] ?? '');
     $contents = (string)($payload['contents'] ?? '');
-    $status = (string)($payload['status'] ?? 'request');
     $workers = $payload['workers'] ?? [['workerId' => 'palace790@gmail.com']];
 
     if (!is_array($workers)) {
@@ -191,11 +190,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       'registerId' => $registerId,
       'title' => $title,
       'contents' => $contents,
-      'status' => $status,
       'workers' => $workers,
     ];
 
-    $url = 'https://api.flow.team/v1/posts/projects/2828992/tasks';
+    $url = 'https://api.flow.team/v1/posts/projects/2828992';
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -458,7 +456,6 @@ try {
           registerId: 'palace790@gmail.com',
           title: testnoKey,
           contents: contents,
-          status: 'request',
           workers: [
             {
               workerId: 'palace790@gmail.com',
@@ -467,7 +464,7 @@ try {
         }),
       };
       
-      return fetch('https://api.flow.team/v1/posts/projects/2828992/tasks', options)
+      return fetch('https://api.flow.team/v1/posts/projects/2828992', options)
         .then(response => {
           console.log('응답 상태:', response.status, response.statusText);
           if (!response.ok) {
