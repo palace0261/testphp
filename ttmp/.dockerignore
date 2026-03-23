@@ -1,11 +1,6 @@
 .git
 .vscode
 
-# Local environment files (do not bake secrets into images)
-.env
-.env.*
-!.env.example
-
 # Dependency dirs (installed during build)
 vendor
 
