@@ -136,9 +136,10 @@ function getRequestHeaderValue(string $name): string
   return '';
 }
 
-// 다른 페이지에서 이 파일로 POST해서 Flow Task를 생성할 수 있도록 API 모드 제공
-// - JSON: { action: "sendFlowTask", ...payload }
-// - Form: action=sendFlowTask&...
+// 다른 페이지에서 이 파일로 POST해서 Flow 게시글을 생성할 수 있도록 API 모드 제공
+// - JSON: { action: "sendFlowPost", ...payload }
+// - Form: action=sendFlowPost&...
+// (하위호환) action=sendFlowTask 도 동일하게 처리
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
   $contentType = (string)($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '');
   $rawBody = '';
@@ -152,7 +153,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
   }
 
   $action = (string)($_POST['action'] ?? $jsonBody['action'] ?? '');
-  if ($action === 'sendFlowTask') {
+  if ($action === 'sendFlowPost' || $action === 'sendFlowTask') {
     header('Content-Type: application/json; charset=utf-8');
 
     if (!function_exists('curl_init')) {
@@ -177,22 +178,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       $payload = $_POST;
     }
 
-    $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.com');
-    $title = (string)($payload['title'] ?? '');
-    $contents = (string)($payload['contents'] ?? '');
-    $status = (string)($payload['status'] ?? 'request');
-    $workers = $payload['workers'] ?? [['workerId' => 'palace790@gmail.com']];
-
-    if (!is_array($workers)) {
-      $workers = [['workerId' => (string)$workers]];
-    }
+    $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.net');
+    $title = (string)($payload['title'] ?? '모니터링 알림');
+    $contents = (string)($payload['contents'] ?? '모니터링 알림이 도착했습니다. 확인해주세요.');
 
     $flowBody = [
       'registerId' => $registerId,
       'title' => $title,
       'contents' => $contents,
-      'status' => $status,
-      'workers' => $workers,
     ];
 
     $url = 'https://api.flow.team/v1/posts/projects/2828992';
@@ -436,63 +429,30 @@ try {
 
   <script>
     function sendFlowTeamApi() {
-      const apiKey = document.getElementById('apiKey').value;
-      const testnoEl = document.getElementById('testno');
-      const contents = document.getElementById('contents').value;
-
-      const testnoKey = normalizeTestnoKey(testnoEl ? testnoEl.value : '');
-      console.log('전송 시작:', { testno: testnoKey });
-
-      if (!apiKey) {
-        console.warn('API 키가 없습니다.');
-        return Promise.reject(new Error('API Key가 없습니다.'));
-      }
-      
       const options = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-flow-api-key': apiKey,
+          'x-flow-api-key': '20260310042354473-54f40d54-0833-4c3b-9f4a-1ce8e39c98f6',
         },
         body: JSON.stringify({
-          registerId: 'palace790@gmail.com',
-          title: testnoKey,
-          contents: contents,
+          registerId: 'palace790@gmail.net',
+          title: '모니터링 알림',
+          contents: '모니터링 알림이 도착했습니다. 확인해주세요.',
         }),
       };
-      
+
       return fetch('https://api.flow.team/v1/posts/projects/2828992', options)
-        .then(response => {
-          console.log('응답 상태:', response.status, response.statusText);
-          if (!response.ok) {
-            return response.text().then(text => {
-              console.error('응답 내용:', text);
-              throw new Error(`HTTP ${response.status}: ${text}`);
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('전송 성공:', data);
-          return data;
-        })
-        .catch(err => {
-          console.error('전송 실패:', err);
-          throw err;
-        });
+        .then(response => response.json())
+        .then(response => console.log(response))
+        .catch(err => console.error(err));
     }
 
     // 수동 전송 버튼 클릭 이벤트
     document.getElementById('submitBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      
-      sendFlowTeamApi()
-        .then(data => {
-          console.log('메시지가 전송되었습니다!', data);
-        })
-        .catch(err => {
-          console.warn('메시지 전송에 실패했습니다:', err && err.message ? err.message : err);
-        });
+
+      sendFlowTeamApi();
     });
   </script>
 
