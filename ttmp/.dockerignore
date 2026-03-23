@@ -1,9 +1,0 @@
-.git
-.vscode
-
-# Dependency dirs (installed during build)
-vendor
-
-# OS / editor noise
-**/.DS_Store
-*.log
