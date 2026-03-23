@@ -136,7 +136,7 @@ function getRequestHeaderValue(string $name): string
   return '';
 }
 
-// 다른 페이지에서 이 파일로 POST해서 Flow 게시글을 생성할 수 있도록 API 모드 제공
+// 다른 페이지에서 이 파일로 POST해서 Flow 게시글을 생성할 수 있도록 API1 모드 제공
 // - JSON: { action: "sendFlowPost", ...payload }
 // - Form: action=sendFlowPost&...
 // (하위호환) action=sendFlowTask 도 동일하게 처리
