@@ -39,7 +39,7 @@ function ensureTable(mysqli $conn, string $tableName, int $startAutoIncrement): 
   ";
   $conn->query($createSql);
 
-  // 1-0) 기존 테이블에 testno가 없을 수 있으므로 추가 시a도
+  // 1-0) 기존 테이블에 testno가 없을 수 있으므로 추가 시도
   try {
     $conn->query(
       "ALTER TABLE `{$tableName}` ADD COLUMN `testno` BIGINT UNSIGNED NULL AFTER `sno`"
@@ -180,7 +180,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.com');
     $title = (string)($payload['title'] ?? '');
     $contents = (string)($payload['contents'] ?? '');
-    $workers = $payload['workers'] ?? [['workerId' => 'palace790@gmail.com']];
+    
 
     if (!is_array($workers)) {
       $workers = [['workerId' => (string)$workers]];
@@ -190,10 +190,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       'registerId' => $registerId,
       'title' => $title,
       'contents' => $contents,
-      'workers' => $workers,
     ];
 
-    $url = 'https://api.flow.team/v1/posts/projects/2828992';
+    $url = 'https://api.flow.team/v1/posts/projects/2829048/';
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -350,7 +349,7 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>flowtasks - API 전송</title>
+  <title>flow - API 전송</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     div { margin-bottom: 15px; }
@@ -362,7 +361,7 @@ try {
   </style>
 </head>
 <body>
-  <h2>flowtasks - API 전송</h2>
+  <h2>flow - API 전송</h2>
   <div>
     <label>API Key:</label>
     <input id="apiKey" type="text" style="width: 400px;" value="20260310042354473-54f40d54-0833-4c3b-9f4a-1ce8e39c98f6" readonly>
@@ -456,24 +455,12 @@ try {
           registerId: 'palace790@gmail.com',
           title: testnoKey,
           contents: contents,
-          workers: [
-            {
-              workerId: 'palace790@gmail.com',
-            },
-          ],
         }),
       };
       
-      return fetch('https://api.flow.team/v1/posts/projects/2828992', options)
+      return fetch('https://api.flow.team/v1/posts/projects/2829048/', options)
         .then(response => {
-          console.log('응답 상태:', response.status, response.statusText);
-          if (!response.ok) {
-            return response.text().then(text => {
-              console.error('응답 내용:', text);
-              throw new Error(`HTTP ${response.status}: ${text}`);
-            });
-          }
-          return response.json();
+            return response.json();
         })
         .then(data => {
           console.log('전송 성공:', data);
