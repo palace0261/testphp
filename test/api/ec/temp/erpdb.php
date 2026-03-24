@@ -85,7 +85,6 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
       if ($action === 'insert') {
         $cust = post_str('cust');
         $prodCd = post_str('prod_cd');
-        $prodDes = post_str('prod_des');
         $qty = post_int('qty');
         $price = post_int('price');
         $ch = post_str('ch');
@@ -99,9 +98,9 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
           $stmt = $mysqli->prepare(
-            "INSERT INTO `{$tableName}` (`CUST`, `PROD_CD`, `PROD_DES`, `QTY`, `PRICE`, `ch`, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO `{$tableName}` (`CUST`, `PROD_CD`, `QTY`, `PRICE`, `ch`, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
           );
-          $stmt->bind_param('sssiissssss', $cust, $prodCd, $prodDes, $qty, $price, $ch, $memo1, $memo2, $memo3, $memo4, $orderno);
+          $stmt->bind_param('ssiissssss', $cust, $prodCd, $qty, $price, $ch, $memo1, $memo2, $memo3, $memo4, $orderno);
           $stmt->execute();
           $stmt->close();
           redirect_self(['ok' => 'insert']);
@@ -112,7 +111,6 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         $sno = post_int('sno');
         $cust = post_str('cust');
         $prodCd = post_str('prod_cd');
-        $prodDes = post_str('prod_des');
         $qty = post_int('qty');
         $price = post_int('price');
         $ch = post_str('ch');
@@ -126,9 +124,9 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
           $stmt = $mysqli->prepare(
-            "UPDATE `{$tableName}` SET `CUST` = ?, `PROD_CD` = ?, `PROD_DES` = ?, `QTY` = ?, `PRICE` = ?, `ch` = ?, `U_MEMO1` = ?, `U_MEMO2` = ?, `U_MEMO3` = ?, `U_MEMO4` = ?, `orderno` = ? WHERE `sno` = ?"
+            "UPDATE `{$tableName}` SET `CUST` = ?, `PROD_CD` = ?, `QTY` = ?, `PRICE` = ?, `ch` = ?, `U_MEMO1` = ?, `U_MEMO2` = ?, `U_MEMO3` = ?, `U_MEMO4` = ?, `orderno` = ? WHERE `sno` = ?"
           );
-          $stmt->bind_param('sssiissssssi', $cust, $prodCd, $prodDes, $qty, $price, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $sno);
+          $stmt->bind_param('ssiissssssi', $cust, $prodCd, $qty, $price, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $sno);
           $stmt->execute();
           $stmt->close();
           redirect_self(['ok' => 'update']);
@@ -142,7 +140,7 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
 
   try {
     $result = $mysqli->query(
-      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `PROD_DES` AS prod_des, `QTY` AS qty, `PRICE` AS price, `ch` AS ch, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno` AS orderno FROM `{$tableName}` ORDER BY `sno` DESC"
+      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `QTY` AS qty, `PRICE` AS price, `ch` AS ch, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno` AS orderno FROM `{$tableName}` ORDER BY `sno` DESC"
     );
     $rows = $result->fetch_all(MYSQLI_ASSOC);
     $result->free();
@@ -153,7 +151,7 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
 
 // orderno(주문번호) 기준으로 품목 배열을 만들어 ERP API(SaveSaleOrder)로 보낼 수 있게 준비
 $itemsByOrder = [];
-  foreach ($rows as $rr) {
+foreach ($rows as $rr) {
   $key = (string)($rr['orderno'] ?? '');
   if ($key === '') {
     $key = 'sno_' . (string)($rr['sno'] ?? '');
@@ -162,7 +160,6 @@ $itemsByOrder = [];
   $itemsByOrder[$key] ??= [];
   $itemsByOrder[$key][] = [
     'PROD_CD' => (string)($rr['prod_cd'] ?? ''),
-    'PROD_DES' => (string)($rr['prod_des'] ?? ''),
     'QTY' => (string)($rr['qty'] ?? ''),
     'PRICE' => (string)($rr['price'] ?? ''),
   ];
@@ -202,7 +199,6 @@ $itemsByOrder = [];
     <input type="hidden" name="action" value="insert">
     <label>CUST <input type="text" name="cust" required></label>
     <label>PROD_CD <input type="text" name="prod_cd" required></label>
-    <label>PROD_DES <input type="text" name="prod_des"></label>
     <label>QTY <input type="number" name="qty" required></label>
     <label>PRICE <input type="number" name="price"></label>
     <label>ch <input type="text" name="ch"></label>
@@ -234,7 +230,6 @@ $itemsByOrder = [];
             <th>sno</th>
             <th>CUST</th>
             <th>PROD_CD</th>
-            <th>PROD_DES</th>
             <th>QTY</th>
             <th>PRICE</th>
             <th>ch</th>
@@ -267,9 +262,6 @@ $itemsByOrder = [];
               </td>
               <td>
                 <input type="text" name="prod_cd" value="<?= h((string)($r['prod_cd'] ?? '')) ?>" form="<?= h($formId) ?>" required>
-              </td>
-              <td>
-                <input type="text" name="prod_des" value="<?= h((string)($r['prod_des'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
                 <input type="text" name="qty" value="<?= h((string)($r['qty'] ?? '')) ?>" form="<?= h($formId) ?>" required>
