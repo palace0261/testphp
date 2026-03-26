@@ -1,0 +1,24 @@
+{
+    "SaleOrderList": [
+        {
+            "BulkDatas": {
+                "UPLOAD_SER_NO": "1",
+                "CUST": "107-30-79988",
+                "WH_CD": "100",
+                "PROD_CD": "PPD001",
+                "QTY": "1",
+                "IO_DATE": "20260326",
+                "PROD_DES": "PP-DOCK",
+                "SIZE_DES": "107-30-79988",
+                "PRICE": "350000",
+                "SUPPLY_AMT": "318182",
+                "VAT_AMT": "31818",
+                "EMP_CD": "99",
+                "U_MEMO1": "주문하시는 분",
+                "U_MEMO2": "test",
+                "U_MEMO3": "010-3232-7593",
+                "U_MEMO4": "서울특별시 양천구 곰달래로13길 73(신월동) 123"
+            }
+        }
+    ]
+}
