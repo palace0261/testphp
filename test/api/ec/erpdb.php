@@ -4,35 +4,11 @@
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// DB 설정은 .env 파일에서 로드합니다. (파일 위치: 같은 폴더의 .env)
-function loadEnv(string $path): array
-{
-  $env = [];
-  if (!is_readable($path)) return $env;
-  $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-  foreach ($lines as $line) {
-    $line = trim($line);
-    if ($line === '' || $line[0] === '#') continue;
-    if (strpos($line, '=') === false) continue;
-    list($k, $v) = explode('=', $line, 2);
-    $k = trim($k);
-    $v = trim($v);
-    // remove surrounding quotes
-    if (strlen($v) >= 2 && (($v[0] === '"' && $v[-1] === '"') || ($v[0] === "'" && $v[-1] === "'"))) {
-      $v = substr($v, 1, -1);
-    }
-    $env[$k] = $v;
-  }
-  return $env;
-}
-
-$envPath = __DIR__ . DIRECTORY_SEPARATOR . '.env';
-$env = loadEnv($envPath);
-
-$dbHost = $env['DB_HOST'] ?? '';
-$dbUser = $env['DB_USER'] ?? '';
-$dbPass = $env['DB_PASS'] ?? '';
-$dbName = $env['DB_NAME'] ?? '';
+// DB 설정 (하드코딩 — .env 없이 연결)
+$dbHost = 'svc.sel4.cloudtype.app:31446';
+$dbUser = 'root';
+$dbPass = 'palace0261@@';
+$dbName = 'palace0261';
 
 $tableName = 'erp_testTable';
 $startAutoIncrement = 33;
