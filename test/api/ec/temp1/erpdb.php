@@ -1,38 +1,13 @@
 <?php
-// 0326 2026 - test 테이블
+// 0326 2026
 
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// DB 설정은 .env 파일에서 로드합니다. (파일 위치: 같은 폴더의 .env)
-function loadEnv(string $path): array
-{
-  $env = [];
-  if (!is_readable($path)) return $env;
-  $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-  foreach ($lines as $line) {
-    $line = trim($line);
-    if ($line === '' || $line[0] === '#') continue;
-    if (strpos($line, '=') === false) continue;
-    list($k, $v) = explode('=', $line, 2);
-    $k = trim($k);
-    $v = trim($v);
-    // remove surrounding quotes
-    if (strlen($v) >= 2 && (($v[0] === '"' && $v[-1] === '"') || ($v[0] === "'" && $v[-1] === "'"))) {
-      $v = substr($v, 1, -1);
-    }
-    $env[$k] = $v;
-  }
-  return $env;
-}
-
-$envPath = __DIR__ . DIRECTORY_SEPARATOR . '.env';
-$env = loadEnv($envPath);
-
-$dbHost = $env['DB_HOST'] ?? '';
-$dbUser = $env['DB_USER'] ?? '';
-$dbPass = $env['DB_PASS'] ?? '';
-$dbName = $env['DB_NAME'] ?? '';
+$dbHost = 'svc.sel4.cloudtype.app:31446';
+$dbUser = 'root';
+$dbPass = 'palace0261@@';
+$dbName = 'palace0261';
 
 $tableName = 'erp_testTable';
 $startAutoIncrement = 33;
@@ -132,14 +107,13 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         if ($cust === '' || $prodCd === '' || $qty === null) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
-          // 클라이언트에서 PRICE를 공급가로 채워 전달하므로,
-          // 서버에서는 POST된 PRICE를 공급가로 간주하고 VAT는 공급가의 10%로 계산합니다.
+          // PRICE로부터 공급가(SUPPLY_AMT)와 부가세(VAT_AMT) 계산
           if ($price === null) {
             $supplyAmt = 0;
             $vatAmt = 0;
           } else {
-            $supplyAmt = (int)$price;
-            $vatAmt = (int)round($price * 0.1);
+            $supplyAmt = (int)round($price / 1.1);
+            $vatAmt = (int)round($price - $supplyAmt);
           }
 
           $stmt = $mysqli->prepare(
@@ -173,14 +147,13 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         if ($sno === null || $cust === '' || $prodCd === '' || $qty === null ) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
-          // 클라이언트에서 PRICE를 공급가로 채워 전달하므로,
-          // 서버에서는 POST된 PRICE를 공급가로 간주하고 VAT는 공급가의 10%로 계산합니다.
+          // PRICE로부터 SUPPLY_AMT, VAT_AMT 재계산
           if ($price === null) {
             $supplyAmt = 0;
             $vatAmt = 0;
           } else {
-            $supplyAmt = (int)$price;
-            $vatAmt = (int)round($price * 0.1);
+            $supplyAmt = (int)round($price / 1.1);
+            $vatAmt = (int)round($price - $supplyAmt);
           }
 
           $stmt = $mysqli->prepare(
@@ -434,42 +407,36 @@ document.addEventListener('DOMContentLoaded', function(){
         // 같은 행(tr) 안에 있는 편집용 price 입력을 찾음
         var tr = f.closest('tr');
         if (!tr) return;
-        // visible price 찾기: 같은 이름의 input이 여러개일 수 있으므로
-        var visiblePrice = null;
-        tr.querySelectorAll('input[name="price"]').forEach(function(p){
-          if (visiblePrice) return;
-          if (p.closest('form') !== f) visiblePrice = p;
-        });
-        if (!visiblePrice) visiblePrice = tr.querySelector('input[name="price"]');
+        var visiblePrice = tr.querySelector('input[name="price"][form]') || tr.querySelector('input[name="price"]');
         if (!visiblePrice) return;
         var raw = (visiblePrice.value || '').toString().trim();
         if (raw === '') return;
+        // 콤마 제거 후 숫자 변환
         var num = parseFloat(raw.replace(/,/g, ''));
         if (isNaN(num)) return;
 
-        // 총액 -> 공급가/부가세 계산
+        // 공급가: 부가세 포함 금액에서 VAT 제외 (1.1로 나눔), 소수점 반올림
         var supply = Math.round(num / 1.1);
         var vat = Math.round(num - supply);
 
-        // 화면과 전송 필드에 반영: PRICE(보이는)도 공급가로 덮어쓰기
-        visiblePrice.value = String(supply);
-        var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
-        var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
+        var priceField = f.querySelector('input[name="price"]');
+        var supplyField = f.querySelector('input[name="SUPPLY_AMT"]');
+        var vatField = f.querySelector('input[name="VAT_AMT"]');
+          var prodCdField = f.querySelector('input[name="prod_cd"]');
+          var qtyField = f.querySelector('input[name="qty"]');
+        if (priceField) priceField.value = String(Math.round(num));
+        if (supplyField) supplyField.value = String(supply);
+        if (vatField) vatField.value = String(vat);
+          // prod_cd, qty도 함께 채움 (테이블의 편집 입력값에서 가져옴)
+          var visibleProd = tr.querySelector('input[name="prod_cd"][form]') || tr.querySelector('input[name="prod_cd"]');
+          var visibleQty = tr.querySelector('input[name="qty"][form]') || tr.querySelector('input[name="qty"]');
+          if (prodCdField && visibleProd) prodCdField.value = String(visibleProd.value || '');
+          if (qtyField && visibleQty) qtyField.value = String(visibleQty.value || '');
+        // 또한 테이블에 표시된 공급가/부가세 입력값도 갱신
+        var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"][form]') || tr.querySelector('input[name="SUPPLY_AMT"]');
+        var visibleVat = tr.querySelector('input[name="VAT_AMT"][form]') || tr.querySelector('input[name="VAT_AMT"]');
         if (visibleSupply) visibleSupply.value = String(supply);
         if (visibleVat) visibleVat.value = String(vat);
-        var sfPrice = f.querySelector('input[name="price"]');
-        var sfSupply = f.querySelector('input[name="SUPPLY_AMT"]');
-        var sfVat = f.querySelector('input[name="VAT_AMT"]');
-        if (sfPrice) sfPrice.value = String(supply);
-        if (sfSupply) sfSupply.value = String(supply);
-        if (sfVat) sfVat.value = String(vat);
-        // prod_cd, qty도 함께 채움
-        var prodCdField = f.querySelector('input[name="prod_cd"]');
-        var qtyField = f.querySelector('input[name="qty"]');
-        var visibleProd = tr.querySelector('input[name="prod_cd"]');
-        var visibleQty = tr.querySelector('input[name="qty"]');
-        if (prodCdField && visibleProd) prodCdField.value = String(visibleProd.value || '');
-        if (qtyField && visibleQty) qtyField.value = String(visibleQty.value || '');
       } catch (err) {
         console.error('calc error', err);
       }
@@ -478,60 +445,6 @@ document.addEventListener('DOMContentLoaded', function(){
     }, false);
   });
 });
-// 편집 화면에서 PRICE를 직접 수정할 때 즉시 SUPPLY_AMT/VAT_AMT를 계산하여
-// 같은 행의 보이는 입력값과 관련된 전송 폼(hidden 필드)에 동기화합니다.
-(function(){
-  function calcAndFill(priceInput){
-    try{
-      var tr = priceInput.closest('tr');
-      if (!tr) return;
-      var raw = (priceInput.value || '').toString().trim();
-      if (raw === '') return;
-      var num = parseFloat(raw.replace(/,/g, ''));
-      if (isNaN(num)) return;
-      // 입력값을 총액으로 받는다고 가정하면 공급가는 1.1로 나눠서 계산
-      var supply = Math.round(num / 1.1);
-      var vat = Math.round(num - supply);
-
-
-      // 보이는 입력값(테이블)에 반영 및 PRICE를 공급가로 덮어쓰기
-      var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
-      var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
-      if (visibleSupply) visibleSupply.value = String(supply);
-      if (visibleVat) visibleVat.value = String(vat);
-      if (priceInput) priceInput.value = String(supply);
-
-      // 같은 행에 있는 saleorder 전송 폼(hidden 필드)에도 반영
-      var saleForm = tr.querySelector('form[action="index.php"]');
-      if (saleForm) {
-        var sfPrice = saleForm.querySelector('input[name="price"]');
-        var sfSupply = saleForm.querySelector('input[name="SUPPLY_AMT"]');
-        var sfVat = saleForm.querySelector('input[name="VAT_AMT"]');
-        // 전송되는 price는 공급가로 설정
-        if (sfPrice) sfPrice.value = String(supply);
-        if (sfSupply) sfSupply.value = String(supply);
-        if (sfVat) sfVat.value = String(vat);
-      }
-    } catch (e) {
-      console.error('calcAndFill error', e);
-    }
-  }
-
-  // 테이블의 편집용 PRICE 입력(폼 속성 유무 상관없이)을 대상으로 이벤트 연결
-  document.querySelectorAll('input[name="price"]').forEach(function(inp){
-    // 사용자가 입력을 끝냈을 때와 실시간 입력 모두 반응하도록 두 이벤트를 연결
-    inp.addEventListener('input', function(){ calcAndFill(inp); }, false);
-    inp.addEventListener('change', function(){ calcAndFill(inp); }, false);
-  });
-  // 페이지 로드 시 이미 값이 있는 PRICE 입력에 대해 계산을 한 번 수행
-  document.querySelectorAll('input[name="price"]').forEach(function(inp){
-    try {
-      if ((inp.value || '').toString().trim() !== '') {
-        calcAndFill(inp);
-      }
-    } catch (e) { /* ignore */ }
-  });
-})();
 </script>
 </body>
 </html>

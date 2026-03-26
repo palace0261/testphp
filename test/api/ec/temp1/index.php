@@ -1,5 +1,5 @@
 <?php
-// 0326 2026-1 ㅁㄴㅇ
+// 0326 2026
 
 declare(strict_types=1);
 
