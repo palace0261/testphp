@@ -320,7 +320,7 @@ $itemsByOrder = [];
   </style>
   
 
-  <h1>ERP Test ㅁ (erp_testTable)</h1>
+  <h1>ERP Test server (erp_testTable)</h1>
 
   <?php if ($message !== ''): ?>
     <div class="msg"><?= h($message) ?></div>
@@ -357,6 +357,10 @@ $itemsByOrder = [];
 
     <?php if ($dbError !== ''): ?>
       <p>DB 연결/초기화 오류로 목록을 표시하지 못했습니다.</p>
+      <p style="color: red;">오류: <?= h($dbError) ?></p>
+      <?php if ($schemaWarning !== ''): ?>
+        <p style="color: orange;">스키마 경고: <?= h($schemaWarning) ?></p>
+      <?php endif; ?>
     <?php elseif ($listError !== ''): ?>
       <p>조회 중 오류가 있어 목록을 표시하지 못했습니다.</p>
       <p style="color: red;">조회 오류: <?= h($listError) ?></p>
