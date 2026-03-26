@@ -100,14 +100,14 @@ if ($ok === 'insert') {
 
 $mysqli = null;
 try {
-  // .env에서 포트나 소켓 정보가 있을 수 있으므로 처리합니다.
-  $dbSocket = $env['DB_SOCKET'] ?? null;
-  $dbPortRaw = $env['DB_PORT'] ?? null;
+  // .env에서 포트/소켓 처리
+  $dbSocket = $env['DB_SOCKET'] ?? '';
+  $dbPortRaw = $env['DB_PORT'] ?? '';
 
   $host = $dbHost;
   $port = 0;
 
-  // DB_HOST에 host:port 형식으로 들어왔을 때 분리
+  // DB_HOST에 host:port 형식으로 들어왔을 때 분리 (도메인:포트)
   if ($host !== '' && strpos($host, ':') !== false && ($dbPortRaw === null || $dbPortRaw === '')) {
     $parts = explode(':', $host);
     $maybePort = array_pop($parts);
@@ -118,14 +118,29 @@ try {
   }
 
   // DB_PORT 환경변수가 있으면 우선 사용
-  if ($dbPortRaw !== null && $dbPortRaw !== '') {
-    if (ctype_digit((string)$dbPortRaw)) {
-      $port = (int)$dbPortRaw;
+  if ($dbPortRaw !== null && $dbPortRaw !== '' && ctype_digit((string)$dbPortRaw)) {
+    $port = (int)$dbPortRaw;
+  }
+
+  // 소켓은 로컬 접속에 대해서만 사용하도록 제한합니다. 원격 호스트 연결 시 소켓을 전달하면 "No such file or directory" 오류 발생 가능.
+  $useSocket = false;
+  $normalizedHost = strtolower((string)$host);
+  if ($dbSocket !== '' && ($normalizedHost === 'localhost' || $normalizedHost === '127.0.0.1' || $normalizedHost === '::1')) {
+    $useSocket = true;
+  }
+
+  if ($useSocket) {
+    // localhost + socket 사용
+    $mysqli = new mysqli('localhost', $dbUser, $dbPass, $dbName, $port, $dbSocket);
+  } else {
+    // 호스트/포트 기반 연결 (소켓 전달하지 않음)
+    if ($port > 0) {
+      $mysqli = new mysqli($host, $dbUser, $dbPass, $dbName, $port);
+    } else {
+      $mysqli = new mysqli($host, $dbUser, $dbPass, $dbName);
     }
   }
 
-  // mysqli 생성: host, user, pass, db, port, socket
-  $mysqli = new mysqli($host, $dbUser, $dbPass, $dbName, $port, $dbSocket);
   $mysqli->set_charset('utf8mb4');
 } catch (Throwable $e) {
   $dbError = $e->getMessage();
