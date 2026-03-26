@@ -100,13 +100,77 @@ if ($ok === 'insert') {
 
 $mysqli = null;
 try {
-  $mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
+  // .env에서 포트나 소켓 정보가 있을 수 있으므로 처리합니다.
+  $dbSocket = $env['DB_SOCKET'] ?? null;
+  $dbPortRaw = $env['DB_PORT'] ?? null;
+
+  $host = $dbHost;
+  $port = 0;
+
+  // DB_HOST에 host:port 형식으로 들어왔을 때 분리
+  if ($host !== '' && strpos($host, ':') !== false && ($dbPortRaw === null || $dbPortRaw === '')) {
+    $parts = explode(':', $host);
+    $maybePort = array_pop($parts);
+    if (ctype_digit($maybePort)) {
+      $port = (int)$maybePort;
+      $host = implode(':', $parts);
+    }
+  }
+
+  // DB_PORT 환경변수가 있으면 우선 사용
+  if ($dbPortRaw !== null && $dbPortRaw !== '') {
+    if (ctype_digit((string)$dbPortRaw)) {
+      $port = (int)$dbPortRaw;
+    }
+  }
+
+  // mysqli 생성: host, user, pass, db, port, socket
+  $mysqli = new mysqli($host, $dbUser, $dbPass, $dbName, $port, $dbSocket);
   $mysqli->set_charset('utf8mb4');
 } catch (Throwable $e) {
   $dbError = $e->getMessage();
 }
 
 if ($dbError === '' && $mysqli instanceof mysqli) {
+  // 테이블이 존재하지 않으면 생성하고 AUTO_INCREMENT 초기값을 적용합니다.
+  try {
+    $createSql = "CREATE TABLE IF NOT EXISTS `{$tableName}` (
+      `sno` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `CUST` VARCHAR(191) DEFAULT '',
+      `PROD_CD` VARCHAR(191) DEFAULT '',
+      `PROD_DES` VARCHAR(191) DEFAULT '',
+      `QTY` INT DEFAULT 0,
+      `PRICE` INT DEFAULT 0,
+      `SUPPLY_AMT` INT DEFAULT 0,
+      `VAT_AMT` INT DEFAULT 0,
+      `ch` VARCHAR(191) DEFAULT '',
+      `U_MEMO1` VARCHAR(255) DEFAULT '',
+      `U_MEMO2` VARCHAR(255) DEFAULT '',
+      `U_MEMO3` VARCHAR(255) DEFAULT '',
+      `U_MEMO4` VARCHAR(255) DEFAULT '',
+      `orderno` VARCHAR(191) DEFAULT '',
+      `ordernm` VARCHAR(191) DEFAULT '',
+      PRIMARY KEY (`sno`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+    $mysqli->query($createSql);
+
+    // AUTO_INCREMENT이 설정값보다 작으면 증가시킵니다.
+    $stmt = $mysqli->prepare("SELECT `AUTO_INCREMENT` FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?");
+    $dbNameForQuery = $dbName;
+    $stmt->bind_param('ss', $dbNameForQuery, $tableName);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $row = $res ? $res->fetch_assoc() : null;
+    $currentAi = isset($row['AUTO_INCREMENT']) ? (int)$row['AUTO_INCREMENT'] : 0;
+    $stmt->close();
+    if ($currentAi === 0 || $currentAi < (int)$startAutoIncrement) {
+      $setAi = (int)$startAutoIncrement;
+      $mysqli->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = " . $setAi);
+    }
+  } catch (Throwable $e) {
+    // 테이블 생성/스키마 관련 경고를 보관
+    $schemaWarning = $e->getMessage();
+  }
   try {
     $requestMethod = isset($_SERVER['REQUEST_METHOD']) && is_string($_SERVER['REQUEST_METHOD'])
       ? $_SERVER['REQUEST_METHOD']
