@@ -759,6 +759,103 @@ document.addEventListener('DOMContentLoaded', function(){
       }catch(e){console.error(e)}
     }, false);
   });
+
+  // 자동 전송: 행(row) 내 입력값 변경 시 해당 행의 saleorder 폼을 자동 제출
+  // 단, orderno 값이 같은 행들은 그룹으로 묶어 최초 1회만 전송합니다.
+  (function(){
+    var sentOrders = new Set();
+    var pending = Object.create(null);
+
+    function orderKeyForRow(tr){
+      var ord = (tr.querySelector('input[name="orderno"]') || {value: ''}).value || '';
+      if (ord.toString().trim() !== '') return 'ord_' + ord.toString().trim();
+      var sno = (tr.querySelector('input[name="sno"]') || {value: ''}).value || '';
+      return 'sno_' + sno.toString().trim();
+    }
+
+    function scheduleRowSubmit(tr){
+      var key = orderKeyForRow(tr);
+      if (sentOrders.has(key)) return; // 이미 전송된 order
+      // debounce: 같은 order에 대해 여러 이벤트가 오면 하나로 묶음
+      if (pending[key]) clearTimeout(pending[key]);
+      pending[key] = setTimeout(function(){
+        delete pending[key];
+        // find first row matching this key (orderno) to submit that form
+        var selector;
+        if (key.indexOf('ord_') === 0) {
+          var ord = key.substring(4);
+          selector = '#db-list tbody tr';
+          var rows = document.querySelectorAll(selector);
+          for (var i=0;i<rows.length;i++){
+            var r = rows[i];
+            var ordf = (r.querySelector('input[name="orderno"]') || {value: ''}).value || '';
+            if (ordf.toString().trim() === ord) { tr = r; break; }
+          }
+        }
+        // ensure hidden saleorder fields are up-to-date
+        try{
+          var priceInp = tr.querySelector('input[name="price"]');
+          var reInp = tr.querySelector('input[name="re_price"]');
+          if (reInp) reInp.dispatchEvent(new Event('input', {bubbles:true}));
+          if (priceInp) priceInp.dispatchEvent(new Event('change', {bubbles:true}));
+        } catch(e) { /* ignore */ }
+
+        var form = tr.querySelector('form[action="index.php"]');
+        if (form) {
+          try{
+            // mark as sent to avoid duplicates
+            sentOrders.add(key);
+            if (typeof form.requestSubmit === 'function') form.requestSubmit();
+            else form.submit();
+          } catch(e){ console.error('auto submit failed', e); }
+        }
+      }, 300);
+    }
+
+    // listen for changes on relevant inputs in each row
+    function attachRowListeners(tr){
+      var sels = ['input[name="price"]','input[name="re_price"]','input[name="qty"]','input[name="orderno"]','input[name="prod_cd"]'];
+      sels.forEach(function(sel){
+        tr.querySelectorAll(sel).forEach(function(inp){
+          var handler = function(){
+            try{
+              var v = (inp.value || '').toString().trim();
+              if (v === '') return; // only trigger when a value is added (non-empty)
+              scheduleRowSubmit(tr);
+            }catch(e){ /* ignore */ }
+          };
+          inp.addEventListener('input', handler, false);
+          inp.addEventListener('change', handler, false);
+        });
+      });
+    }
+
+    document.querySelectorAll('#db-list tbody tr').forEach(function(tr){ attachRowListeners(tr); });
+
+    // Observe new rows being added and attach listeners; submit only if new row has filled inputs
+    var tbody = document.querySelector('#db-list tbody');
+    if (tbody) {
+      var mo = new MutationObserver(function(mutations){
+        mutations.forEach(function(m){
+          m.addedNodes.forEach(function(node){
+            if (!node || node.nodeType !== 1) return;
+            if (node.tagName.toLowerCase() !== 'tr') return;
+            attachRowListeners(node);
+            var shouldSubmit = false;
+            ['input[name="price"]','input[name="re_price"]','input[name="qty"]','input[name="orderno"]','input[name="prod_cd"]'].forEach(function(sel){
+              node.querySelectorAll(sel).forEach(function(inp){
+                if (shouldSubmit) return;
+                var v = (inp.value || '').toString().trim();
+                if (v !== '') shouldSubmit = true;
+              });
+            });
+            if (shouldSubmit) scheduleRowSubmit(node);
+          });
+        });
+      });
+      mo.observe(tbody, { childList: true });
+    }
+  })();
 })();
 </script>
 </body>
