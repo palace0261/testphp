@@ -213,9 +213,19 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         if ($cust === '' || $prodCd === '' || $qty === null) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
-          // 클라이언트에서 PRICE를 공급가로 채워 전달하므로,
-          // 서버에서는 POST된 PRICE를 공급가로 간주하고 VAT는 공급가의 10%로 계산합니다.
-          if ($price === null) {
+          // RE_PRICE(총액)가 제공되면 이를 우선으로 공급가/부가세를 계산합니다.
+          // RE_PRICE는 총액(공급가+VAT)으로 입력되므로 공급가는 RE_PRICE / 1.1 로 계산합니다.
+          if ($rePrice !== null && $rePrice !== 0) {
+            // RE_PRICE는 단가(총액 = 공급가+VAT)로 들어온다고 가정합니다.
+            // 단가 기준으로 단위 공급가/부가세를 계산하고, 전체 공급금액은 수량(qty)을 곱합니다.
+            $unitSupply = (int)round($rePrice / 1.1);
+            $unitVat = (int)($rePrice - $unitSupply);
+            $price = $unitSupply; // PRICE는 단가(공급가 단위)로 저장
+            $qtyVal = ($qty === null) ? 1 : (int)$qty;
+            if ($qtyVal < 1) $qtyVal = 1;
+            $supplyAmt = $unitSupply * $qtyVal; // 전체 공급액
+            $vatAmt = $unitVat * $qtyVal; // 전체 부가세
+          } elseif ($price === null) {
             $supplyAmt = 0;
             $vatAmt = 0;
           } else {
@@ -260,9 +270,17 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         if ($sno === null || $cust === '' || $prodCd === '' || $qty === null ) {
           $formError = '필수값이 비어있거나 숫자 형식이 올바르지 않습니다.';
         } else {
-          // 클라이언트에서 PRICE를 공급가로 채워 전달하므로,
-          // 서버에서는 POST된 PRICE를 공급가로 간주하고 VAT는 공급가의 10%로 계산합니다.
-          if ($price === null) {
+          // RE_PRICE(총액)가 제공되면 이를 우선으로 공급가/부가세를 계산합니다.
+          if ($rePrice !== null && $rePrice !== 0) {
+            // RE_PRICE는 단가(총액 = 공급가+VAT)로 들어온다고 가정합니다.
+            $unitSupply = (int)round($rePrice / 1.1);
+            $unitVat = (int)($rePrice - $unitSupply);
+            $price = $unitSupply;
+            $qtyVal = ($qty === null) ? 1 : (int)$qty;
+            if ($qtyVal < 1) $qtyVal = 1;
+            $supplyAmt = $unitSupply * $qtyVal;
+            $vatAmt = $unitVat * $qtyVal;
+          } elseif ($price === null) {
             $supplyAmt = 0;
             $vatAmt = 0;
           } else {
@@ -562,22 +580,51 @@ document.addEventListener('DOMContentLoaded', function(){
         var num = parseFloat(raw.replace(/,/g, ''));
         if (isNaN(num)) return;
 
-        // 총액 -> 공급가/부가세 계산
+        // 기본: 총액 -> 공급가/부가세 계산 (입력값이 총액일 때)
         var supply = Math.round(num / 1.1);
         var vat = Math.round(num - supply);
 
-        // 화면과 전송 필드에 반영: PRICE(보이는)도 공급가로 덮어쓰기
-        visiblePrice.value = String(supply);
+        // re_price 필드가 있으면 단가 기준으로 계산하고 수량을 곱해서 합계를 만듭니다.
+        var visibleRe = tr.querySelector('input[name="re_price"]');
+        var qtyVisible = tr.querySelector('input[name="qty"]');
+        var qtyVal = 1;
+        if (qtyVisible) {
+          var qn = parseInt((qtyVisible.value || '').toString().replace(/,/g, ''), 10);
+          if (!isNaN(qn) && qn > 0) qtyVal = qn;
+        }
+        if (visibleRe && (visibleRe.value || '').toString().trim() !== '') {
+          var reNum = parseFloat((visibleRe.value || '').toString().replace(/,/g, ''));
+          if (!isNaN(reNum)) {
+            var unitPrice = Math.round(reNum / 1.1); // 단가(공급가)
+            var unitVat = Math.round(reNum - unitPrice); // 단위 VAT
+            var calcPrice = unitPrice;
+            var totalSupply = unitPrice * qtyVal;
+            var totalVat = unitVat * qtyVal;
+            visiblePrice.value = String(calcPrice);
+            supply = totalSupply;
+            vat = totalVat;
+            // hidden 전송 필드는 단가와 총합을 구분하여 채움
+            var sfPrice = f.querySelector('input[name="price"]');
+            var sfSupply = f.querySelector('input[name="SUPPLY_AMT"]');
+            var sfVat = f.querySelector('input[name="VAT_AMT"]');
+            if (sfPrice) sfPrice.value = String(calcPrice);
+            if (sfSupply) sfSupply.value = String(totalSupply);
+            if (sfVat) sfVat.value = String(totalVat);
+          }
+        } else {
+          visiblePrice.value = String(supply);
+          var sfPrice = f.querySelector('input[name="price"]');
+          var sfSupply = f.querySelector('input[name="SUPPLY_AMT"]');
+          var sfVat = f.querySelector('input[name="VAT_AMT"]');
+          if (sfPrice) sfPrice.value = String(supply);
+          if (sfSupply) sfSupply.value = String(supply);
+          if (sfVat) sfVat.value = String(vat);
+        }
+
         var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
         var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
         if (visibleSupply) visibleSupply.value = String(supply);
         if (visibleVat) visibleVat.value = String(vat);
-        var sfPrice = f.querySelector('input[name="price"]');
-        var sfSupply = f.querySelector('input[name="SUPPLY_AMT"]');
-        var sfVat = f.querySelector('input[name="VAT_AMT"]');
-        if (sfPrice) sfPrice.value = String(supply);
-        if (sfSupply) sfSupply.value = String(supply);
-        if (sfVat) sfVat.value = String(vat);
         // prod_cd, qty도 함께 채움
         var prodCdField = f.querySelector('input[name="prod_cd"]');
         var qtyField = f.querySelector('input[name="qty"]');
@@ -608,25 +655,53 @@ document.addEventListener('DOMContentLoaded', function(){
       var supply = Math.round(num / 1.1);
       var vat = Math.round(num - supply);
 
+      // re_price 우선 처리: re_price는 단가(총액)로 간주하고 단가->단가공급가 계산, 총합은 qty 곱
+      var visibleRe = tr.querySelector('input[name="re_price"]');
+      var qtyVisible = tr.querySelector('input[name="qty"]');
+      var qtyVal = 1;
+      if (qtyVisible) {
+        var qn = parseInt((qtyVisible.value || '').toString().replace(/,/g, ''), 10);
+        if (!isNaN(qn) && qn > 0) qtyVal = qn;
+      }
+      if (visibleRe && (visibleRe.value || '').toString().trim() !== '') {
+        var reNum = parseFloat((visibleRe.value || '').toString().replace(/,/g, ''));
+        if (!isNaN(reNum)) {
+          var unitPrice = Math.round(reNum / 1.1);
+          var unitVat = Math.round(reNum - unitPrice);
+          var calcPrice = unitPrice;
+          var totalSupply = unitPrice * qtyVal;
+          var totalVat = unitVat * qtyVal;
+          if (priceInput) priceInput.value = String(calcPrice);
+          supply = totalSupply;
+          vat = totalVat;
+          var saleForm = tr.querySelector('form[action="index.php"]');
+          if (saleForm) {
+            var sfPrice = saleForm.querySelector('input[name="price"]');
+            var sfSupply = saleForm.querySelector('input[name="SUPPLY_AMT"]');
+            var sfVat = saleForm.querySelector('input[name="VAT_AMT"]');
+            if (sfPrice) sfPrice.value = String(calcPrice);
+            if (sfSupply) sfSupply.value = String(totalSupply);
+            if (sfVat) sfVat.value = String(totalVat);
+          }
+        }
+      } else {
+        if (priceInput) priceInput.value = String(supply);
+        var saleForm = tr.querySelector('form[action="index.php"]');
+        if (saleForm) {
+          var sfPrice = saleForm.querySelector('input[name="price"]');
+          var sfSupply = saleForm.querySelector('input[name="SUPPLY_AMT"]');
+          var sfVat = saleForm.querySelector('input[name="VAT_AMT"]');
+          if (sfPrice) sfPrice.value = String(supply);
+          if (sfSupply) sfSupply.value = String(supply);
+          if (sfVat) sfVat.value = String(vat);
+        }
+      }
 
-      // 보이는 입력값(테이블)에 반영 및 PRICE를 공급가로 덮어쓰기
+      // 보이는 입력값(테이블)에 반영
       var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
       var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
       if (visibleSupply) visibleSupply.value = String(supply);
       if (visibleVat) visibleVat.value = String(vat);
-      if (priceInput) priceInput.value = String(supply);
-
-      // 같은 행에 있는 saleorder 전송 폼(hidden 필드)에도 반영
-      var saleForm = tr.querySelector('form[action="index.php"]');
-      if (saleForm) {
-        var sfPrice = saleForm.querySelector('input[name="price"]');
-        var sfSupply = saleForm.querySelector('input[name="SUPPLY_AMT"]');
-        var sfVat = saleForm.querySelector('input[name="VAT_AMT"]');
-        // 전송되는 price는 공급가로 설정
-        if (sfPrice) sfPrice.value = String(supply);
-        if (sfSupply) sfSupply.value = String(supply);
-        if (sfVat) sfVat.value = String(vat);
-      }
     } catch (e) {
       console.error('calcAndFill error', e);
     }
@@ -645,6 +720,44 @@ document.addEventListener('DOMContentLoaded', function(){
         calcAndFill(inp);
       }
     } catch (e) { /* ignore */ }
+  });
+  // re_price 입력 변화가 있을 때 PRICE/SUPPLY/VAT를 동기화하도록 이벤트 연결
+  document.querySelectorAll('input[name="re_price"]').forEach(function(rp){
+    rp.addEventListener('input', function(){
+      try{
+        var tr = rp.closest('tr');
+        if (!tr) return;
+        var reRaw = (rp.value || '').toString().trim();
+        if (reRaw === '') return;
+        var reNum = parseFloat(reRaw.replace(/,/g, ''));
+        if (isNaN(reNum)) return;
+        var qtyVisible = tr.querySelector('input[name="qty"]');
+        var qtyVal = 1;
+        if (qtyVisible) {
+          var qn = parseInt((qtyVisible.value || '').toString().replace(/,/g, ''), 10);
+          if (!isNaN(qn) && qn > 0) qtyVal = qn;
+        }
+        var unitPrice = Math.round(reNum / 1.1);
+        var unitVat = Math.round(reNum - unitPrice);
+        var totalSupply = unitPrice * qtyVal;
+        var totalVat = unitVat * qtyVal;
+        var priceInput = tr.querySelector('input[name="price"]');
+        var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
+        var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
+        if (priceInput) priceInput.value = String(unitPrice);
+        if (visibleSupply) visibleSupply.value = String(totalSupply);
+        if (visibleVat) visibleVat.value = String(totalVat);
+        var saleForm = tr.querySelector('form[action="index.php"]');
+        if (saleForm) {
+          var sfPrice = saleForm.querySelector('input[name="price"]');
+          var sfSupply = saleForm.querySelector('input[name="SUPPLY_AMT"]');
+          var sfVat = saleForm.querySelector('input[name="VAT_AMT"]');
+          if (sfPrice) sfPrice.value = String(unitPrice);
+          if (sfSupply) sfSupply.value = String(totalSupply);
+          if (sfVat) sfVat.value = String(totalVat);
+        }
+      }catch(e){console.error(e)}
+    }, false);
   });
 })();
 </script>
