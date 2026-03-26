@@ -208,14 +208,6 @@ $itemsByOrder = [];
     'VAT_AMT' => (string)($rr['vat_amt'] ?? ''),
   ];
 }
-
-// 각 주문별로 첫 번째 품목의 SIZE_DES에 원래 cust 값을 넣고, API 전송 시 거래처는 고정값으로 사용
-foreach ($itemsByOrder as $k => &$items) {
-  if (!empty($items) && isset($orderCust[$k]) && $orderCust[$k] !== '') {
-    $items[0]['SIZE_DES'] = (string)$orderCust[$k];
-  }
-}
-unset($items);
 ?>
 <!DOCTYPE html>
 <html lang="en">
