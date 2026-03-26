@@ -1,6 +1,4 @@
 <?php
-// 0326 2026
-
 declare(strict_types=1);
 
 session_start();
@@ -141,7 +139,7 @@ $ioDate = '';
 $uploadSerNo = '1';
 $cust = '';
 $custDes = '';
-$empCd = '00098';
+$empCd = '';
 $whCd = '';
 $ioType = '';
 $exchangeType = '';
@@ -319,47 +317,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if ($whCd !== '') {
               $_SESSION['ecount_wh_cd'][$key] = $whCd;
-            }
-
-            // 만약 폼에서 로그인 자격(user_id/api_cert_key)이 함께 전달되면
-            // 같은 요청 내에서 서버가 로그인 호출을 수행해 SESSION_ID를 받아오도록 함
-            if ($sessionId === '' && $userId !== '' && $apiCertKey !== '') {
-              if ($loginPath === '' || $loginPath[0] !== '/') {
-                $loginPath = '/' . ltrim($loginPath, '/');
-              }
-              $prefix = $useTestServer ? 'https://sboapi' : 'https://oapi';
-              $loginUrl = $prefix . $zone . $domain . $loginPath;
-
-              $allowedLan = ['ko-KR', 'en-US', 'zh-CN', 'zh-TW', 'ja-JP', 'vi-VN', 'es', 'id-ID'];
-              if (!in_array($lanType, $allowedLan, true)) {
-                $lanType = 'ko-KR';
-              }
-
-              $loginBody = [
-                'COM_CODE' => $comCode,
-                'USER_ID' => $userId,
-                'API_CERT_KEY' => $apiCertKey,
-                'LAN_TYPE' => $lanType,
-                'ZONE' => $zone,
-              ];
-
-              $loginResult = callJsonPost($loginUrl, $loginBody);
-              if (!($loginResult['ok'] ?? false)) {
-                $_SESSION['fail_count'][$key] = $failCount + 1;
-                $error = (string)($loginResult['error'] ?? 'Login 호출 오류');
-              } else {
-                $status = $loginResult['json']['Status'] ?? null;
-                $hasErr = $loginResult['json']['Error'] ?? null;
-                if ((string)$status !== '200' || $hasErr) {
-                  $_SESSION['fail_count'][$key] = $failCount + 1;
-                }
-
-                $sessionIdFromApi = $loginResult['json']['Data']['Datas']['SESSION_ID'] ?? null;
-                if (is_string($sessionIdFromApi) && $sessionIdFromApi !== '') {
-                  $_SESSION['ecount_session_id'][$key] = $sessionIdFromApi;
-                  $sessionId = $sessionIdFromApi;
-                }
-              }
             }
 
             if ($sessionId === '') {
@@ -540,15 +497,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                   }
 
-                  // 추가: 첫 행이 상단 기본품목과 동일하면 중복 추가 방지
-                  if ($idx === 0 && ($baseProd !== '' || $baseQty !== '')) {
-                    $baseProdTrim = trim((string)$baseProd);
-                    $baseQtyStr = (string)$baseQty;
-                    if ($baseProdTrim !== '' && trim((string)$lineProd) === $baseProdTrim && (string)$lineQty === $baseQtyStr) {
-                      continue;
-                    }
-                  }
-
                   $saleOrderList[] = ['BulkDatas' => $itemBulk];
                 }
               }
@@ -556,8 +504,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               $body = [
                 'SaleOrderList' => $saleOrderList,
               ];
-              // 디버그: 전송할 SaleOrder 페이로드를 파일에 저장
-              @file_put_contents(__DIR__ . '/saleorder_debug.json', json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
               $saleOrderResult = callJsonPost($orderUrl, $body);
               if (!($saleOrderResult['ok'] ?? false)) {
@@ -588,7 +534,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>ECOUNT Zone API 테스트</title>
 </head>
 <body style="max-width: 1200px; margin: auto; font-family: Arial, sans-serif; padding: 20px;">
-  <h1>Zone API  - 26 03 25 ㅁㅁ</h1>
+  <h1>Zone API</h1>
   <div>POST /OAPI/V2/Zone, Content-Type: application/json</div>
 
   <form method="post">
@@ -788,7 +734,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <div class="row">
       <label for="emp_cd" title="담당자코드(ERP 담당자코드)">EMP_CD (담당자)</label>
-      <input id="emp_cd" name="emp_cd" value="00098" />
+      <input id="emp_cd" name="emp_cd" value="99" />
     </div>
     <div class="row">
       <label for="time_date" title="납기일자(YYYYMMDD)">TIME_DATE (납기일자)</label>

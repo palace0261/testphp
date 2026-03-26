@@ -534,7 +534,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>ECOUNT Zone API 테스트</title>
 </head>
 <body style="max-width: 1200px; margin: auto; font-family: Arial, sans-serif; padding: 20px;">
-  <h1>Zone API</h1>
+  <h1>Zone API  - 26 03 24</h1>
   <div>POST /OAPI/V2/Zone, Content-Type: application/json</div>
 
   <form method="post">
