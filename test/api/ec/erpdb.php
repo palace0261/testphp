@@ -1,10 +1,7 @@
 <?php
 // 0326 2026 - test 테이블
 
-
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
-// DB 설정 (하드코딩 — .env 없이 연결)
 $dbHost = 'svc.sel4.cloudtype.app:31446';
 $dbUser = 'root';
 $dbPass = 'palace0261@@';
@@ -134,6 +131,9 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
       `PRICE` INT DEFAULT 0,
       `SUPPLY_AMT` INT DEFAULT 0,
       `VAT_AMT` INT DEFAULT 0,
+      `RE_PRICE` INT DEFAULT 0,
+      `DEPOSIT` INT DEFAULT 0,
+      `MILEAGE` INT DEFAULT 0,
       `ch` VARCHAR(191) DEFAULT '',
       `U_MEMO1` VARCHAR(255) DEFAULT '',
       `U_MEMO2` VARCHAR(255) DEFAULT '',
@@ -158,6 +158,29 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
       $setAi = (int)$startAutoIncrement;
       $mysqli->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = " . $setAi);
     }
+    // 기존 테이블이 존재하는 경우, 새로 추가한 컬럼이 없으면 자동으로 추가합니다.
+    $checkCols = [
+      'RE_PRICE' => "INT DEFAULT 0",
+      'DEPOSIT' => "INT DEFAULT 0",
+      'MILEAGE' => "INT DEFAULT 0",
+    ];
+    foreach ($checkCols as $col => $def) {
+      $stmtC = $mysqli->prepare("SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?");
+      $dbNameForQuery = $dbName;
+      $stmtC->bind_param('sss', $dbNameForQuery, $tableName, $col);
+      $stmtC->execute();
+      $resC = $stmtC->get_result();
+      $rowC = $resC ? $resC->fetch_assoc() : null;
+      $stmtC->close();
+      $exists = isset($rowC['cnt']) && (int)$rowC['cnt'] > 0;
+      if (!$exists) {
+        try {
+          $mysqli->query("ALTER TABLE `{$tableName}` ADD COLUMN `{$col}` {$def}");
+        } catch (Throwable $e) {
+          $schemaWarning .= ' | ALTER COLUMN ' . $col . ' failed: ' . $e->getMessage();
+        }
+      }
+    }
   } catch (Throwable $e) {
     // 테이블 생성/스키마 관련 경고를 보관
     $schemaWarning = $e->getMessage();
@@ -176,6 +199,9 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         $prodDes = post_str('prod_des');
         $qty = post_int('qty');
         $price = post_int('price');
+        $rePrice = post_int('re_price');
+        $deposit = post_int('deposit');
+        $mileage = post_int('mileage');
         $ch = post_str('ch');
         $memo1 = post_str('U_MEMO1');
         $memo2 = post_str('U_MEMO2');
@@ -198,12 +224,15 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
           }
 
           $stmt = $mysqli->prepare(
-            "INSERT INTO `{$tableName}` (`CUST`, `PROD_CD`, `PROD_DES`, `QTY`, `PRICE`, `SUPPLY_AMT`, `VAT_AMT`, `ch`, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno`, `ordernm`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO `{$tableName}` (`CUST`, `PROD_CD`, `PROD_DES`, `QTY`, `PRICE`, `SUPPLY_AMT`, `VAT_AMT`, `RE_PRICE`, `DEPOSIT`, `MILEAGE`, `ch`, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno`, `ordernm`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
           );
           $priceVal = $price === null ? 0 : (int)$price;
-          // types: 3 strings, 4 ints (qty, price, supply, vat), 6 strings, 1 string (ordernm)
-          $types = str_repeat('s', 3) . str_repeat('i', 4) . str_repeat('s', 6) . 's';
-          $stmt->bind_param($types, $cust, $prodCd, $prodDes, $qty, $priceVal, $supplyAmt, $vatAmt, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $ordernm);
+          $rePriceVal = $rePrice === null ? 0 : (int)$rePrice;
+          $depositVal = $deposit === null ? 0 : (int)$deposit;
+          $mileageVal = $mileage === null ? 0 : (int)$mileage;
+          // types: 3 strings, 7 ints (qty, price, supply, vat, re_price, deposit, mileage), 6 strings, 1 string (ordernm)
+          $types = str_repeat('s', 3) . str_repeat('i', 7) . str_repeat('s', 6) . 's';
+          $stmt->bind_param($types, $cust, $prodCd, $prodDes, $qty, $priceVal, $supplyAmt, $vatAmt, $rePriceVal, $depositVal, $mileageVal, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $ordernm);
           $stmt->execute();
           $stmt->close();
           redirect_self(['ok' => 'insert']);
@@ -217,6 +246,9 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         $prodDes = post_str('prod_des');
         $qty = post_int('qty');
         $price = post_int('price');
+        $rePrice = post_int('re_price');
+        $deposit = post_int('deposit');
+        $mileage = post_int('mileage');
         $ch = post_str('ch');
         $memo1 = post_str('U_MEMO1');
         $memo2 = post_str('U_MEMO2');
@@ -239,12 +271,15 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
           }
 
           $stmt = $mysqli->prepare(
-            "UPDATE `{$tableName}` SET `CUST` = ?, `PROD_CD` = ?, `PROD_DES` = ?, `QTY` = ?, `PRICE` = ?, `SUPPLY_AMT` = ?, `VAT_AMT` = ?, `ch` = ?, `U_MEMO1` = ?, `U_MEMO2` = ?, `U_MEMO3` = ?, `U_MEMO4` = ?, `orderno` = ?, `ordernm` = ? WHERE `sno` = ?"
+            "UPDATE `{$tableName}` SET `CUST` = ?, `PROD_CD` = ?, `PROD_DES` = ?, `QTY` = ?, `PRICE` = ?, `SUPPLY_AMT` = ?, `VAT_AMT` = ?, `RE_PRICE` = ?, `DEPOSIT` = ?, `MILEAGE` = ?, `ch` = ?, `U_MEMO1` = ?, `U_MEMO2` = ?, `U_MEMO3` = ?, `U_MEMO4` = ?, `orderno` = ?, `ordernm` = ? WHERE `sno` = ?"
           );
           $priceVal = $price === null ? 0 : (int)$price;
-          // types: 3 strings, 4 ints, 7 strings (ch, U_MEMO1..U_MEMO4, orderno, ordernm), 1 int (sno)
-          $types = str_repeat('s', 3) . str_repeat('i', 4) . str_repeat('s', 7) . 'i';
-          $stmt->bind_param($types, $cust, $prodCd, $prodDes, $qty, $priceVal, $supplyAmt, $vatAmt, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $ordernm, $sno);
+          $rePriceVal = $rePrice === null ? 0 : (int)$rePrice;
+          $depositVal = $deposit === null ? 0 : (int)$deposit;
+          $mileageVal = $mileage === null ? 0 : (int)$mileage;
+          // types: 3 strings, 7 ints, 7 strings, 1 int (sno)
+          $types = str_repeat('s', 3) . str_repeat('i', 7) . str_repeat('s', 7) . 'i';
+          $stmt->bind_param($types, $cust, $prodCd, $prodDes, $qty, $priceVal, $supplyAmt, $vatAmt, $rePriceVal, $depositVal, $mileageVal, $ch, $memo1, $memo2, $memo3, $memo4, $orderno, $ordernm, $sno);
           $stmt->execute();
           $stmt->close();
           redirect_self(['ok' => 'update']);
@@ -258,7 +293,7 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
 
   try {
     $result = $mysqli->query(
-      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `PROD_DES` AS prod_des, `QTY` AS qty, `PRICE` AS price, `SUPPLY_AMT` AS supply_amt, `VAT_AMT` AS vat_amt, `ch` AS ch, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno` AS orderno, `ordernm` AS ordernm FROM `{$tableName}` ORDER BY `sno` DESC"
+      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `PROD_DES` AS prod_des, `QTY` AS qty, `PRICE` AS price, `SUPPLY_AMT` AS supply_amt, `VAT_AMT` AS vat_amt, `RE_PRICE` AS re_price, `DEPOSIT` AS deposit, `MILEAGE` AS mileage, `ch` AS ch, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno` AS orderno, `ordernm` AS ordernm FROM `{$tableName}` ORDER BY `sno` DESC"
     );
     $rows = $result->fetch_all(MYSQLI_ASSOC);
     $result->free();
@@ -288,6 +323,9 @@ $itemsByOrder = [];
     'PRICE' => (string)($rr['price'] ?? ''),
     'SUPPLY_AMT' => (string)($rr['supply_amt'] ?? ''),
     'VAT_AMT' => (string)($rr['vat_amt'] ?? ''),
+    'RE_PRICE' => (string)($rr['re_price'] ?? ''),
+    'DEPOSIT' => (string)($rr['deposit'] ?? ''),
+    'MILEAGE' => (string)($rr['mileage'] ?? ''),
   ];
 }
 ?>
@@ -330,6 +368,9 @@ $itemsByOrder = [];
     <label>PRICE <input type="number" name="price"></label>
     <label>SUPPLY_AMT <input type="number" name="supply_amt"></label>
     <label>VAT_AMT <input type="number" name="vat_amt"></label>
+    <label>re_price <input type="number" name="re_price"></label>
+    <label>deposit <input type="number" name="deposit"></label>
+    <label>mileage <input type="number" name="mileage"></label>
     <label>ch <input type="text" name="ch"></label>
     <label>배송메시지(U_MEMO1) <input type="text" name="U_MEMO1"></label>
     <label>받는사람(U_MEMO2) <input type="text" name="U_MEMO2"></label>
@@ -369,6 +410,9 @@ $itemsByOrder = [];
             <th>PRICE</th>
             <th>SUPPLY_AMT</th>
             <th>VAT_AMT</th>
+            <th>RE_PRICE</th>
+            <th>DEPOSIT</th>
+            <th>MILEAGE</th>
             <th>ch</th>
             <th>U_MEMO1</th>
             <th>U_MEMO2</th>
@@ -415,6 +459,15 @@ $itemsByOrder = [];
               </td>
               <td>
                 <input type="text" name="VAT_AMT" value="<?= h((string)($r['vat_amt'] ?? '')) ?>" form="<?= h($formId) ?>">
+              </td>
+              <td>
+                <input type="text" name="re_price" value="<?= h((string)($r['re_price'] ?? '')) ?>" form="<?= h($formId) ?>">
+              </td>
+              <td>
+                <input type="text" name="deposit" value="<?= h((string)($r['deposit'] ?? '')) ?>" form="<?= h($formId) ?>">
+              </td>
+              <td>
+                <input type="text" name="mileage" value="<?= h((string)($r['mileage'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
                 <input type="text" name="ch" value="<?= h((string)($r['ch'] ?? '')) ?>" form="<?= h($formId) ?>">
@@ -466,6 +519,9 @@ $itemsByOrder = [];
                   <input type="hidden" name="price" value="">
                   <input type="hidden" name="SUPPLY_AMT" value="">
                   <input type="hidden" name="VAT_AMT" value="">
+                  <input type="hidden" name="re_price" value="<?= h((string)($r['re_price'] ?? '')) ?>">
+                  <input type="hidden" name="deposit" value="<?= h((string)($r['deposit'] ?? '')) ?>">
+                  <input type="hidden" name="mileage" value="<?= h((string)($r['mileage'] ?? '')) ?>">
                   <input type="hidden" name="u_memo1" value="<?= h((string)($r['U_MEMO1'] ?? '')) ?>">
                   <input type="hidden" name="u_memo2" value="<?= h((string)($r['U_MEMO2'] ?? '')) ?>">
                   <input type="hidden" name="u_memo3" value="<?= h((string)($r['U_MEMO3'] ?? '')) ?>">
