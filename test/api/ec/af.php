@@ -16,7 +16,7 @@
 <input type="text" id="tzz" name="tzz" value="">
 <button type="submit">Submit</button>
 </form>
-</div>
+</div>260327
 
 <div id="status" aria-live="polite" style="margin-top:8px;color:#006;"></div>
 
@@ -42,10 +42,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      let listUrl = 'erpdb.php?tzz=' + encodeURIComponent(tzzVal) + '&_=' + Date.now();
-      if (location.protocol === 'file:') {
-        listUrl = 'http://localhost' + location.pathname.replace(/\/[^/]*$/, '/' + listUrl);
-      }
+      // 원격 테스트 서버로 조회/전송
+      const CLOUD_ERPDB = 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/test/api/ec/erpdb.php';
+      // 로컬 프록시를 통해 원격에 접근하면 CORS 문제를 회피할 수 있습니다.
+      const LOCAL_PROXY = 'proxy_erpdb.php';
+      // 기본은 로컬 프록시 사용(브라우저 -> 로컬 -> 원격). 원하면 CLOUD_ERPDB로 직접 호출하도록 변경하세요.
+      let listUrl = LOCAL_PROXY + '?tzz=' + encodeURIComponent(tzzVal) + '&_=' + Date.now();
 
       const res = await fetch(listUrl, { method: 'GET', credentials: 'same-origin' });
       const text = await res.text();
@@ -66,9 +68,29 @@ document.addEventListener('DOMContentLoaded', function () {
         ? CSS.escape
         : function (v) { return String(v).replace(/["\\]/g, '\\$&'); };
 
-      const scopedSelector = 'tbody.order-group[data-order="' + esc(tzzVal) + '"] form[method][action*="index.php"]';
-      let apiForm = doc.querySelector(scopedSelector);
-      if (!apiForm) apiForm = doc.querySelector('form[method][action*="index.php"]');
+      // 우선적으로 erpdb.php 내의 `orderno` 입력값과 tzz를 비교하여 같은 그룹의 전송폼을 찾음
+      let apiForm = null;
+      try {
+        const ordernoInputs = Array.from(doc.querySelectorAll('input[name="orderno"]'));
+        for (const inp of ordernoInputs) {
+          if ((inp.value || '').toString().trim() === tzzVal) {
+            const tb = inp.closest ? inp.closest('tbody.order-group') : null;
+            if (tb) {
+              apiForm = tb.querySelector('form.group-api-form') || tb.querySelector('form[method][action*="index.php"]');
+            }
+            if (!apiForm) apiForm = doc.querySelector('form.group-api-form');
+            break;
+          }
+        }
+      } catch (e) {
+        apiForm = null;
+      }
+
+      // fallback: 기존 방식(데이터-오더 매칭 또는 일반 index.php form)
+      if (!apiForm) {
+        const scopedSelector = 'tbody.order-group[data-order="' + esc(tzzVal) + '"] form[method][action*="index.php"]';
+        apiForm = doc.querySelector(scopedSelector) || doc.querySelector('form[method][action*="index.php"]');
+      }
 
       if (!apiForm) {
         status.style.color = '#900';
@@ -76,8 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const apiAction = apiForm.getAttribute('action') || 'index.php';
-      const apiUrl = new URL(apiAction, res.url || window.location.href).href;
+      // 전송 대상: 로컬 프록시를 통해 원격 서버에 POST
+      const apiUrl = LOCAL_PROXY;
 
       const payload = new URLSearchParams();
       const apiInputs = apiForm.querySelectorAll('input, select, textarea');
@@ -106,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
         },
         body: payload.toString(),
-        credentials: 'same-origin',
+        // 원격 서버로 전송하므로 기본적으로 credentials는 제외
+        credentials: 'omit',
         redirect: 'follow'
       });
 

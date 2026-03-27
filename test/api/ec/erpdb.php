@@ -2,6 +2,23 @@
 // 0326 2026 - test 테이블
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+// CORS: allow cross-origin fetch from browser clients
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin !== '') {
+  header('Access-Control-Allow-Origin: ' . $origin);
+  header('Access-Control-Allow-Credentials: true');
+  header('Vary: Origin');
+} else {
+  header('Access-Control-Allow-Origin: *');
+}
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+
+if (isset($_SERVER['REQUEST_METHOD']) && strtoupper((string)$_SERVER['REQUEST_METHOD']) === 'OPTIONS') {
+  http_response_code(204);
+  exit;
+}
 $dbHost = 'svc.sel4.cloudtype.app:31446';
 $dbUser = 'root';
 $dbPass = 'palace0261@@';
