@@ -220,10 +220,10 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         $deposit = post_int('deposit');
         $mileage = post_int('mileage');
         $ch = post_str('ch');
-        $memo1 = post_str('U_MEMO1');
-        $memo2 = post_str('U_MEMO2');
-        $memo3 = post_str('U_MEMO3');
-        $memo4 = post_str('U_MEMO4');
+        $memo1 = post_str('u_memo1');
+        $memo2 = post_str('u_memo2');
+        $memo3 = post_str('u_memo3');
+        $memo4 = post_str('u_memo4');
         $orderno = post_str('orderno');
         $ordernm = post_str('ordernm');
 
@@ -277,10 +277,10 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
         $deposit = post_int('deposit');
         $mileage = post_int('mileage');
         $ch = post_str('ch');
-        $memo1 = post_str('U_MEMO1');
-        $memo2 = post_str('U_MEMO2');
-        $memo3 = post_str('U_MEMO3');
-        $memo4 = post_str('U_MEMO4');
+        $memo1 = post_str('u_memo1');
+        $memo2 = post_str('u_memo2');
+        $memo3 = post_str('u_memo3');
+        $memo4 = post_str('u_memo4');
         $orderno = post_str('orderno');
         $ordernm = post_str('ordernm');
 
@@ -328,7 +328,7 @@ if ($dbError === '' && $mysqli instanceof mysqli) {
 
   try {
     $result = $mysqli->query(
-      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `PROD_DES` AS prod_des, `QTY` AS qty, `PRICE` AS price, `SUPPLY_AMT` AS supply_amt, `VAT_AMT` AS vat_amt, `RE_PRICE` AS re_price, `DEPOSIT` AS deposit, `MILEAGE` AS mileage, `ch` AS ch, `U_MEMO1`, `U_MEMO2`, `U_MEMO3`, `U_MEMO4`, `orderno` AS orderno, `ordernm` AS ordernm FROM `{$tableName}` ORDER BY `sno` DESC"
+      "SELECT `sno`, `CUST` AS cust, `PROD_CD` AS prod_cd, `PROD_DES` AS prod_des, `QTY` AS qty, `PRICE` AS price, `SUPPLY_AMT` AS supply_amt, `VAT_AMT` AS vat_amt, `RE_PRICE` AS re_price, `DEPOSIT` AS deposit, `MILEAGE` AS mileage, `ch` AS ch, `U_MEMO1` AS u_memo1, `U_MEMO2` AS u_memo2, `U_MEMO3` AS u_memo3, `U_MEMO4` AS u_memo4, `orderno` AS orderno, `ordernm` AS ordernm FROM `{$tableName}` ORDER BY `sno` DESC"
     );
     $rows = $result->fetch_all(MYSQLI_ASSOC);
     $result->free();
@@ -361,6 +361,10 @@ $itemsByOrder = [];
     'RE_PRICE' => (string)($rr['re_price'] ?? ''),
     'DEPOSIT' => (string)($rr['deposit'] ?? ''),
     'MILEAGE' => (string)($rr['mileage'] ?? ''),
+    'U_MEMO1' => (string)($rr['u_memo1'] ?? ''),
+    'U_MEMO2' => (string)($rr['u_memo2'] ?? ''),
+    'U_MEMO3' => (string)($rr['u_memo3'] ?? ''),
+    'U_MEMO4' => (string)($rr['u_memo4'] ?? ''),
   ];
 }
 ?>
@@ -394,7 +398,7 @@ $itemsByOrder = [];
   </style>
   
 
-  <h1>ㅁERP Test server (erp_testTable)</h1>
+  <h1>ㅁERP Test server (erp_testTable)ㅁㄴㅇㄹ</h1>
 
   <?php if ($message !== ''): ?>
     <div class="msg"><?= h($message) ?></div>
@@ -422,10 +426,10 @@ $itemsByOrder = [];
     <label>deposit <input type="number" name="deposit"></label>
     <label>mileage <input type="number" name="mileage"></label>
     <label>ch <input type="text" name="ch"></label>
-    <label>배송메시지(U_MEMO1) <input type="text" name="U_MEMO1"></label>
-    <label>받는사람(U_MEMO2) <input type="text" name="U_MEMO2"></label>
-    <label>휴대폰번호(U_MEMO3) <input type="text" name="U_MEMO3"></label>
-    <label>주소(U_MEMO4) <input type="text" name="U_MEMO4"></label>
+    <label>배송메시지(U_MEMO1) <input type="text" name="u_memo1"></label>
+    <label>받는사람(U_MEMO2) <input type="text" name="u_memo2"></label>
+    <label>휴대폰번호(U_MEMO3) <input type="text" name="u_memo3"></label>
+    <label>주소(U_MEMO4) <input type="text" name="u_memo4"></label>
     <label>orderno <input type="text" name="orderno"></label>
     <label>ordernm <input type="text" name="ordernm"></label>
     <button type="submit">전송</button>
@@ -496,6 +500,22 @@ $itemsByOrder = [];
                 $itemsJson = json_encode($itemsByOrder[$orderKey] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 if (!is_string($itemsJson)) $itemsJson = '[]';
                 $groupCust = $orderCust[$orderKey] ?? '';
+                // order-level U_MEMO 필드: 그룹의 첫 항목에서 가져옴 (대소문자 모두 확인)
+                $firstItem = isset($itemsByOrder[$orderKey][0]) ? $itemsByOrder[$orderKey][0] : [];
+                $groupUM1 = '';
+                $groupUM2 = '';
+                $groupUM3 = '';
+                $groupUM4 = '';
+                if (is_array($firstItem)) {
+                  if (isset($firstItem['U_MEMO1'])) $groupUM1 = (string)$firstItem['U_MEMO1'];
+                  elseif (isset($firstItem['u_memo1'])) $groupUM1 = (string)$firstItem['u_memo1'];
+                  if (isset($firstItem['U_MEMO2'])) $groupUM2 = (string)$firstItem['U_MEMO2'];
+                  elseif (isset($firstItem['u_memo2'])) $groupUM2 = (string)$firstItem['u_memo2'];
+                  if (isset($firstItem['U_MEMO3'])) $groupUM3 = (string)$firstItem['U_MEMO3'];
+                  elseif (isset($firstItem['u_memo3'])) $groupUM3 = (string)$firstItem['u_memo3'];
+                  if (isset($firstItem['U_MEMO4'])) $groupUM4 = (string)$firstItem['U_MEMO4'];
+                  elseif (isset($firstItem['u_memo4'])) $groupUM4 = (string)$firstItem['u_memo4'];
+                }
 
                 echo '<tr class="order-header"><td colspan="20" style="padding:8px 12px;">';
                 echo '<form method="post" action="index.php" class="group-api-form" style="display:flex;gap:8px;align-items:center;margin:0;">';
@@ -512,6 +532,11 @@ $itemsByOrder = [];
                 echo '<input type="hidden" name="cust" value="' . h($groupCust) . '">';
                 echo '<input type="hidden" name="wh_cd" value="' . h($ecountWhCd) . '">';
                 echo '<input type="hidden" name="saleorder_items_json" value="' . h($itemsJson) . '">';
+                // 주문서 API에서 필요로 하는 주문 레벨 U_MEMO 필드들을 추가
+                echo '<input type="hidden" name="u_memo1" value="' . h($groupUM1) . '">';
+                echo '<input type="hidden" name="u_memo2" value="' . h($groupUM2) . '">';
+                echo '<input type="hidden" name="u_memo3" value="' . h($groupUM3) . '">';
+                echo '<input type="hidden" name="u_memo4" value="' . h($groupUM4) . '">';
                 echo '<input type="hidden" name="emp_cd" value="99">';
                 echo '<button type="submit" ' . ($ecountWhCd === '' ? 'disabled title="WH_CD(창고코드) 고정값을 설정해 주세요."' : '') . '>API 전송</button>';
                 // 그룹 단위 변경 버튼 (JS 처리)
@@ -575,16 +600,16 @@ $itemsByOrder = [];
                 <input type="text" name="ch" value="<?= h((string)($r['ch'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
-                <input type="text" name="U_MEMO1" value="<?= h((string)($r['U_MEMO1'] ?? '')) ?>" form="<?= h($formId) ?>">
+                <input type="text" name="u_memo1" value="<?= h((string)($r['u_memo1'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
-                <input type="text" name="U_MEMO2" value="<?= h((string)($r['U_MEMO2'] ?? '')) ?>" form="<?= h($formId) ?>">
+                <input type="text" name="u_memo2" value="<?= h((string)($r['u_memo2'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
-                <input type="text" name="U_MEMO3" value="<?= h((string)($r['U_MEMO3'] ?? '')) ?>" form="<?= h($formId) ?>">
+                <input type="text" name="u_memo3" value="<?= h((string)($r['u_memo3'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
-                <input type="text" name="U_MEMO4" value="<?= h((string)($r['U_MEMO4'] ?? '')) ?>" form="<?= h($formId) ?>">
+                <input type="text" name="u_memo4" value="<?= h((string)($r['u_memo4'] ?? '')) ?>" form="<?= h($formId) ?>">
               </td>
               <td>
                 <div class="row-actions">
@@ -627,18 +652,28 @@ document.addEventListener('DOMContentLoaded', function(){
         });
         if (!visiblePrice) visiblePrice = tr.querySelector('input[name="price"]');
         // visiblePrice가 없으면 가격 계산은 건너뛰고 바로 전송 처리로 이동
-        var canCalc = true;
-        if (!visiblePrice) {
-          canCalc = false;
+        var canCalc = !!visiblePrice;
+        var raw = '';
+        if (canCalc) {
+          raw = (visiblePrice.value || '').toString().trim();
+          if (raw === '') {
+            // 빈 값이면 계산하지 않고 전송으로 진행
+            canCalc = false;
+          }
         }
-        var raw = (visiblePrice.value || '').toString().trim();
-        if (raw === '') return;
-        var num = parseFloat(raw.replace(/,/g, ''));
-        if (isNaN(num)) return;
 
-        // 기본: 총액 -> 공급가/부가세 계산 (입력값이 총액일 때)
-        var supply = Math.round(num / 1.1);
-        var vat = Math.round(num - supply);
+        var supply = 0;
+        var vat = 0;
+        if (canCalc) {
+          var num = parseFloat(raw.replace(/,/g, ''));
+          if (!isNaN(num)) {
+            // 기본: 총액 -> 공급가/부가세 계산 (입력값이 총액일 때)
+            supply = Math.round(num / 1.1);
+            vat = Math.round(num - supply);
+          } else {
+            canCalc = false;
+          }
+        }
 
         // re_price 필드가 있으면 단가 기준으로 계산하고 수량을 곱해서 합계를 만듭니다.
         var visibleRe = tr.querySelector('input[name="re_price"]');

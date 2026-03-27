@@ -5,14 +5,38 @@
                 "UPLOAD_SER_NO": "1",
                 "CUST": "107-30-79988",
                 "WH_CD": "100",
-                "PROD_CD": "PPD001",
-                "QTY": "1",
+                "PROD_CD": "16110",
+                "QTY": "4",
                 "IO_DATE": "20260327",
-                "PROD_DES": "PP-DOCK",
-                "PRICE": "318182",
-                "SUPPLY_AMT": "318182",
-                "VAT_AMT": "31818",
-                "EMP_CD": "99"
+                "PROD_DES": "B2브라켓",
+                "PRICE": "80000",
+                "SUPPLY_AMT": "320000",
+                "VAT_AMT": "32000",
+                "EMP_CD": "99",
+                "U_MEMO2": "test",
+                "U_MEMO3": "010-3232-7593",
+                "U_MEMO4": "서울특별시 양천구 곰달래로13길 73(신월동) 123"
+            }
+        },
+        {
+            "BulkDatas": {
+                "PROD_CD": "B2-220W",
+                "PROD_DES": "B2-220W",
+                "QTY": "4",
+                "PRICE": "900000",
+                "SUPPLY_AMT": "3600000",
+                "VAT_AMT": "360000",
+                "RE_PRICE": "990000",
+                "DEPOSIT": "0",
+                "MILEAGE": "0",
+                "U_MEMO1": "",
+                "U_MEMO2": "test",
+                "U_MEMO3": "010-3232-7593",
+                "U_MEMO4": "서울특별시 양천구 곰달래로13길 73(신월동) 123",
+                "UPLOAD_SER_NO": "1",
+                "CUST": "107-30-79988",
+                "WH_CD": "100",
+                "IO_DATE": "20260327"
             }
         }
     ]
