@@ -1,5 +1,5 @@
 <?php
-// 0326 2026-1 ㅁㄴㅇ
+// 0327 2026-1 ㅁㄴㅇ
 
 declare(strict_types=1);
 
@@ -1076,7 +1076,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
       }
     ?></pre>
+    <?php
+      // ResultDetails 검사: SuccessCnt가 0인 항목이 있으면 메일 전송 폼을 만들어 mailsend.php로 POST
+      $shouldTriggerMail = false;
+      $mailContent = '';
+      if (is_array($saleOrderResult['json'])) {
+        // 응답 JSON 어디에나 있는 SuccessCnt=0을 찾기 위해 재귀 탐색
+        $find_success_cnt = function ($arr) use (&$find_success_cnt) {
+          if (!is_array($arr)) return null;
+          if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
+          foreach ($arr as $v) {
+            if (is_array($v)) {
+              $res = $find_success_cnt($v);
+              if ($res !== null) return $res;
+            }
+          }
+          return null;
+        };
+
+        $sc = $find_success_cnt($saleOrderResult['json']);
+        if ($sc !== null && (int)$sc === 0) {
+          $shouldTriggerMail = true;
+        }
+        // 디버그: 찾은 SuccessCnt 값을 로그에 남김
+        $dbg = 'Found SuccessCnt=' . ($sc === null ? 'null' : (string)$sc) . "\n";
+        @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | debug:" . $dbg, FILE_APPEND | LOCK_EX);
+
+        // 메일 본문으로 전달할 내용 구성
+        $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
+        $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
+        $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
+        $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+      }
+
+      if ($shouldTriggerMail):
+        // 서버에서 PHPMailer로 직접 발송 시도
+        $sendResult = false;
+        $sendError = '';
+        $to = 'palace0261@naver.com';
+        $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
+        $body = $mailContent;
+
+        // PHPMailer 사용 가능하면 SMTP로 발송
+        if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+          require_once __DIR__ . '/vendor/autoload.php';
+          try {
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host = 'smtp.daum.net';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'sodamedia@daum.net';
+            $mail->Password = 'gebcngmmvxyynrfk';
+            $mail->SMTPSecure = 'ssl';
+            $mail->Port = 465;
+            $mail->CharSet = 'UTF-8';
+
+            $mail->setFrom('sodamedia@daum.net', '웹 알림');
+            $mail->addAddress($to);
+
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->isHTML(false);
+
+            $mail->send();
+            $sendResult = true;
+          } catch (Exception $e) {
+            $sendError = $e->getMessage();
+            $sendResult = false;
+          }
+        } else {
+          // PHPMailer 미설치 시 PHP mail()로 시도
+          $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
+          $headers = "From: sodamedia@daum.net\r\n";
+          $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+          $sent = @mail($to, $encodedSubject, $body, $headers);
+          $sendResult = (bool)$sent;
+          if (!$sendResult) $sendError = 'mail() 전송 실패';
+        }
+        // 로컬 로그(선택): 발송 결과를 파일에 남김
+        $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
+        @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+      endif;
+    ?>
   <?php endif; ?>
+
+  <?php
+    // 디버그: 메일 발송 시도 결과 표시 (개발 중에만 사용)
+    if (!empty($shouldTriggerMail)) {
+      echo '<div style="padding:8px;border:1px solid #c00;background:#fee;margin-top:12px;">';
+      echo '<strong>자동 메일 전송 시도:</strong> ' . ($sendResult ? '성공' : '실패') . '<br/>';
+      if (!empty($sendError)) {
+        echo '오류: ' . htmlspecialchars($sendError, ENT_QUOTES, 'UTF-8') . '<br/>';
+      }
+      echo '로그: ' . htmlspecialchars(__DIR__ . '/mail_send.log', ENT_QUOTES, 'UTF-8');
+      echo '</div>';
+    }
+  ?>
 
   <p>
     참고: 문서 기준으로 동일 IP에서 Zone/Login 실패가 반복되면 차단될 수 있어, 이 페이지는 세션 기준으로 호출 간격을 제한합니다.
@@ -1085,15 +1180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   
   <hr />
   
-  <section>
-    <h2>DB- LIST</h2>
-    <table>
-      <tr>
-        <td>제목</td>
-        <td>이름</td>
-      </tr>
-    </table>
-  </section>
 
 </body>
+
+
 </html>
+
