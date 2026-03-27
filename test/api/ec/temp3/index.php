@@ -5,6 +5,28 @@ declare(strict_types=1);
 
 session_start();
 
+// DEBUG: 들어오는 POST/FILES/원본문을 로깅합니다. (개발용, 필요시 제거)
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+  $dbg = [];
+  $dbg['time'] = date('c');
+  $dbg['remote_addr'] = $_SERVER['REMOTE_ADDR'] ?? '';
+  $dbg['request_uri'] = $_SERVER['REQUEST_URI'] ?? ($_SERVER['PHP_SELF'] ?? '');
+  $dbg['post'] = $_POST;
+  $dbg['files'] = [];
+  foreach ($_FILES as $k => $f) {
+    $dbg['files'][$k] = [
+      'name' => $f['name'] ?? '',
+      'type' => $f['type'] ?? '',
+      'size' => $f['size'] ?? 0,
+      'tmp_name' => $f['tmp_name'] ?? '',
+      'error' => $f['error'] ?? 0,
+    ];
+  }
+  $raw = @file_get_contents('php://input');
+  $dbg['raw'] = $raw;
+  $logfile = __DIR__ . DIRECTORY_SEPARATOR . 'incoming_debug.log';
+  @file_put_contents($logfile, json_encode($dbg, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND | LOCK_EX);
+}
 function callEcountZoneApi(string $comCode, bool $useTestServer): array
 {
   if (!extension_loaded('curl')) {

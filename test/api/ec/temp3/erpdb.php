@@ -357,27 +357,17 @@ $itemsByOrder = [];
 <body>
   <style>
     body { font-family: Arial, sans-serif; margin: 16px; }
-    table { border-collapse: separate; border-spacing: 0 10px; width:100%; }
+    table { border-collapse: collapse; }
     th { background: #f3f3f3; }
     input[type="text"], input[type="number"] { width: 140px; }
     .msg { margin: 8px 0; padding: 8px; background: #eef7ff; border: 1px solid #cfe8ff; }
     .err { margin: 8px 0; padding: 8px; background: #fff0f0; border: 1px solid #ffd0d0; color: #900; }
     .section { margin: 20px 0; }
     .row-actions { display: flex; gap: 6px; align-items: center; }
-    /* 그룹별 색상 (순환) */
-    tbody.order-group.group-0 tr td { background: #fbfdff; }
-    tbody.order-group.group-1 tr td { background: #f7fff7; }
-    tbody.order-group.group-2 tr td { background: #fff7f7; }
-    tbody.order-group.group-3 tr td { background: #fffdfa; }
-    tbody.order-group.group-4 tr td { background: #f7f7ff; }
-    tbody.order-group.group-5 tr td { background: #f7fffb; }
-    tbody.order-group tr td { border: 1px solid #e0e0e0; }
-    /* 그룹간 여백은 table의 border-spacing으로 처리됨 */
-    tbody.order-group tr td input { background: transparent; border: none; width:100%; box-sizing:border-box; }
   </style>
   
 
-  <h1>ㅁERP Test server (erp_testTable)</h1>
+  <h1>ERP Test server (erp_testTable)</h1>
 
   <?php if ($message !== ''): ?>
     <div class="msg"><?= h($message) ?></div>
@@ -386,14 +376,9 @@ $itemsByOrder = [];
     <div class="err"><?= h($formError) ?></div>
   <?php endif; ?>
 
-  <h2>전송하자</h2>
-  <div style="
-    max-width: 1400px;
-    margin: 0 auto;
-">
   <form class="section" id="db-insert" method="post" action="">
-  <div style="display: grid;grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;gap: 1rem;">
-    <label>No <input type="text" name="action" value="insert"></label>
+    <h2>전송하자</h2>
+    <input type="hidden" name="action" value="insert">
     <label>CUST <input type="text" name="cust" required></label>
     <label>PROD_CD <input type="text" name="prod_cd" required></label>
     <label>PROD_DES <input type="text" name="prod_des"></label>
@@ -412,10 +397,8 @@ $itemsByOrder = [];
     <label>orderno <input type="text" name="orderno"></label>
     <label>ordernm <input type="text" name="ordernm"></label>
     <button type="submit">전송</button>
-  </div>
-
   </form>
-</div>
+
 
 
 
@@ -455,72 +438,22 @@ $itemsByOrder = [];
             <th>U_MEMO4</th>
             <th>orderno</th>
             <th>ordernm</th>
+            <th>변경</th>
+            <th>API 전송</th>
           </tr>
         </thead>
         <tbody>
-          <?php
-            $prevOrder = null;
-            $groupIndex = 0;
-            foreach ($rows as $r):
-              $formId = 'u' . (string)($r['sno'] ?? '');
+          <?php foreach ($rows as $r): ?>
+            <?php $formId = 'u' . (string)($r['sno'] ?? ''); ?>
+            <?php
               $orderKey = (string)($r['orderno'] ?? '');
               if ($orderKey === '') {
                 $orderKey = 'sno_' . (string)($r['sno'] ?? '');
               }
-              // 그룹이 바뀌면 tbody 구분을 늘림
-              if ($prevOrder === null || $prevOrder !== $orderKey) {
-                if ($prevOrder !== null) {
-                  // 닫는 태그 출력
-                  echo "</tbody>\n";
-                  $groupIndex++;
-                }
-                echo '<tbody class="order-group group-' . ((int)$groupIndex % 6) . '" data-order="' . h($orderKey) . '">';
-                // 그룹 항목 JSON 및 대표 고객 정보 준비
-                $itemsJson = json_encode($itemsByOrder[$orderKey] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                if (!is_string($itemsJson)) $itemsJson = '[]';
-                $groupCust = $orderCust[$orderKey] ?? '';
-
-                echo '<tr class="order-header"><td colspan="20" style="padding:8px 12px;">';
-                echo '<form method="post" action="index.php" class="group-api-form" style="display:flex;gap:8px;align-items:center;margin:0;">';
-                echo '<h4 style="margin:0 12px 0 0">주문번호: ' . h($orderKey) . '</h4>';
-                echo '<input type="hidden" name="action" value="saleorder">';
-                echo '<input type="hidden" name="env" value="' . h($ecountEnv) . '">';
-                echo '<input type="hidden" name="com_code" value="' . h($ecountComCode) . '">';
-                echo '<input type="hidden" name="upload_ser_no" value="' . h($ecountUploadSerNo) . '">';
-                echo '<input type="hidden" name="session_id" value="">';
-                echo '<input type="hidden" name="user_id" value="' . h($ecountUserId) . '">';
-                echo '<input type="hidden" name="api_cert_key" value="' . h($ecountApiCertKey) . '">';
-                echo '<input type="hidden" name="lan_type" value="' . h($ecountLanType) . '">';
-                echo '<input type="hidden" name="login_path" value="' . h($ecountLoginPath) . '">';
-                echo '<input type="hidden" name="cust" value="' . h($groupCust) . '">';
-                echo '<input type="hidden" name="wh_cd" value="' . h($ecountWhCd) . '">';
-                echo '<input type="hidden" name="saleorder_items_json" value="' . h($itemsJson) . '">';
-                echo '<input type="hidden" name="emp_cd" value="99">';
-                echo '<button type="submit" ' . ($ecountWhCd === '' ? 'disabled title="WH_CD(창고코드) 고정값을 설정해 주세요."' : '') . '>API 전송</button>';
-                // 그룹 단위 변경 버튼 (JS 처리)
-                echo '<button type="button" class="group-update-btn" data-order="' . h($orderKey) . '" style="margin-left:8px;">변경</button>';
-                echo '</form>';
-                echo '</td></tr>';
-                $prevOrder = $orderKey;
-                // 그룹 내 중복 체크 초기화
-                $seenSignatures = [];
+              $itemsJson = json_encode($itemsByOrder[$orderKey] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+              if (!is_string($itemsJson)) {
+                $itemsJson = '[]';
               }
-          ?>
-            <?php
-              // 중복 행 체크: prod_cd|prod_des|qty|price|deposit
-              $sigParts = [
-                (string)($r['prod_cd'] ?? ''),
-                (string)($r['prod_des'] ?? ''),
-                (string)($r['qty'] ?? ''),
-                (string)($r['price'] ?? ''),
-                (string)($r['deposit'] ?? ''),
-              ];
-              $sig = md5(implode('|', $sigParts));
-              if (isset($seenSignatures[$sig])) {
-                // 이미 표시한 항목이면 건너뜁니다.
-                continue;
-              }
-              $seenSignatures[$sig] = true;
             ?>
             <tr>
               <td><?= h((string)($r['sno'] ?? '')) ?></td>
@@ -579,12 +512,46 @@ $itemsByOrder = [];
                   <input type="text" name="ordernm" value="<?= h((string)($r['ordernm'] ?? '')) ?>" form="<?= h($formId) ?>">
                 </div>
               </td>
+              <td>
+                <form id="<?= h($formId) ?>" method="post" action="" style="margin:0;">
+                  <input type="hidden" name="action" value="update">
+                  <input type="hidden" name="sno" value="<?= h((string)($r['sno'] ?? '')) ?>">
+                  <button type="submit">변경</button>
+                </form>
+              </td>
+              <td>
+                <form method="post" action="index.php" style="margin:0;">
+                  <input type="hidden" name="action" value="saleorder">
+                  <input type="hidden" name="env" value="<?= h($ecountEnv) ?>">
+                  <input type="hidden" name="com_code" value="<?= h($ecountComCode) ?>">
+                  <input type="hidden" name="upload_ser_no" value="<?= h($ecountUploadSerNo) ?>">
+                  <input type="hidden" name="session_id" value="">
+                  <input type="hidden" name="user_id" value="<?= h($ecountUserId) ?>">
+                  <input type="hidden" name="api_cert_key" value="<?= h($ecountApiCertKey) ?>">
+                  <input type="hidden" name="lan_type" value="<?= h($ecountLanType) ?>">
+                  <input type="hidden" name="login_path" value="<?= h($ecountLoginPath) ?>">
+                  <input type="hidden" name="cust" value="<?= h((string)($r['cust'] ?? '')) ?>">
+                  <input type="hidden" name="wh_cd" value="<?= h($ecountWhCd) ?>">
+                  <input type="hidden" name="prod_cd" value="">
+                  <input type="hidden" name="qty" value="">
+                  <input type="hidden" name="price" value="">
+                  <input type="hidden" name="SUPPLY_AMT" value="">
+                  <input type="hidden" name="VAT_AMT" value="">
+                  <input type="hidden" name="re_price" value="<?= h((string)($r['re_price'] ?? '')) ?>">
+                  <input type="hidden" name="deposit" value="<?= h((string)($r['deposit'] ?? '')) ?>">
+                  <input type="hidden" name="mileage" value="<?= h((string)($r['mileage'] ?? '')) ?>">
+                  <input type="hidden" name="u_memo1" value="<?= h((string)($r['U_MEMO1'] ?? '')) ?>">
+                  <input type="hidden" name="u_memo2" value="<?= h((string)($r['U_MEMO2'] ?? '')) ?>">
+                  <input type="hidden" name="u_memo3" value="<?= h((string)($r['U_MEMO3'] ?? '')) ?>">
+                  <input type="hidden" name="u_memo4" value="<?= h((string)($r['U_MEMO4'] ?? '')) ?>">
+                  <input type="hidden" name="saleorder_items_json" value="<?= h($itemsJson) ?>">
+                  <input type="hidden" name="emp_cd" value="99">
+                  <button type="submit" <?= $ecountWhCd === '' ? 'disabled title="WH_CD(창고코드) 고정값을 설정해 주세요."' : '' ?>>API 전송</button>
+                </form>
+              </td>
             </tr>
-          <?php
-              // 루프 끝날 때 현재 tbody 닫기
-            endforeach;
-            if ($prevOrder !== null) echo "</tbody>\n";
-          ?>
+          <?php endforeach; ?>
+        </tbody>
       </table>
     <?php endif; ?>
   </section>
@@ -609,11 +576,7 @@ document.addEventListener('DOMContentLoaded', function(){
           if (p.closest('form') !== f) visiblePrice = p;
         });
         if (!visiblePrice) visiblePrice = tr.querySelector('input[name="price"]');
-        // visiblePrice가 없으면 가격 계산은 건너뛰고 바로 전송 처리로 이동
-        var canCalc = true;
-        if (!visiblePrice) {
-          canCalc = false;
-        }
+        if (!visiblePrice) return;
         var raw = (visiblePrice.value || '').toString().trim();
         if (raw === '') return;
         var num = parseFloat(raw.replace(/,/g, ''));
@@ -631,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function(){
           var qn = parseInt((qtyVisible.value || '').toString().replace(/,/g, ''), 10);
           if (!isNaN(qn) && qn > 0) qtyVal = qn;
         }
-        if (canCalc && visibleRe && (visibleRe.value || '').toString().trim() !== '') {
+        if (visibleRe && (visibleRe.value || '').toString().trim() !== '') {
           var reNum = parseFloat((visibleRe.value || '').toString().replace(/,/g, ''));
           if (!isNaN(reNum)) {
             var unitPrice = Math.round(reNum / 1.1); // 단가(공급가)
@@ -650,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function(){
             if (sfSupply) sfSupply.value = String(totalSupply);
             if (sfVat) sfVat.value = String(totalVat);
           }
-        } else if (canCalc) {
+        } else {
           visiblePrice.value = String(supply);
           var sfPrice = f.querySelector('input[name="price"]');
           var sfSupply = f.querySelector('input[name="SUPPLY_AMT"]');
@@ -662,10 +625,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
         var visibleSupply = tr.querySelector('input[name="SUPPLY_AMT"]');
         var visibleVat = tr.querySelector('input[name="VAT_AMT"]');
-        if (canCalc) {
-          if (visibleSupply) visibleSupply.value = String(supply);
-          if (visibleVat) visibleVat.value = String(vat);
-        }
+        if (visibleSupply) visibleSupply.value = String(supply);
+        if (visibleVat) visibleVat.value = String(vat);
         // prod_cd, qty도 함께 채움
         var prodCdField = f.querySelector('input[name="prod_cd"]');
         var qtyField = f.querySelector('input[name="qty"]');
@@ -711,55 +672,6 @@ document.addEventListener('DOMContentLoaded', function(){
           })
           .finally(function(){ if (submitBtn) submitBtn.disabled = false; });
       } catch (e) { console.error('ajax submit err', e); if (submitBtn) submitBtn.disabled = false; }
-    }, false);
-  });
-  // 그룹 변경 버튼 처리: 해당 tbody의 모든 행을 모아 각각 action=update로 POST
-  document.querySelectorAll('.group-update-btn').forEach(function(btn){
-    btn.addEventListener('click', async function(e){
-      var order = btn.getAttribute('data-order');
-      var tbody = btn.closest('tbody.order-group');
-      if (!tbody) return;
-      btn.disabled = true;
-      var trs = Array.from(tbody.querySelectorAll('tr')).filter(function(tr){ return !tr.classList.contains('order-header'); });
-      var results = [];
-      for (var tr of trs) {
-        try {
-          // sno는 첫번째 td 텍스트에서 가져옴
-          var snoCell = tr.querySelector('td');
-          if (!snoCell) continue;
-          var sno = (snoCell.textContent || '').toString().trim();
-          if (!sno) continue;
-          var fd = new FormData();
-          fd.append('action', 'update');
-          fd.append('sno', sno);
-          // 모든 입력 요소(name이 있는) 값을 추가
-          tr.querySelectorAll('input, select, textarea').forEach(function(inp){
-            var name = inp.getAttribute('name');
-            if (!name) return;
-            // skip inputs that belong to header forms (none expected here)
-            fd.append(name, inp.value || '');
-          });
-          var res = await fetch(window.location.href, { method: 'POST', body: fd, credentials: 'same-origin' });
-          var text = await res.text();
-          results.push({ sno: sno, ok: res.ok, status: res.status });
-        } catch (err) {
-          results.push({ sno: sno || null, ok: false, error: err.message });
-        }
-      }
-      // 결과 요약 표시
-      var successCount = results.filter(r=>r.ok).length;
-      var failCount = results.length - successCount;
-      var msg = '변경 전송 완료: ' + successCount + '건, 실패: ' + failCount + '건';
-      var exist = document.querySelector('.msg.group-update');
-      if (!exist) {
-        var d = document.createElement('div');
-        d.className = 'msg group-update';
-        d.textContent = msg;
-        document.body.insertBefore(d, document.body.firstChild);
-      } else {
-        exist.textContent = msg;
-      }
-      btn.disabled = false;
     }, false);
   });
 });
