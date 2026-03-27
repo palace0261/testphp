@@ -5,48 +5,14 @@
                 "UPLOAD_SER_NO": "1",
                 "CUST": "107-30-79988",
                 "WH_CD": "100",
-                "PROD_CD": "80149",
-                "QTY": "2",
-                "IO_DATE": "20260327",
-                "PROD_DES": "마일리지 사용",
-                "PRICE": "1119",
-                "SUPPLY_AMT": "2238",
-                "VAT_AMT": "224",
-                "EMP_CD": "99"
-            }
-        },
-        {
-            "BulkDatas": {
                 "PROD_CD": "PPD001",
-                "PROD_DES": "PP-DOCK",
                 "QTY": "1",
+                "IO_DATE": "20260327",
+                "PROD_DES": "PP-DOCK",
                 "PRICE": "318182",
                 "SUPPLY_AMT": "318182",
                 "VAT_AMT": "31818",
-                "RE_PRICE": "350000",
-                "DEPOSIT": "0",
-                "MILEAGE": "0",
-                "UPLOAD_SER_NO": "1",
-                "CUST": "107-30-79988",
-                "WH_CD": "100",
-                "IO_DATE": "20260327"
-            }
-        },
-        {
-            "BulkDatas": {
-                "PROD_CD": "BMD/SWITCHER009",
-                "PROD_DES": "ATEM 1 M/E Constellation HD",
-                "QTY": "1",
-                "PRICE": "1256364",
-                "SUPPLY_AMT": "1256364",
-                "VAT_AMT": "125636",
-                "RE_PRICE": "1382000",
-                "DEPOSIT": "0",
-                "MILEAGE": "0",
-                "UPLOAD_SER_NO": "1",
-                "CUST": "107-30-79988",
-                "WH_CD": "100",
-                "IO_DATE": "20260327"
+                "EMP_CD": "99"
             }
         }
     ]

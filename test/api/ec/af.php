@@ -52,14 +52,24 @@ document.addEventListener('DOMContentLoaded', function () {
       const res = await fetch(listUrl, { method: 'GET', credentials: 'same-origin' });
       const text = await res.text();
 
+      // 서버가 매칭 여부를 헤더로 전달하면 우선 확인
+      const headerMatched = (res.headers.get('X-Order-Matched') === '1');
+      const headerMatchedOrder = res.headers.get('X-Matched-Order') || null;
+
       if (!res.ok) {
         status.style.color = '#900';
         status.textContent = '목록 조회 실패: ' + res.status + ' ' + res.statusText;
         return;
       }
 
+      if (!headerMatched) {
+        status.style.color = '#900';
+        status.textContent = '매칭된 주문번호를 찾지 못했습니다. 전송을 중단합니다.';
+        return;
+      }
+
       status.style.color = '#060';
-      status.textContent = '목록 조회 완료. API 전송 준비 중...';
+      status.textContent = '목록 조회 완료. 매칭된 주문번호: ' + headerMatchedOrder + ' — API 전송 준비 중...';
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
@@ -73,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         const ordernoInputs = Array.from(doc.querySelectorAll('input[name="orderno"]'));
         for (const inp of ordernoInputs) {
-          if ((inp.value || '').toString().trim() === tzzVal) {
+          // 서버 헤더가 제공한 매칭값이 있으면 그것을 우선 사용
+          const matchTarget = headerMatchedOrder || tzzVal;
+          if ((inp.value || '').toString().trim() === matchTarget) {
             const tb = inp.closest ? inp.closest('tbody.order-group') : null;
             if (tb) {
               apiForm = tb.querySelector('form.group-api-form') || tb.querySelector('form[method][action*="index.php"]');
@@ -122,6 +134,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
+      // 전송할 payload에 `orderno`가 포함되지 않으면 서버 헤더의 매칭값을 우선 추가
+      if (!payload.has('orderno')) {
+        if (headerMatchedOrder) {
+          payload.append('orderno', headerMatchedOrder);
+        } else {
+          status.style.color = '#900';
+          status.textContent = '전송용 orderno를 찾을 수 없어 전송을 중단합니다.';
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+      }
+
       const apiRes = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -134,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       if (apiRes.ok) {
-        status.style.color = '#060';
+        status.style.color = 'rgb(0, 255, 85)';
         status.textContent = 'API 전송 완료.';
       } else {
         const apiErrText = await apiRes.text();
