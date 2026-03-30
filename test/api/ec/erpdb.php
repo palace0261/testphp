@@ -368,6 +368,171 @@ $itemsByOrder = [];
   ];
 }
 ?>
+<?php
+// If a sale order result JSON is POSTed to this script, inspect and send mail similarly to index.php's previous behavior.
+if (isset($_POST['saleOrderResult_json'])) {
+  $raw = (string)$_POST['saleOrderResult_json'];
+  $saleOrderResult = json_decode($raw, true);
+  $comCode = (string)($_POST['com_code'] ?? ($ecountComCode ?? ''));
+
+  $shouldTriggerMail = false;
+  $mailContent = '';
+  if (is_array($saleOrderResult)) {
+    $find_success_cnt = function ($arr) use (&$find_success_cnt) {
+      if (!is_array($arr)) return null;
+      if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
+      foreach ($arr as $v) {
+        if (is_array($v)) {
+          $res = $find_success_cnt($v);
+          if ($res !== null) return $res;
+        }
+      }
+      return null;
+    };
+
+    $sc = $find_success_cnt($saleOrderResult['json'] ?? $saleOrderResult);
+    if ($sc !== null && (int)$sc === 0) {
+      $shouldTriggerMail = true;
+    }
+    @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | erpdb debug: Found SuccessCnt=" . ($sc === null ? 'null' : (string)$sc) . "\n", FILE_APPEND | LOCK_EX);
+
+    $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
+    $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
+    $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
+    $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'] ?? $saleOrderResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  }
+
+  if ($shouldTriggerMail) {
+    $sendResult = false;
+    $sendError = '';
+    $to = 'palace0261@naver.com';
+    $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
+    $body = $mailContent;
+
+    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+      require_once __DIR__ . '/vendor/autoload.php';
+      try {
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = 'smtp.daum.net';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'sodamedia@daum.net';
+        $mail->Password = 'gebcngmmvxyynrfk';
+        $mail->SMTPSecure = 'ssl';
+        $mail->Port = 465;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom('sodamedia@daum.net', '웹 알림');
+        $mail->addAddress($to);
+
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+        $mail->isHTML(false);
+
+        $mail->send();
+        $sendResult = true;
+      } catch (Exception $e) {
+        $sendError = $e->getMessage();
+        $sendResult = false;
+      }
+    } else {
+      $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
+      $headers = "From: sodamedia@daum.net\r\n";
+      $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+      $sent = @mail($to, $encodedSubject, $body, $headers);
+      $sendResult = (bool)$sent;
+      if (!$sendResult) $sendError = 'mail() 전송 실패';
+    }
+
+    $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
+    @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+  }
+}
+  // If a sale order result file exists, and no POST provided, read it and process.
+  if (!isset($_POST['saleOrderResult_json'])) {
+    $resultFile = __DIR__ . '/saleorder_result.json';
+    if (file_exists($resultFile)) {
+      $rawFile = @file_get_contents($resultFile);
+      if ($rawFile !== false) {
+        $saleOrderResult = json_decode($rawFile, true);
+        $comCode = (string)($_POST['com_code'] ?? ($ecountComCode ?? ''));
+
+        $shouldTriggerMail = false;
+        $mailContent = '';
+        if (is_array($saleOrderResult)) {
+          $find_success_cnt = function ($arr) use (&$find_success_cnt) {
+            if (!is_array($arr)) return null;
+            if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
+            foreach ($arr as $v) {
+              if (is_array($v)) {
+                $res = $find_success_cnt($v);
+                if ($res !== null) return $res;
+              }
+            }
+            return null;
+          };
+
+          $sc = $find_success_cnt($saleOrderResult['json'] ?? $saleOrderResult);
+          if ($sc !== null && (int)$sc === 0) {
+            $shouldTriggerMail = true;
+          }
+          @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | erpdb file debug: Found SuccessCnt=" . ($sc === null ? 'null' : (string)$sc) . "\n", FILE_APPEND | LOCK_EX);
+
+          $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
+          $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
+          $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
+          $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'] ?? $saleOrderResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        if ($shouldTriggerMail) {
+          $sendResult = false;
+          $sendError = '';
+          $to = 'palace0261@naver.com';
+          $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
+          $body = $mailContent;
+
+          if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+            try {
+              $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+              $mail->isSMTP();
+              $mail->Host = 'smtp.daum.net';
+              $mail->SMTPAuth = true;
+              $mail->Username = 'sodamedia@daum.net';
+              $mail->Password = 'gebcngmmvxyynrfk';
+              $mail->SMTPSecure = 'ssl';
+              $mail->Port = 465;
+              $mail->CharSet = 'UTF-8';
+
+              $mail->setFrom('sodamedia@daum.net', '웹 알림');
+              $mail->addAddress($to);
+
+              $mail->Subject = $subject;
+              $mail->Body = $body;
+              $mail->isHTML(false);
+
+              $mail->send();
+              $sendResult = true;
+            } catch (Exception $e) {
+              $sendError = $e->getMessage();
+              $sendResult = false;
+            }
+          } else {
+            $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
+            $headers = "From: sodamedia@daum.net\r\n";
+            $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+            $sent = @mail($to, $encodedSubject, $body, $headers);
+            $sendResult = (bool)$sent;
+            if (!$sendResult) $sendError = 'mail() 전송 실패';
+          }
+
+          $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
+          @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+        }
+      }
+    }
+  }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -735,18 +900,95 @@ document.addEventListener('DOMContentLoaded', function(){
         if (submitBtn) submitBtn.disabled = true;
         var formData = new FormData(f);
         var actionUrl = f.getAttribute('action') || window.location.href;
-        fetch(actionUrl, { method: 'POST', body: formData, credentials: 'same-origin' })
-          .then(function(res){ return res.text(); })
-          .then(function(text){
-            console.log('submit response', text);
-            var exist = document.querySelector('.msg.ajax-submit');
-            if (!exist) {
-              var d = document.createElement('div');
-              d.className = 'msg ajax-submit';
-              d.textContent = '전송 완료 (페이지 유지)';
-              document.body.insertBefore(d, document.body.firstChild);
+        // helper: render saleOrderResult object to the page
+        function renderSaleOrderResult(obj) {
+          try {
+            var container = document.getElementById('saleorder-result-container');
+            if (!container) {
+              container = document.createElement('div');
+              container.id = 'saleorder-result-container';
+              container.style = 'margin:12px 0;padding:12px;border:1px solid #ddd;background:#f9f9f9;';
+              document.body.insertBefore(container, document.body.firstChild);
+            }
+            container.innerHTML = '';
+            var h = document.createElement('h2');
+            h.textContent = '주문서 결과';
+            container.appendChild(h);
+
+            var info = document.createElement('div');
+            var url = obj.url || '';
+            var httpCode = obj.httpCode || (obj.http_code || '');
+            info.innerHTML = '<div><strong>요청 URL</strong>: ' + (url ? escapeHtml(String(url)) : '') + '</div>' +
+                             '<div><strong>HTTP 코드</strong>: ' + escapeHtml(String(httpCode)) + '</div>';
+            container.appendChild(info);
+
+            var preReq = document.createElement('h3');
+            preReq.textContent = 'Request JSON';
+            container.appendChild(preReq);
+            var pre1 = document.createElement('pre');
+            try {
+              pre1.textContent = JSON.stringify(obj.requestBody || {}, null, 2);
+            } catch (e) { pre1.textContent = String(obj.requestBody || ''); }
+            container.appendChild(pre1);
+
+            var preResH = document.createElement('h3');
+            preResH.textContent = 'Response JSON';
+            container.appendChild(preResH);
+            var pre2 = document.createElement('pre');
+            if (obj.json && typeof obj.json === 'object') {
+              pre2.textContent = JSON.stringify(obj.json, null, 2);
             } else {
-              exist.textContent = '전송 완료 (페이지 유지)';
+              pre2.textContent = String(obj.raw || '');
+              if (obj.jsonError) {
+                pre2.textContent += '\n\n(JSON 파싱 오류: ' + String(obj.jsonError) + ')';
+              }
+            }
+            container.appendChild(pre2);
+          } catch (e) { console.error('renderSaleOrderResult failed', e); }
+        }
+
+        function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        fetch(actionUrl, { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function(res){
+            var ct = res.headers.get('content-type') || '';
+            if (ct.indexOf('application/json') !== -1) {
+              return res.json().then(function(j){ j._http_ok = res.ok; return j; });
+            }
+            return res.text().then(function(t){ return { _text: t, _http_ok: res.ok }; });
+          })
+          .then(function(data){
+            // If server returned saleOrderResult, render it
+            if (data && typeof data === 'object' && data.saleOrderResult) {
+              renderSaleOrderResult(data.saleOrderResult);
+            }
+            // decide success/failure
+            var okFlag = true;
+            if (data && typeof data === 'object') {
+              if ('ok' in data) okFlag = !!data.ok;
+              else if ('_http_ok' in data) okFlag = !!data._http_ok;
+            }
+            if (!okFlag) {
+              var errMsg = (data && data.error) ? data.error : ((data && data._text) ? data._text : '서버 처리 오류');
+              var existErr = document.querySelector('.err.ajax-submit');
+              if (!existErr) {
+                var eD = document.createElement('div');
+                eD.className = 'err ajax-submit';
+                eD.textContent = '전송 실패: ' + (errMsg || '서버 오류');
+                document.body.insertBefore(eD, document.body.firstChild);
+              } else {
+                existErr.textContent = '전송 실패: ' + (errMsg || '서버 오류');
+              }
+            } else {
+              var exist = document.querySelector('.msg.ajax-submit');
+              if (!exist) {
+                var d = document.createElement('div');
+                d.className = 'msg ajax-submit';
+                d.textContent = '전송 완료 (페이지 유지)';
+                document.body.insertBefore(d, document.body.firstChild);
+              } else {
+                exist.textContent = '전송 완료 (페이지 유지)';
+              }
             }
           })
           .catch(function(err){
@@ -754,7 +996,7 @@ document.addEventListener('DOMContentLoaded', function(){
             var existErr = document.querySelector('.err.ajax-submit');
             if (!existErr) {
               var eD = document.createElement('div');
-              eD.className = 'err ajax-submit';
+              eD.className = 'err.ajax-submit';
               eD.textContent = '전송 실패: ' + (err && err.message ? err.message : '네트워크 오류');
               document.body.insertBefore(eD, document.body.firstChild);
             } else {

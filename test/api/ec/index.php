@@ -1076,6 +1076,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
       }
     ?></pre>
+    
     <?php
       // ResultDetails 검사: SuccessCnt가 0인 항목이 있으면 메일 전송 폼을 만들어 mailsend.php로 POST
       $shouldTriggerMail = false;
