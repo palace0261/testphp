@@ -369,83 +369,176 @@ $itemsByOrder = [];
 }
 ?>
 <?php
+// --- Mail helper: prefer historically fastest method (smtp or mail())
+function _mail_stats_path() {
+  return __DIR__ . '/mail_method_stats.json';
+}
+function _load_mail_stats() {
+  $p = _mail_stats_path();
+  if (!file_exists($p)) return [
+    'smtp' => ['count' => 0, 'total_ms' => 0],
+    'mail' => ['count' => 0, 'total_ms' => 0],
+  ];
+  $raw = @file_get_contents($p);
+  $j = @json_decode($raw, true);
+  if (!is_array($j)) return [
+    'smtp' => ['count' => 0, 'total_ms' => 0],
+    'mail' => ['count' => 0, 'total_ms' => 0],
+  ];
+  return array_replace(['smtp' => ['count' => 0, 'total_ms' => 0], 'mail' => ['count' => 0, 'total_ms' => 0]], $j);
+}
+function _save_mail_stats($stats) {
+  @file_put_contents(_mail_stats_path(), json_encode($stats), LOCK_EX);
+}
+function _record_mail_duration($method, $ms) {
+  $s = _load_mail_stats();
+  if (!isset($s[$method])) $s[$method] = ['count' => 0, 'total_ms' => 0];
+  $s[$method]['count'] += 1;
+  $s[$method]['total_ms'] += (int)$ms;
+  _save_mail_stats($s);
+}
+function _preferred_mail_method() {
+  $s = _load_mail_stats();
+  $smtp = $s['smtp'];
+  $mail = $s['mail'];
+  if ($smtp['count'] === 0 && $mail['count'] === 0) {
+    // no history: prefer SMTP if PHPMailer is available, otherwise mail()
+    if (file_exists(__DIR__ . '/vendor/autoload.php')) return 'smtp';
+    return 'mail';
+  }
+  $avgSmtp = $smtp['count'] ? ($smtp['total_ms'] / $smtp['count']) : INF;
+  $avgMail = $mail['count'] ? ($mail['total_ms'] / $mail['count']) : INF;
+  return ($avgSmtp <= $avgMail) ? 'smtp' : 'mail';
+}
+function _send_via_smtp($to, $subject, $body, &$err) {
+  $err = '';
+  if (!file_exists(__DIR__ . '/vendor/autoload.php')) { $err = 'PHPMailer not installed'; return false; }
+  require_once __DIR__ . '/vendor/autoload.php';
+  try {
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host = getenv('SMTP_HOST') ?: 'smtp.daum.net';
+    $mail->SMTPAuth = true;
+    // read SMTP credentials from environment
+    $smtpUser = getenv('SMTP_USER') ?: 'sodamedia@daum.net';
+    $smtpPass = getenv('SMTP_PASS') ?: 'gebcngmmvxyynrfk';
+    $mail->Username = $smtpUser;
+    $mail->Password = $smtpPass;
+    $mail->SMTPSecure = getenv('SMTP_SECURE') ?: 'ssl';
+    $mail->Port = getenv('SMTP_PORT') ? (int)getenv('SMTP_PORT') : 465;
+    $mail->CharSet = 'UTF-8';
+
+    $mailFrom = getenv('MAIL_FROM') ?: 'sodamedia@daum.net';
+    $mailFromName = getenv('MAIL_FROM_NAME') ?: '웹 알림';
+    $mail->setFrom($mailFrom, $mailFromName);
+    $mail->addAddress($to);
+
+    $mail->Subject = $subject;
+    $mail->Body = $body;
+    $mail->isHTML(false);
+
+    $mail->send();
+    return true;
+  } catch (Exception $e) {
+    $err = $e->getMessage();
+    return false;
+  }
+}
+function _send_via_mailfunc($to, $subject, $body, &$err) {
+  $err = '';
+  $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
+  $mailFromHdr = getenv('MAIL_FROM') ?: 'sodamedia@daum.net';
+  $headers = "From: " . $mailFromHdr . "\r\n";
+  $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+  $sent = @mail($to, $encodedSubject, $body, $headers);
+  if ($sent) return true;
+  $err = 'mail() 전송 실패';
+  return false;
+}
+function send_mail_fast($to, $subject, $body) {
+  $methodOrder = [_preferred_mail_method()];
+  $methodOrder[] = ($methodOrder[0] === 'smtp') ? 'mail' : 'smtp';
+  foreach ($methodOrder as $method) {
+    $t0 = microtime(true);
+    $ok = false; $err = '';
+    if ($method === 'smtp') $ok = _send_via_smtp($to, $subject, $body, $err);
+    else $ok = _send_via_mailfunc($to, $subject, $body, $err);
+    $ms = (int)( (microtime(true) - $t0) * 1000 );
+    _record_mail_duration($method, $ms);
+    if ($ok) {
+      return ['ok' => true, 'method' => $method, 'error' => ''];
+    }
+    // logging disabled: removed mail_send.log writes
+  }
+  return ['ok' => false, 'method' => $methodOrder[0], 'error' => 'all methods failed'];
+}
+
+function process_saleorder_result(array $saleOrderResult = null, $comCode = '', $logPrefix = 'erpdb') {
+  $shouldTriggerMail = false;
+  $mailContent = '';
+  if (!is_array($saleOrderResult)) {
+    return ['shouldTriggerMail' => false, 'mailContent' => ''];
+  }
+
+  $find_success_cnt = function ($arr) use (&$find_success_cnt) {
+    if (!is_array($arr)) return null;
+    if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
+    foreach ($arr as $v) {
+      if (is_array($v)) {
+        $res = $find_success_cnt($v);
+        if ($res !== null) return $res;
+      }
+    }
+    return null;
+  };
+
+  $sc = $find_success_cnt($saleOrderResult['json'] ?? $saleOrderResult);
+  if ($sc !== null && (int)$sc === 0) {
+    $shouldTriggerMail = true;
+  }
+  // logging disabled: removed mail_send.log writes
+
+  $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
+  $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
+  $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
+  $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'] ?? $saleOrderResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+  return ['shouldTriggerMail' => $shouldTriggerMail, 'mailContent' => $mailContent];
+}
+
+function send_saleorder_alert($saleOrderResult, $comCode = '', $logPrefix = 'erpdb') {
+  $processed = process_saleorder_result($saleOrderResult, $comCode, $logPrefix);
+  if (empty($processed['shouldTriggerMail'])) {
+    return ['ok' => false, 'reason' => 'no_trigger'];
+  }
+
+  $to = 'sodamedia@daum.net';
+  $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
+  $body = (string)($processed['mailContent'] ?? '');
+
+  $sendRes = send_mail_fast($to, $subject, $body);
+
+  $log = date('c') . " | {$logPrefix}: to={$to} | method=" . ($sendRes['method'] ?? '') . " | result=" . (($sendRes['ok'] ?? false) ? 'ok' : 'fail') . " | err=" . (($sendRes['error'] ?? '') ?: '-') . "\n";
+  // logging disabled: removed mail_send.log writes
+
+  return $sendRes;
+}
+
 // If a sale order result JSON is POSTed to this script, inspect and send mail similarly to index.php's previous behavior.
 if (isset($_POST['saleOrderResult_json'])) {
   $raw = (string)$_POST['saleOrderResult_json'];
   $saleOrderResult = json_decode($raw, true);
   $comCode = (string)($_POST['com_code'] ?? ($ecountComCode ?? ''));
 
-  $shouldTriggerMail = false;
-  $mailContent = '';
-  if (is_array($saleOrderResult)) {
-    $find_success_cnt = function ($arr) use (&$find_success_cnt) {
-      if (!is_array($arr)) return null;
-      if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
-      foreach ($arr as $v) {
-        if (is_array($v)) {
-          $res = $find_success_cnt($v);
-          if ($res !== null) return $res;
-        }
-      }
-      return null;
-    };
+  $result = process_saleorder_result($saleOrderResult, $comCode, 'erpdb debug');
+  $shouldTriggerMail = (bool)($result['shouldTriggerMail'] ?? false);
+  $mailContent = (string)($result['mailContent'] ?? '');
 
-    $sc = $find_success_cnt($saleOrderResult['json'] ?? $saleOrderResult);
-    if ($sc !== null && (int)$sc === 0) {
-      $shouldTriggerMail = true;
-    }
-    @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | erpdb debug: Found SuccessCnt=" . ($sc === null ? 'null' : (string)$sc) . "\n", FILE_APPEND | LOCK_EX);
-
-    $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
-    $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
-    $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
-    $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'] ?? $saleOrderResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-  }
-
-  if ($shouldTriggerMail) {
-    $sendResult = false;
-    $sendError = '';
-    $to = 'palace0261@naver.com';
-    $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
-    $body = $mailContent;
-
-    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-      require_once __DIR__ . '/vendor/autoload.php';
-      try {
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = 'smtp.daum.net';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'sodamedia@daum.net';
-        $mail->Password = 'gebcngmmvxyynrfk';
-        $mail->SMTPSecure = 'ssl';
-        $mail->Port = 465;
-        $mail->CharSet = 'UTF-8';
-
-        $mail->setFrom('sodamedia@daum.net', '웹 알림');
-        $mail->addAddress($to);
-
-        $mail->Subject = $subject;
-        $mail->Body = $body;
-        $mail->isHTML(false);
-
-        $mail->send();
-        $sendResult = true;
-      } catch (Exception $e) {
-        $sendError = $e->getMessage();
-        $sendResult = false;
-      }
-    } else {
-      $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
-      $headers = "From: sodamedia@daum.net\r\n";
-      $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
-      $sent = @mail($to, $encodedSubject, $body, $headers);
-      $sendResult = (bool)$sent;
-      if (!$sendResult) $sendError = 'mail() 전송 실패';
-    }
-
-    $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
-    @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+    if ($shouldTriggerMail) {
+    $sendRes = send_saleorder_alert($saleOrderResult, $comCode, 'erpdb debug');
+    $sendResult = (bool)($sendRes['ok'] ?? false);
+    $sendError = (string)($sendRes['error'] ?? '');
+    $usedMethod = (string)($sendRes['method'] ?? '');
   }
 }
   // If a sale order result file exists, and no POST provided, read it and process.
@@ -459,111 +552,39 @@ if (isset($_POST['saleOrderResult_json'])) {
 
         $shouldTriggerMail = false;
         $mailContent = '';
-        if (is_array($saleOrderResult)) {
-          $find_success_cnt = function ($arr) use (&$find_success_cnt) {
-            if (!is_array($arr)) return null;
-            if (array_key_exists('SuccessCnt', $arr)) return $arr['SuccessCnt'];
-            foreach ($arr as $v) {
-              if (is_array($v)) {
-                $res = $find_success_cnt($v);
-                if ($res !== null) return $res;
-              }
-            }
-            return null;
-          };
-
-          $sc = $find_success_cnt($saleOrderResult['json'] ?? $saleOrderResult);
-          if ($sc !== null && (int)$sc === 0) {
-            $shouldTriggerMail = true;
-          }
-          @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | erpdb file debug: Found SuccessCnt=" . ($sc === null ? 'null' : (string)$sc) . "\n", FILE_APPEND | LOCK_EX);
-
-          $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
-          $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
-          $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
-          $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'] ?? $saleOrderResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
+        $result = process_saleorder_result($saleOrderResult, $comCode, 'erpdb file debug');
+        $shouldTriggerMail = (bool)($result['shouldTriggerMail'] ?? false);
+        $mailContent = (string)($result['mailContent'] ?? '');
+        
 
         if ($shouldTriggerMail) {
-          $sendResult = false;
-          $sendError = '';
-          $to = 'palace0261@naver.com';
-          $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
-          $body = $mailContent;
-
-          if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-            require_once __DIR__ . '/vendor/autoload.php';
-            try {
-              $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-              $mail->isSMTP();
-              $mail->Host = 'smtp.daum.net';
-              $mail->SMTPAuth = true;
-              $mail->Username = 'sodamedia@daum.net';
-              $mail->Password = 'gebcngmmvxyynrfk';
-              $mail->SMTPSecure = 'ssl';
-              $mail->Port = 465;
-              $mail->CharSet = 'UTF-8';
-
-              $mail->setFrom('sodamedia@daum.net', '웹 알림');
-              $mail->addAddress($to);
-
-              $mail->Subject = $subject;
-              $mail->Body = $body;
-              $mail->isHTML(false);
-
-              $mail->send();
-              $sendResult = true;
-            } catch (Exception $e) {
-              $sendError = $e->getMessage();
-              $sendResult = false;
-            }
-          } else {
-            $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
-            $headers = "From: sodamedia@daum.net\r\n";
-            $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
-            $sent = @mail($to, $encodedSubject, $body, $headers);
-            $sendResult = (bool)$sent;
-            if (!$sendResult) $sendError = 'mail() 전송 실패';
-          }
-
-          $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
-          @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+          $sendRes = send_saleorder_alert($saleOrderResult, $comCode, 'erpdb file debug');
+          $sendResult = (bool)($sendRes['ok'] ?? false);
+          $sendError = (string)($sendRes['error'] ?? '');
+          $usedMethod = (string)($sendRes['method'] ?? '');
         }
       }
     }
   }
 ?>
+
+
+<?php
+?>
+
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>erp test </title>
 </head>
 <body>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 16px; }
-    table { border-collapse: separate; border-spacing: 0 10px; width:100%; }
-    th { background: #f3f3f3; }
-    input[type="text"], input[type="number"] { width: 140px; }
-    .msg { margin: 8px 0; padding: 8px; background: #eef7ff; border: 1px solid #cfe8ff; }
-    .err { margin: 8px 0; padding: 8px; background: #fff0f0; border: 1px solid #ffd0d0; color: #900; }
-    .section { margin: 20px 0; }
-    .row-actions { display: flex; gap: 6px; align-items: center; }
-    /* 그룹별 색상 (순환) */
-    tbody.order-group.group-0 tr td { background: #fbfdff; }
-    tbody.order-group.group-1 tr td { background: #f7fff7; }
-    tbody.order-group.group-2 tr td { background: #fff7f7; }
-    tbody.order-group.group-3 tr td { background: #fffdfa; }
-    tbody.order-group.group-4 tr td { background: #f7f7ff; }
-    tbody.order-group.group-5 tr td { background: #f7fffb; }
-    tbody.order-group tr td { border: 1px solid #e0e0e0; }
-    /* 그룹간 여백은 table의 border-spacing으로 처리됨 */
-    tbody.order-group tr td input { background: transparent; border: none; width:100%; box-sizing:border-box; }
-  </style>
+  <link rel="stylesheet" href="static/erp.css">
   
-
-  <h1>ㅁERP Test server (erp_testTable)ㅁㄴㅇㄹ</h1>
+  
+  <h1>ERP Test server 3-30</h1>
 
   <?php if ($message !== ''): ?>
     <div class="msg"><?= h($message) ?></div>
@@ -900,6 +921,11 @@ document.addEventListener('DOMContentLoaded', function(){
         if (submitBtn) submitBtn.disabled = true;
         var formData = new FormData(f);
         var actionUrl = f.getAttribute('action') || window.location.href;
+        if (!actionUrl) {
+          if (submitBtn) submitBtn.disabled = false;
+          try { f.submit(); } catch (e) {}
+          return;
+        }
         // helper: render saleOrderResult object to the page
         function renderSaleOrderResult(obj) {
           try {
@@ -949,7 +975,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
         function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        fetch(actionUrl, { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        // Use AbortController to avoid very long-hanging requests; increase timeout to 60s
+        var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var timeoutMs = 60000; // 60000ms = 60s (was 30000)
+        var timeoutId = controller && timeoutMs > 0 ? setTimeout(function(){ try { controller.abort(); } catch(e){} }, timeoutMs) : null;
+        fetch(actionUrl, { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: controller ? controller.signal : undefined })
           .then(function(res){
             var ct = res.headers.get('content-type') || '';
             if (ct.indexOf('application/json') !== -1) {
@@ -994,16 +1024,32 @@ document.addEventListener('DOMContentLoaded', function(){
           .catch(function(err){
             console.error('submit failed', err);
             var existErr = document.querySelector('.err.ajax-submit');
+            var userMsg = '전송 실패: 네트워크 오류';
+            // detect AbortError (fetch was aborted)
+            try {
+              if (err && ((err.name && err.name === 'AbortError') || (err.message && (err.message.indexOf('aborted') !== -1 || err.message.indexOf('The user aborted') !== -1)))) {
+                userMsg = '전송 실패: 요청이 취소되었습니다 (타임아웃 또는 사용자가 중단).';
+              } else if (err && err.message) {
+                userMsg = '전송 실패: ' + err.message;
+              }
+            } catch (e) { /* ignore */ }
             if (!existErr) {
               var eD = document.createElement('div');
               eD.className = 'err.ajax-submit';
-              eD.textContent = '전송 실패: ' + (err && err.message ? err.message : '네트워크 오류');
+              eD.textContent = userMsg;
               document.body.insertBefore(eD, document.body.firstChild);
             } else {
-              existErr.textContent = '전송 실패: ' + (err && err.message ? err.message : '네트워크 오류');
+              existErr.textContent = userMsg;
+            }
+            if (!f.dataset.fallbackSubmitted) {
+              f.dataset.fallbackSubmitted = '1';
+              try { f.submit(); } catch (e) {}
             }
           })
-          .finally(function(){ if (submitBtn) submitBtn.disabled = false; });
+          .finally(function(){
+            if (timeoutId) clearTimeout(timeoutId);
+            if (submitBtn) submitBtn.disabled = false;
+          });
       } catch (e) { console.error('ajax submit err', e); if (submitBtn) submitBtn.disabled = false; }
     }, false);
   });
@@ -1176,8 +1222,7 @@ document.addEventListener('DOMContentLoaded', function(){
       }catch(e){console.error(e)}
     }, false);
   });
-  // 자동 전송 기능을 제거했습니다.
-  // (자동 제출/자동 전송 관련 코드 삭제)
+
 })();
 </script>
 </body>

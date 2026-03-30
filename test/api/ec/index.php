@@ -174,8 +174,33 @@ $uMemo4 = '';
 $uMemo5 = '';
 $bulkExtraJson = '';
 $saleOrderItemsJson = '';
+// flow form에 채울 제목/내용 변수
+$flowTitle = '';
+$flowContents = '';
+// 환경변수에서 민감값 읽기
+$flowApiKey = getenv('FLOW_API_KEY') ?: '20260310042354473-54f40d54-0833-4c3b-9f4a-1ce8e39c98f6';
+$smtpHost = getenv('SMTP_HOST') ?: 'smtp.daum.net';
+$smtpPort = getenv('SMTP_PORT') ? (int)getenv('SMTP_PORT') : 465;
+$smtpSecure = getenv('SMTP_SECURE') ?: 'ssl';
+$smtpUser = getenv('SMTP_USER') ?: 'sodamedia@daum.net';
+$smtpPass = getenv('SMTP_PASS') ?: 'gebcngmmvxyynrfk';
+$mailFrom = getenv('MAIL_FROM') ?: 'sodamedia@daum.net';
+$mailFromName = getenv('MAIL_FROM_NAME') ?: 'ERP API 알림';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // Accept JSON payloads too (client sends application/json)
+  $rawInput = file_get_contents('php://input');
+  $jsonInput = null;
+  $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+  if (stripos($contentType, 'application/json') !== false && trim($rawInput) !== '') {
+    $jsonInput = json_decode($rawInput, true);
+    if (is_array($jsonInput)) {
+      // merge json into $_POST-like array
+      foreach ($jsonInput as $k => $v) {
+        if (!isset($_POST[$k])) $_POST[$k] = $v;
+      }
+    }
+  }
   $action = (string)($_POST['action'] ?? 'zone');
   $comCode = trim((string)($_POST['com_code'] ?? ''));
   $env = (string)($_POST['env'] ?? 'test');
@@ -250,8 +275,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $_SESSION['last_call'][$key] = $nowTs;
 
-        // 1) Zone 조회
-        $zoneResult = callEcountZoneApi($comCode, $useTestServer);
+        // 1) Zone 조회 — 캐시된 값이 있으면 재사용
+        $zoneCacheKey = 'zone_' . $comCode . '_' . ($useTestServer ? 'test' : 'prod');
+        $zoneResult = null;
+        $zoneCache = $_SESSION['zone_cache'][$zoneCacheKey] ?? null;
+        if (is_array($zoneCache) && isset($zoneCache['ts']) && (time() - (int)$zoneCache['ts'] < 600) && isset($zoneCache['json'])) {
+          $zoneResult = ['ok' => true, 'json' => $zoneCache['json'], 'url' => $zoneCache['url'] ?? '', 'httpCode' => $zoneCache['httpCode'] ?? 200];
+        } else {
+          $zoneResult = callEcountZoneApi($comCode, $useTestServer);
+          if (($zoneResult['ok'] ?? false) && isset($zoneResult['json'])) {
+            $_SESSION['zone_cache'][$zoneCacheKey] = ['ts' => time(), 'json' => $zoneResult['json'], 'url' => $zoneResult['url'] ?? '', 'httpCode' => $zoneResult['httpCode'] ?? 200];
+          }
+        }
         if (!($zoneResult['ok'] ?? false)) {
           $_SESSION['fail_count'][$key] = $failCount + 1;
           $error = (string)($zoneResult['error'] ?? 'Zone 호출 오류');
@@ -1101,12 +1136,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         // 디버그: 찾은 SuccessCnt 값을 로그에 남김
         $dbg = 'Found SuccessCnt=' . ($sc === null ? 'null' : (string)$sc) . "\n";
-        @file_put_contents(__DIR__ . '/mail_send.log', date('c') . " | debug:" . $dbg, FILE_APPEND | LOCK_EX);
+        // logging disabled: removed mail_send.log writes
 
         // 메일 본문으로 전달할 내용 구성
-        $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
-        $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
-        $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
+        // $mailContent = "주문서 API 전송 결과에서 SuccessCnt가 0으로 표시됩니다.\n\n";
+        // $mailContent .= "요청 URL: " . ($saleOrderResult['url'] ?? '') . "\n";
+        // $mailContent .= "HTTP 코드: " . ($saleOrderResult['httpCode'] ?? '') . "\n\n";
         $mailContent .= "Response JSON:\n" . json_encode($saleOrderResult['json'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
       }
 
@@ -1114,8 +1149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 서버에서 PHPMailer로 직접 발송 시도
         $sendResult = false;
         $sendError = '';
-        $to = 'palace0261@naver.com';
-        $subject = 'ECOUNT 주문 전송 실패 - COM_CODE ' . $comCode;
+        $to = 'sodamedia@daum.net';
+        $subject = 'ECOUNT 주문 전송 실패';
         $body = $mailContent;
 
         // PHPMailer 사용 가능하면 SMTP로 발송
@@ -1124,15 +1159,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           try {
             $mail = new PHPMailer\PHPMailer\PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host = 'smtp.daum.net';
+            $mail->Host = $smtpHost;
             $mail->SMTPAuth = true;
-            $mail->Username = 'sodamedia@daum.net';
-            $mail->Password = 'gebcngmmvxyynrfk';
-            $mail->SMTPSecure = 'ssl';
-            $mail->Port = 465;
+            $mail->Username = $smtpUser;
+            $mail->Password = $smtpPass;
+            $mail->SMTPSecure = $smtpSecure;
+            $mail->Port = $smtpPort;
             $mail->CharSet = 'UTF-8';
 
-            $mail->setFrom('sodamedia@daum.net', '웹 알림');
+            $mail->setFrom($mailFrom, $mailFromName);
             $mail->addAddress($to);
 
             $mail->Subject = $subject;
@@ -1141,6 +1176,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $mail->send();
             $sendResult = true;
+            // Flow API로도 동시에 전송 (비동기적 호출 로그 남김)
+            $flowTitle = $subject;
+            $flowContents = $body;
+            try {
+              $flowUrl = 'https://api.flow.team/v1/posts/projects/2828992';
+              $flowPayload = json_encode(['registerId' => 'palace790@gmail.com', 'title' => $flowTitle, 'contents' => $flowContents]);
+              $chf = curl_init($flowUrl);
+              curl_setopt_array($chf, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                  'Content-Type: application/json',
+                  'x-flow-api-key: ' . $flowApiKey,
+                ],
+                CURLOPT_POSTFIELDS => $flowPayload,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 10,
+              ]);
+              $flowRaw = curl_exec($chf);
+              $flowErr = curl_error($chf);
+              $flowHttp = (int)curl_getinfo($chf, CURLINFO_HTTP_CODE);
+              curl_close($chf);
+              // logging disabled: removed mail_send.log writes
+            } catch (\Throwable $e) { /* logging disabled */ }
           } catch (Exception $e) {
             $sendError = $e->getMessage();
             $sendResult = false;
@@ -1148,15 +1207,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
           // PHPMailer 미설치 시 PHP mail()로 시도
           $encodedSubject = mb_encode_mimeheader($subject, 'UTF-8');
-          $headers = "From: sodamedia@daum.net\r\n";
+          $headers = "From: " . $mailFrom . "\r\n";
           $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
           $sent = @mail($to, $encodedSubject, $body, $headers);
           $sendResult = (bool)$sent;
           if (!$sendResult) $sendError = 'mail() 전송 실패';
+          // flow 동시 전송 (mail() 경로)
+          $flowTitle = $subject;
+          $flowContents = $body;
+          try {
+            $flowUrl = 'https://api.flow.team/v1/posts/projects/2828992';
+            $flowPayload = json_encode(['registerId' => 'palace790@gmail.com', 'title' => $flowTitle, 'contents' => $flowContents]);
+              $chf = curl_init($flowUrl);
+              curl_setopt_array($chf, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => [
+                  'Content-Type: application/json',
+                  'x-flow-api-key: ' . $flowApiKey,
+                ],
+                CURLOPT_POSTFIELDS => $flowPayload,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 10,
+              ]);
+            $flowRaw = curl_exec($chf);
+            $flowErr = curl_error($chf);
+            $flowHttp = (int)curl_getinfo($chf, CURLINFO_HTTP_CODE);
+            curl_close($chf);
+            // logging disabled: removed mail_send.log writes
+          } catch (\Throwable $e) { /* logging disabled */ }
         }
         // 로컬 로그(선택): 발송 결과를 파일에 남김
         $log = date('c') . " | to={$to} | result=" . ($sendResult ? 'ok' : 'fail') . " | err=" . ($sendError ?: '-') . "\n";
-        @file_put_contents(__DIR__ . '/mail_send.log', $log, FILE_APPEND | LOCK_EX);
+        // logging disabled: removed mail_send.log writes
       endif;
     ?>
   <?php endif; ?>
@@ -1169,7 +1252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if (!empty($sendError)) {
         echo '오류: ' . htmlspecialchars($sendError, ENT_QUOTES, 'UTF-8') . '<br/>';
       }
-      echo '로그: ' . htmlspecialchars(__DIR__ . '/mail_send.log', ENT_QUOTES, 'UTF-8');
+      // 로그 파일 경고/링크 제거 per request
       echo '</div>';
     }
   ?>
@@ -1180,7 +1263,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   
   <hr />
+
   
+
+  
+<section>
+  
+<form id="flow-form" method="post">
+  <input type="text" id="title" name="title" value="<?= htmlspecialchars($flowTitle, ENT_QUOTES, 'UTF-8') ?>">
+  <input type="text" id="contents" name="contents" value="<?= htmlspecialchars($flowContents, ENT_QUOTES, 'UTF-8') ?>">
+  <button type="submit" id="fsend">전송</button>
+</form>
+
+  <script>
+    const options = {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+      'x-flow-api-key': '<?= htmlspecialchars($flowApiKey, ENT_QUOTES, 'UTF-8') ?>',
+  },
+  body: JSON.stringify({
+    registerId: 'palace790@gmail.com',
+    title: document.getElementById('title').value,
+    contents: document.getElementById('contents').value,
+  }),
+}
+fetch('https://api.flow.team/v1/posts/projects/2828992', options)
+  .then(response => response.json())
+  .then(response => console.log(response))
+  .catch(err => console.error(err))
+  </script>
+</section>
+
 
 </body>
 
