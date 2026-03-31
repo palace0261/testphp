@@ -243,7 +243,7 @@ try {
   </style>
 </head>
 <body>
-  <h2>자동메일 발송 전 Flow API 전송</h2>
+  <h2>자동메일 발송 전 Flow API 전송 26.03.31</h2>
   <div>
     <label>API Key:</label>
     <input id="apiKey" type="text" style="width: 400px;" value="20260310042354473-54f40d54-0833-4c3b-9f4a-1ce8e39c98f6" readonly>
