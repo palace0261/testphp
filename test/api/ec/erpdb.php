@@ -35,13 +35,13 @@ $schemaWarning = '';
 $rows = [];
 
 // ECOUNT(ERP) API 전송 기본값 (ec/index.php로 POST)
-$ecountEnv = 'test';
+$ecountEnv = 'prod';
 $ecountComCode = '608196';
 $ecountUploadSerNo = '1';
 $ecountWhCd = '100';
 // 로그인 정보(필요 시 값 설정)
 $ecountUserId = '추민식';
-$ecountApiCertKey = '2d6396d0386044669b7a1b011190f7aee0';
+$ecountApiCertKey = '44d80dd7845df4575943c5c7baf7e3e759';
 $ecountLanType = 'ko-KR';
 $ecountLoginPath = '/OAPI/V2/OAPILogin';
 

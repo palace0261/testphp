@@ -129,7 +129,7 @@ $loginResult = null;
 $saleOrderResult = null;
 $error = null;
 $comCode = '';
-$env = 'test';
+$env = 'prod';
 $action = 'zone';
 $loginPath = '/OAPI/V2/OAPILogin';
 $userId = '';
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   $action = (string)($_POST['action'] ?? 'zone');
   $comCode = trim((string)($_POST['com_code'] ?? ''));
-  $env = (string)($_POST['env'] ?? 'test');
+  $env = (string)($_POST['env'] ?? 'prod');
   $useTestServer = $env !== 'prod';
   $loginPath = trim((string)($_POST['login_path'] ?? $loginPath));
   $userId = trim((string)($_POST['user_id'] ?? ''));
@@ -708,7 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <div class="row">
       <label for="api_cert_key">API_CERT_KEY</label>
-      <input id="api_cert_key" name="api_cert_key" value="2d6396d0386044669b7a1b011190f7aee0" required />
+      <input id="api_cert_key" name="api_cert_key" value="44d80dd7845df4575943c5c7baf7e3e759" required />
     </div>
     <div class="row">
       <label for="lan_type">LAN_TYPE</label>
