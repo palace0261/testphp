@@ -36,6 +36,10 @@
   bottom: 1rem;
 }
 
+#zs_sc .av_b{
+  padding: 0rem 1rem 1rem !important;
+}
+
 .valine{
     --size: 240px;
     --lineSize: 25px;
