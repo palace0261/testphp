@@ -30,7 +30,7 @@
 
 }
 
-ul,li,ol {
+.bbase ul,li,ol {
     list-style: none;
     padding: 0;
     margin: 0;
