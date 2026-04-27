@@ -1172,7 +1172,7 @@ padding: calc(0.5rem + 1.25vw);
 
 .bas{
   position: absolute;
-  top: 17%;
+  top: 20%;
   left: 50%;
   color: #e0e0e0;
   transform: translate(-50%, -50%);
