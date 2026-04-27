@@ -845,6 +845,15 @@
       return combo.cards.some((card) => card.rankIndex === 12);
     }
 
+    // Returns true if playing `combo` by `playerIndex` would leave that
+    // player with a single remaining card which is a 2 (rankIndex === 12).
+    function wouldLeaveLastTwo(playerIndex, combo) {
+      const player = state.players[playerIndex];
+      const playedIds = new Set(combo.cards.map((c) => c.id));
+      const remaining = player.hand.filter((c) => !playedIds.has(c.id));
+      return remaining.length === 1 && remaining[0].rankIndex === 12;
+    }
+
     function compareComboStrength(a, b) {
       const priority = { single: 1, pair: 2, triple: 3, straight: 4, bomb: 5 };
       if (priority[a.type] !== priority[b.type]) return priority[a.type] - priority[b.type];
@@ -878,8 +887,8 @@
         if (candidate.rank === 12 && lastPlay.rank !== 12) return true;
         // If both are 2, compare by suit order: club < spade < diamond < heart
         if (candidate.rank === 12 && lastPlay.rank === 12) {
-          const suitOrderRank = { 0: 1, 1: 0, 2: 2, 3: 3 };
-          return suitOrderRank[candidate.suitIndex] > suitOrderRank[lastPlay.suitIndex];
+          // suit order: spade(0) < club(1) < diamond(2) < heart(3)
+          return candidate.suitIndex > lastPlay.suitIndex;
         }
         // If lastPlay is 2 and candidate is not, candidate cannot beat
         if (lastPlay.rank === 12 && candidate.rank !== 12) return false;
@@ -990,11 +999,13 @@
         if (move.type === 'bomb') score += 260;
         if (isLead) score -= move.length * 12;
       } else {
-        score = move.length * 14 + baseType[move.type] * 3 + move.rank;
-        if (usesTwo(move)) score += 10; // slight penalty on hard
-        if (move.type === 'bomb') score += 120;
-        if (isLead) score -= move.length * 22;
-        if (!isLead && move.type === 'bomb') score += 80;
+        // Hard mode: prefer reducing hand quickly, avoid spending 2s and bombs
+        score = move.length * 30 - move.rank * 6 - baseType[move.type] * 6;
+        // Penalize using 2 unless it's finishing move (handled in chooseAiMove)
+        if (usesTwo(move)) score += 400;
+        // Bombs are powerful but keep for later unless they significantly reduce hand
+        if (move.type === 'bomb') score += 220;
+        if (isLead) score -= move.length * 8; // slightly prefer longer leads
       }
 
       return score;
@@ -1008,41 +1019,73 @@
       const mode = state.difficulty;
 
       if (isLead) {
-        // Always prefer a low single (non-2) when leading a fresh round
+        if (mode === 'hard') {
+          // Hard lead: prefer longer combos (straights, triples, pairs) to reduce hand quickly,
+          // avoid using 2s and bombs when possible.
+          const pref = ['straight', 'triple', 'pair', 'single'];
+          for (const type of pref) {
+            let pool = legal.filter((mv) => mv.type === type && !usesTwo(mv) && mv.type !== 'bomb');
+            if (pool.length === 0) pool = legal.filter((mv) => mv.type === type && !usesTwo(mv));
+            if (pool.length === 0) continue;
+
+            // avoid leaving a 2 as last card
+            let safe = pool.filter((mv) => !wouldLeaveLastTwo(playerIndex, mv));
+            if (safe.length === 0) safe = pool;
+
+            safe.sort((a, b) => scoreMove(b, mode, isLead) - scoreMove(a, mode, isLead) || compareComboStrength(b, a));
+            return safe[0];
+          }
+
+          legal.sort((a, b) => scoreMove(b, mode, isLead) - scoreMove(a, mode, isLead) || compareComboStrength(b, a));
+          return legal[0];
+        }
+
+        // Default (easy/normal) behavior: low single non-2 as before
         let leadPool = legal.filter((move) => move.type === 'single' && move.rank !== 12);
         if (leadPool.length === 0) {
-          // fallback to any single (may include 2) if no other singles
           leadPool = legal.filter((move) => move.type === 'single');
         }
         if (leadPool.length === 0) {
-          // no singles at all, pick the lowest-scoring legal move
           legal.sort((a, b) => scoreMove(a, mode, isLead) - scoreMove(b, mode, isLead) || compareComboStrength(a, b));
           return legal[0];
         }
 
-        leadPool.sort((a, b) => {
+        let safeLead = leadPool.filter((mv) => !wouldLeaveLastTwo(playerIndex, mv));
+        if (safeLead.length === 0) safeLead = leadPool;
+
+        safeLead.sort((a, b) => {
           if (a.rank !== b.rank) return a.rank - b.rank;
           if (a.length !== b.length) return a.length - b.length;
           return (a.suitIndex ?? 0) - (b.suitIndex ?? 0);
         });
 
-        return leadPool[0];
+        return safeLead[0];
       }
       let pool = legal.slice();
-      // Difficulty-based handling of using '2'
+
+      // If any move wins immediately, take it.
+      const winning = pool.find((mv) => state.players[playerIndex].hand.length - mv.length === 0);
+      if (winning) return winning;
+
+      // Difficulty-based handling
       if (mode === 'easy') {
-        // avoid any move that uses a 2 if possible
         const safe = pool.filter((move) => !usesTwo(move));
         if (safe.length > 0) pool = safe;
       } else if (mode === 'normal') {
-        // prefer non-2 moves, but allow if nothing else
         const safe = pool.filter((move) => !usesTwo(move));
         if (safe.length > 0) pool = safe;
       } else {
-        // hard: allow 2s freely (no filtering)
+        // hard: try to conserve 2s and bombs unless necessary
+        const nonTwo = pool.filter((mv) => !usesTwo(mv) && mv.type !== 'bomb');
+        if (nonTwo.length > 0) pool = nonTwo;
       }
 
-      pool.sort((a, b) => scoreMove(a, mode, isLead) - scoreMove(b, mode, isLead) || compareComboStrength(a, b));
+      // Prefer moves that reduce hand count the most, then by score
+      pool.sort((a, b) => (state.players[playerIndex].hand.length - a.length) - (state.players[playerIndex].hand.length - b.length) || scoreMove(b, mode, isLead) - scoreMove(a, mode, isLead) || compareComboStrength(b, a));
+      // Avoid leaving last card as 2 when possible
+      const nonLeaving = pool.filter((mv) => !wouldLeaveLastTwo(playerIndex, mv));
+      if (nonLeaving.length > 0) return nonLeaving[0];
+
       return pool[0];
     }
 
@@ -1286,6 +1329,12 @@
 
       if (!canBeat(combo, state.lastPlay, state.humanIndex)) {
         setMessage('현재 테이블의 카드보다 강하지 않거나 첫 턴 규칙을 만족하지 않습니다.', 'error');
+        return;
+      }
+
+      // Prevent leaving the player with a single remaining card that is a 2
+      if (wouldLeaveLastTwo(state.humanIndex, combo)) {
+        setMessage('마지막 남은 카드가 2가 되도록 내는 것은 불가합니다. 먼저 2를 내세요.', 'error');
         return;
       }
 
