@@ -38,6 +38,33 @@
 
     videos.forEach(v=> observer.observe(v));
 
+    // 다른 비디오 재생 시 중복 재생 방지 및 종료 시 다음 비디오 자동 재생
+    videos.forEach(v=>{
+      v.addEventListener('play', ()=>{ videos.forEach(o=>{ if(o!==v){ try{o.pause(); }catch(e){} } }); });
+      v.addEventListener('ended', ()=>{
+        const arr = videos;
+        const idx = arr.indexOf(v);
+        const next = arr[idx+1];
+        if(next){ const p = next.play(); if(p && p.catch) p.catch(()=>{}); }
+      });
+    });
+
+    // 즉시 화면 가시성 재검사 및 재생(슬라이드 이동 등 스크롤 이벤트가 아닐 때 사용)
+    function recheckAndPlayImmediate(){
+      videos.forEach(v=>{
+        try{
+          const rect = v.getBoundingClientRect();
+          const vh = window.innerHeight || document.documentElement.clientHeight;
+          const visibleHeight = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+          const visibleRatio = rect.height > 0 ? Math.max(0, Math.min(1, visibleHeight / rect.height)) : 0;
+          const needsStop = v.classList.contains('scroll-stop-play');
+          if(visibleRatio >= threshold && !isScrolling){ const p = v.play(); if(p && p.catch) p.catch(()=>{}); }
+          else { try{ v.pause(); }catch(e){} }
+        }catch(e){}
+      });
+    }
+    window.addEventListener('updateVideos', recheckAndPlayImmediate);
+
     window.addEventListener('scroll', ()=>{
       isScrolling = true;
       if(scrollTimer) clearTimeout(scrollTimer);

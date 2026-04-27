@@ -18,10 +18,15 @@ slideList.style.transform = `translateX(-${current * slides[0].offsetWidth}px)`;
 prevBtn.disabled = current === 0;
 nextBtn.disabled = current === slides.length - 1;
 }
+// 슬라이드 업데이트 후 비디오 재검사(슬라이드 이동으로 인한 자동재생 보장)
+function updateSlideAndRecheck(){
+  updateSlide();
+  try{ window.dispatchEvent(new Event('updateVideos')); }catch(e){}
+}
 
 function goToSlide(idx) {
 current = Math.max(0, Math.min(idx, slides.length - 1));
-updateSlide();
+updateSlideAndRecheck();
 }
 
 function autoSlide() {
@@ -88,7 +93,7 @@ current++;
 } else if (dx > 50 && current > 0) {
 current--;
 }
-updateSlide();
+  updateSlideAndRecheck();
 autoSlide();
 });
 
@@ -118,11 +123,11 @@ current++;
 } else if (dx > 50 && current > 0) {
 current--;
 }
-updateSlide();
+  updateSlideAndRecheck();
 autoSlide();
 });
 
-updateSlide();
+updateSlideAndRecheck();
 autoSlide();
 });
 
