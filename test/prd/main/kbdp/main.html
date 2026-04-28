@@ -563,6 +563,304 @@
       </div>
     </section>
 
+
+
+    <section class="av_sc spec-section" id="zboinspe">
+      <style>
+        .specs-container {
+          background: linear-gradient(135deg, #131313 0%, #414141 100%);
+          border-radius: 20px;
+          padding: 40px 30px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .specs-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+          opacity: 0.3;
+        }
+
+        .specs-title {
+          color: #ffffff;
+          font-size: 2.5rem;
+          font-weight: 700;
+          text-align: center;
+          margin-bottom: 30px;
+          position: relative;
+          z-index: 2;
+        }
+
+        .specs-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          position: relative;
+          z-index: 2;
+        }
+
+        .specs-item {
+          background: rgba(255,255,255,0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 15px;
+          padding: 20px;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .specs-label {
+          color: #60a5fa;
+          font-weight: 600;
+          font-size: 1.25rem;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .specs-value {
+          color: #ffffff;
+          font-weight: 400;
+          font-size: 1rem;
+          line-height: 1.4;
+          text-align: left;
+        }
+
+        .specs-category {
+          grid-column: 1 / -1;
+          background: rgba(255,255,255,0.05);
+          border-radius: 12px;
+          padding: 1rem 0 1rem;
+          margin: 2rem 0 0rem;
+        }
+
+        .specs-category h3 {
+          color: #ffffff;
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin: 0;
+          text-align: center;
+        }
+
+        .specs-grid h3 > i {
+          padding-right: 0.25rem;
+        }
+
+        .specs-grid div > i {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .specs-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+          }
+
+          .specs-title {
+            font-size: 2rem;
+          }
+
+          .specs-container {
+            padding: 30px 20px;
+          }
+        }
+      </style>
+asd
+      <div class="av_d">
+        <div class="specs-container">
+          <br><br>
+          <h2 class="specs-title">SPECIFICATIONS</h2>
+          <span style="color: #b3b3b3; padding: 1rem 0 0;">Bolin KBD Plus</span>
+          <br><br>
+
+          <div class="specs-grid">
+            <div class="specs-category">
+              <h3><i class="fas fa-plug"></i>Input / Output Connectors</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-network-wired"></i>Control Input / Output</div>
+              <div class="specs-value">RS232: RJ45 x1; RS422: RJ45 x1; Tally In/Contact Out*: 9pin x1; LAN: RJ-45 x1, 1GBaseT(10/100/1000BASE-TX automatically detected); USB 2.0 for Aux Device x1;</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-video"></i>Video Output</div>
+              <div class="specs-value">HDMI 2.0 with secure mount x1; USB 3.2 for UVC output x1;</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-volume-up"></i>Audio Output</div>
+              <div class="specs-value">3.5mm Unbalanced Audio Output</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-bolt"></i>Power Connector</div>
+              <div class="specs-value">DC IN 12V, RJ45x1 for PoE+ (IEEE 802.3at), RJ45x1 for Power Over Control</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-tv"></i>User Interface</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-display"></i>Display Screen</div>
+              <div class="specs-value">4 Inch 800 x 480 Color LED Display Touch Screen; Pre-Installed Screen Protector</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-hand-pointer"></i>Touch Screen</div>
+              <div class="specs-value">5 points Multi-point; 60Hz</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-sun"></i>Brightness</div>
+              <div class="specs-value">350nits</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-info-circle"></i>Status Indicators</div>
+              <div class="specs-value">Display the Status of WB, Iris, Gain, Shutter, Focus</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-sliders-h"></i>Exposure Mode Selection</div>
+              <div class="specs-value">Full Auto, Iris Priority, Shutter Priority, Manual Iris Gain, Manual Shutter Gain, Black Level, ND Filter</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-random"></i>Joysticks / Controls</div>
+              <div class="specs-value">Zoom Rocker, Joystick Top Button, High Precision 4 Axis Joystick, 3-Axis Simultaneous Control</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-cogs"></i>Camera Control</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-camera"></i>Maximum Camera Control</div>
+              <div class="specs-value">Up to 255 Cameras controlled with multi-protocol support</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-wifi"></i>Maximum IP Connections</div>
+              <div class="specs-value">255</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-ethernet"></i>Maximum Serial Connections</div>
+              <div class="specs-value">RS232: 7(VISCA), RS422: 7 (VISCA), RS485:255(Pelco P/D)</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-code-branch"></i>IP Control Protocol</div>
+              <div class="specs-value">NDI, VISCA over IP, ONVIF; API: BOLIN API, Panasonic(PTZ Function Only), Canon(PTZ Function Only), OSC(Future Firmware Update)</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-terminal"></i>Serial Control Protocol</div>
+              <div class="specs-value">Visca, Pelco P/D</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-sync-alt"></i>Firmware / Configuration</div>
+              <div class="specs-value">WebUI, Touch Screen UI, WebUI via IP</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-keyboard"></i>Buttons / Knobs</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-hand-pointer"></i>Primary Buttons</div>
+              <div class="specs-value">OPW Auto Adjustment, Setup, Back, Focus Mode, One-Push Auto Focus, Camera OSD Menu, Lock, Camera Selection, Preset Selection, Selection Mode, AI</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-undo"></i>Rocker / Switches</div>
+              <div class="specs-value">Roll/Zoom Switch, Roll/Zoom Control, Speed Control Switch</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-adjust"></i>Knobs</div>
+              <div class="specs-value">Speed Adjustment, WB Mode Selection, R,B Gain Adjustment, Iris/Shutter Value Adjustment/ND Filter, Manual Focus Adjustment, Screen Brightness, User Definable Functions</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-brightness-high"></i>Illumination</div>
+              <div class="specs-value">Yes, multi-color LED indicators</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-film"></i>Decode</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-play"></i>Video Codec</div>
+              <div class="specs-value">4 IP Input; RTSP(H.264; H.265+; NDI-HX(HX3/HX2) / RTSP(H.264; H.265)</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-expand-arrows-alt"></i>Resolution / Frame Rate</div>
+              <div class="specs-value">3840 x 2160p 60/59.94/50/30/29.97/25/24/23.98<br>1920 x 1080p 60/59.94/50/30/29.97/25/24/23.98</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-th"></i>Multiview</div>
+              <div class="specs-value">4 channel</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-music"></i>Audio Codec</div>
+              <div class="specs-value">AAC</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-desktop"></i>Video Output</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-hd-video"></i>HDMI</div>
+              <div class="specs-value">3840 x 2160p 60/59.94/50/30/29.97/25/24/23.98<br>1920 x 1080p 60/59.94/50/30/29.97/25/24/23.98<br>1920 x 1080i 60/59.94/50</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-tint"></i>Color Precision / Space</div>
+              <div class="specs-value">YUV4:2:2 10bit, RGB8:8:8/8bit; YUV, RGB</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-usb"></i>USB</div>
+              <div class="specs-value">UVC 1.5, MJPEG, YUV, H.264; 3840 x 2160p 30/25; 1920 x 1080p 60/50/30/25; 1280 x 720p 60/50/30/25; 800 x 600 60/50/30/25; 704 x 576 60/50/30/25; 640 x 480 60/50/30/25; 320 x 240 60/50/30/25</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-volume-up"></i>Audio Output</div>
+              <div class="specs-value">2 Channels PCM 48kHz; UAC 1.0</div>
+            </div>
+
+            <div class="specs-category">
+              <h3><i class="fas fa-info"></i>General</h3>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-battery-three-quarters"></i>Power / Voltage</div>
+              <div class="specs-value">Independent Power Input 12VDC, Voltage tolerance 6V～36V, PoE+(IEEE 802.3at)</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-bolt"></i>Current Consumption</div>
+              <div class="specs-value">Min 12W; MAX 14W</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-thermometer-half"></i>Operation Temperature</div>
+              <div class="specs-value">-10°C - 40°C / 14°F - 104°F</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-ruler-combined"></i>Dimensions</div>
+              <div class="specs-value">278 x 132 x 99.5mm (Without the Raiser)</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-weight"></i>Weight</div>
+              <div class="specs-value">1.4kg / 3.1lbs</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-box-open"></i>Supplied Accessories</div>
+              <div class="specs-value">Power Adapter and Power Core, RS422 Adaptor Cable, Magnetic Base Raiser, Screen Cleaning Cloth, Tally Phoenix Connector, Thank You Card</div>
+            </div>
+            <div class="specs-item">
+              <div class="specs-label"><i class="fas fa-certificate"></i>Certificates</div>
+              <div class="specs-value">CE, FCC, IC, UL, UKCA, ROHS, WEEE</div>
+            </div>
+
+            <div class="specs-category" style="background: #fff;">
+              <div style="background: #fff;color: #fff;padding: 1rem 0;">
+                <img src="../../img/b7/soda-logo.png" style="max-width: 10rem; width: 100%;" ></div>
+              <h3 style="font-size: 2rem; color: #231815;">소다미디어</h3>
+            </div>
+          </div>
+
+          <br><br>
+        </div>
+      </div>
+    </section>
 </div>
 
 </body>
