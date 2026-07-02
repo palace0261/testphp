@@ -44,7 +44,7 @@ const toBase64 = (file) => new Promise((resolve, reject) => {
 
 async function uploadFileViaPhp(file, folderName) {
     const base64 = await toBase64(file);
-    const res = await fetch(PHP_SERVER + 'upload-dropbox.php', {
+    const res = await fetch(PHP_SERVER + 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/upload-dropbox.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -61,7 +61,7 @@ async function uploadFileViaPhp(file, folderName) {
 }
 
 async function submitViaPhp(title, contents) {
-    const res = await fetch(PHP_SERVER + 'submit-flow.php', {
+    const res = await fetch(PHP_SERVER + 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/submit-flow.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, contents })
