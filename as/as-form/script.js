@@ -1,7 +1,15 @@
-// PHP 서버 주소 (실제 서버 주소로 변경 필요)
-// 로컬 테스트: 'upload-dropbox.php', 'submit-flow.php'
-// 실제 서버: 'https://PHP서버주소/upload-dropbox.php' 형태로 변경
-const PHP_SERVER = '';
+// 비우면 같은 도메인의 PHP 엔드포인트를 사용합니다.
+// 다른 서버를 쓰려면 예: 'https://example.com/as/as-form'
+const API_BASE = '';
+
+function apiUrl(path) {
+    const base = (API_BASE || '').trim();
+    if (!base) return path;
+
+    const normalizedBase = base.replace(/\/+$/, '');
+    const normalizedPath = path.replace(/^\/+/, '');
+    return `${normalizedBase}/${normalizedPath}`;
+}
 
 document.getElementById('today_date').value = new Date().toISOString().substring(0, 10);
 
@@ -44,7 +52,7 @@ const toBase64 = (file) => new Promise((resolve, reject) => {
 
 async function uploadFileViaPhp(file, folderName) {
     const base64 = await toBase64(file);
-    const res = await fetch(PHP_SERVER + 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/upload-dropbox.php', {
+    const res = await fetch(apiUrl('upload-dropbox.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -61,7 +69,7 @@ async function uploadFileViaPhp(file, folderName) {
 }
 
 async function submitViaPhp(title, contents) {
-    const res = await fetch(PHP_SERVER + 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/submit-flow.php', {
+    const res = await fetch(apiUrl('submit-flow.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, contents })

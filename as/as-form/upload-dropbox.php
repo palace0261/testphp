@@ -18,7 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
+$rawBody = file_get_contents('php://input');
+$input = json_decode($rawBody, true);
+if (!is_array($input)) {
+    $input = $_POST;
+}
 
 if (!$input || !isset($input['fileBase64']) || !isset($input['fileName']) || !isset($input['folderName'])) {
     http_response_code(400);
@@ -26,9 +30,25 @@ if (!$input || !isset($input['fileBase64']) || !isset($input['fileName']) || !is
     exit;
 }
 
-$fileBase64 = $input['fileBase64'];
-$fileName   = $input['fileName'];
-$folderName = $input['folderName'];
+$fileBase64 = trim((string)$input['fileBase64']);
+$fileName   = trim((string)$input['fileName']);
+$folderName = trim((string)$input['folderName']);
+
+if ($fileBase64 === '' || $fileName === '' || $folderName === '') {
+    http_response_code(400);
+    echo json_encode(['error' => '파일 데이터가 올바르지 않습니다.']);
+    exit;
+}
+
+if (strpos($fileBase64, ',') !== false) {
+    $parts = explode(',', $fileBase64, 2);
+    $fileBase64 = $parts[1];
+}
+
+$folderName = preg_replace('/[^a-zA-Z0-9_-]/', '', $folderName);
+if ($folderName === '') {
+    $folderName = 'uploads';
+}
 
 // 파일명을 ASCII 안전 이름으로 변환 (드롭박스 헤더는 ASCII만 허용)
 $ext = pathinfo($fileName, PATHINFO_EXTENSION);
@@ -36,7 +56,12 @@ $ext = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
 $safeName = 'file_' . round(microtime(true) * 1000) . ($ext ? '.' . $ext : '');
 $dropboxPath = '/as-uploads/' . $folderName . '/' . $safeName;
 
-$fileBinary = base64_decode($fileBase64);
+$fileBinary = base64_decode($fileBase64, true);
+if ($fileBinary === false) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Base64 파일 디코딩에 실패했습니다.']);
+    exit;
+}
 
 // ===== 1. 드롭박스에 파일 업로드 =====
 $uploadArg = json_encode([
@@ -49,6 +74,8 @@ $uploadArg = json_encode([
 $ch = curl_init('https://content.dropboxapi.com/2/files/upload');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Bearer ' . DROPBOX_TOKEN,
     'Dropbox-API-Arg: ' . $uploadArg,
@@ -57,16 +84,35 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 curl_setopt($ch, CURLOPT_POSTFIELDS, $fileBinary);
 $uploadResponse = curl_exec($ch);
 $uploadStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$uploadCurlError = curl_error($ch);
 curl_close($ch);
 
+if ($uploadResponse === false) {
+    http_response_code(502);
+    echo json_encode(['error' => '드롭박스 통신 실패: ' . $uploadCurlError]);
+    exit;
+}
+
 if ($uploadStatus !== 200) {
+    $errorData = json_decode($uploadResponse, true);
+    if (($errorData['error_summary'] ?? '') === 'expired_access_token/..') {
+        http_response_code(401);
+        echo json_encode(['error' => '드롭박스 토큰이 만료되었습니다. config.php에서 토큰을 재발급 후 교체하세요.']);
+        exit;
+    }
+
     http_response_code($uploadStatus);
     echo json_encode(['error' => '드롭박스 업로드 실패: ' . $uploadResponse]);
     exit;
 }
 
 $uploadData = json_decode($uploadResponse, true);
-$pathLower = $uploadData['path_lower'];
+$pathLower = $uploadData['path_lower'] ?? '';
+if ($pathLower === '') {
+    http_response_code(500);
+    echo json_encode(['error' => '업로드 응답 파싱에 실패했습니다.']);
+    exit;
+}
 
 // ===== 2. 공유 링크 생성 =====
 $shareArg = json_encode([
@@ -90,7 +136,9 @@ $url = null;
 
 if ($shareStatus === 200) {
     $shareData = json_decode($shareResponse, true);
-    $url = str_replace('?dl=0', '?dl=1', $shareData['url']);
+    if (!empty($shareData['url'])) {
+        $url = str_replace('?dl=0', '?dl=1', $shareData['url']);
+    }
 } else {
     // 이미 링크가 있는 경우 기존 링크 조회
     $listArg = json_encode(['path' => $pathLower]);
