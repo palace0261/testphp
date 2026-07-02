@@ -24,8 +24,62 @@ if (!is_array($input)) {
     $input = $_POST;
 }
 
+$name = trim((string)($input['userName'] ?? ''));
+$phone = trim((string)($input['userPhone'] ?? ''));
+$address = trim((string)($input['userAddress'] ?? ''));
+$productName = trim((string)($input['productName'] ?? ''));
+$productSerial = trim((string)($input['productSerial'] ?? ''));
+$buyDate = trim((string)($input['buyDate'] ?? ''));
+$receiptDate = trim((string)($input['receiptDate'] ?? ''));
+$symptom = trim((string)($input['symptom'] ?? ''));
+$imageLinks = is_array($input['imageLinks'] ?? null) ? $input['imageLinks'] : [];
+$attachLink = is_array($input['attachLink'] ?? null) ? $input['attachLink'] : null;
+
 $title = trim((string)($input['title'] ?? ''));
 $contents = trim((string)($input['contents'] ?? $input['content'] ?? ''));
+
+if ($name !== '' && $phone !== '' && $address !== '' && $productName !== '' && $symptom !== '') {
+    $title = '[A/S 접수] ' . $name . ' / ' . $productName;
+
+    $lines = [
+        '■ 신청인: ' . $name,
+        '■ 연락처: ' . $phone,
+        '■ 수령주소: ' . $address,
+        '■ 제품명: ' . $productName,
+        '■ 시리얼번호: ' . ($productSerial !== '' ? $productSerial : '미입력'),
+        '■ 구매일자: ' . ($buyDate !== '' ? $buyDate : '미입력'),
+        '■ 접수일자: ' . ($receiptDate !== '' ? $receiptDate : '미입력'),
+        '',
+        '■ 증상 내용:',
+        $symptom,
+    ];
+
+    if (!empty($imageLinks)) {
+        $lines[] = '';
+        $lines[] = '■ 첨부 이미지 (' . count($imageLinks) . '장):';
+        foreach ($imageLinks as $index => $imageLink) {
+            $imageName = trim((string)($imageLink['name'] ?? '첨부파일'));
+            $imageUrl = trim((string)($imageLink['url'] ?? ''));
+            $lines[] = ($index + 1) . '. ' . $imageName;
+            if ($imageUrl !== '') {
+                $lines[] = $imageUrl;
+            }
+        }
+    }
+
+    if (!empty($attachLink)) {
+        $attachName = trim((string)($attachLink['name'] ?? '첨부파일'));
+        $attachUrl = trim((string)($attachLink['url'] ?? ''));
+        $lines[] = '';
+        $lines[] = '■ 첨부 파일:';
+        $lines[] = $attachName;
+        if ($attachUrl !== '') {
+            $lines[] = $attachUrl;
+        }
+    }
+
+    $contents = implode("\n", $lines);
+}
 
 if ($title === '' || $contents === '') {
     http_response_code(400);

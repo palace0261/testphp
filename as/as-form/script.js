@@ -68,11 +68,11 @@ async function uploadFileViaPhp(file, folderName) {
     return data.url;
 }
 
-async function submitViaPhp(title, contents) {
+async function submitViaPhp(payload) {
     const res = await fetch(apiUrl('submit-flow.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, contents })
+        body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (!res.ok) {
@@ -178,7 +178,20 @@ async function submitToFlow() {
 
         btn.textContent = '접수 등록 중...';
 
-        await submitViaPhp(title, contents);
+        await submitViaPhp({
+            title,
+            contents,
+            userName: name,
+            userPhone: phone,
+            userAddress: address,
+            productName: prodName,
+            productSerial: prodSn,
+            buyDate,
+            receiptDate: today,
+            symptom,
+            imageLinks,
+            attachLink
+        });
 
         document.getElementById('modal-overlay').style.display = 'flex';
 
