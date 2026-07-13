@@ -11,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json; charset=utf-8');
 require_once 'config.php';
-require_once 'dropbox-token.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -64,15 +63,6 @@ if ($fileBinary === false) {
     exit;
 }
 
-// ===== 0. Refresh token으로 access token 자동 발급 =====
-try {
-    $accessToken = getDropboxAccessToken();
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
-    exit;
-}
-
 // ===== 1. 드롭박스에 파일 업로드 =====
 $uploadArg = json_encode([
     'path' => $dropboxPath,
@@ -87,7 +77,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $accessToken,
+    'Authorization: Bearer ' . DROPBOX_TOKEN,
     'Dropbox-API-Arg: ' . $uploadArg,
     'Content-Type: application/octet-stream'
 ]);
@@ -104,6 +94,13 @@ if ($uploadResponse === false) {
 }
 
 if ($uploadStatus !== 200) {
+    $errorData = json_decode($uploadResponse, true);
+    if (($errorData['error_summary'] ?? '') === 'expired_access_token/..') {
+        http_response_code(401);
+        echo json_encode(['error' => '드롭박스 토큰이 만료되었습니다. config.php에서 토큰을 재발급 후 교체하세요.']);
+        exit;
+    }
+
     http_response_code($uploadStatus);
     echo json_encode(['error' => '드롭박스 업로드 실패: ' . $uploadResponse]);
     exit;
@@ -127,7 +124,7 @@ $ch = curl_init('https://api.dropboxapi.com/2/sharing/create_shared_link_with_se
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $accessToken,
+    'Authorization: Bearer ' . DROPBOX_TOKEN,
     'Content-Type: application/json'
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $shareArg);
@@ -149,7 +146,7 @@ if ($shareStatus === 200) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $accessToken,
+        'Authorization: Bearer ' . DROPBOX_TOKEN,
         'Content-Type: application/json'
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $listArg);
