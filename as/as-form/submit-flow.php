@@ -25,19 +25,30 @@ if (!is_array($input)) {
     $input = $_POST;
 }
 
-$name = trim((string)($input['userName'] ?? ''));
-$phone = trim((string)($input['userPhone'] ?? ''));
-$address = trim((string)($input['userAddress'] ?? ''));
-$productName = trim((string)($input['productName'] ?? ''));
-$productSerial = trim((string)($input['productSerial'] ?? ''));
-$buyDate = trim((string)($input['buyDate'] ?? ''));
-$receiptDate = trim((string)($input['receiptDate'] ?? ''));
-$symptom = trim((string)($input['symptom'] ?? ''));
+// 프론트엔드마다 필드명이 달라(userName/user_name/name 등) 여러 키를 순서대로 확인
+function pickInput(array $input, array $keys): string
+{
+    foreach ($keys as $key) {
+        if (isset($input[$key]) && trim((string)$input[$key]) !== '') {
+            return trim((string)$input[$key]);
+        }
+    }
+    return '';
+}
+
+$name = pickInput($input, ['userName', 'user_name', 'name']);
+$phone = pickInput($input, ['userPhone', 'user_phone', 'phone']);
+$address = pickInput($input, ['userAddress', 'user_address', 'address']);
+$productName = pickInput($input, ['productName', 'prod_name', 'product']);
+$productSerial = pickInput($input, ['productSerial', 'prod_sn', 'serial']);
+$buyDate = pickInput($input, ['buyDate', 'buy_date']);
+$receiptDate = pickInput($input, ['receiptDate', 'today_date']);
+$symptom = pickInput($input, ['symptom', 'symptom_desc']);
 $imageLinks = is_array($input['imageLinks'] ?? null) ? $input['imageLinks'] : [];
 $attachLink = is_array($input['attachLink'] ?? null) ? $input['attachLink'] : null;
 
-$title = trim((string)($input['title'] ?? ''));
-$contents = trim((string)($input['contents'] ?? $input['content'] ?? ''));
+$title = pickInput($input, ['title', 'subject']);
+$contents = pickInput($input, ['contents', 'content', 'body', 'message', 'text']);
 
 if ($name !== '' && $phone !== '' && $address !== '' && $productName !== '' && $symptom !== '') {
     $title = '[A/S 접수] ' . $name . ' / ' . $productName;
