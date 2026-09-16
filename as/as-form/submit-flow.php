@@ -152,10 +152,11 @@ if ($phone !== '') {
 
 $result = ['success' => true];
 if ($alimtalkResult !== null) {
-    // 디버깅용: 알림톡 실패 원인과 실제 전송된 수신/발신번호를 응답에 노출 (원인 확인 후 제거 예정)
+    // 디버깅용: 알림톡 실패 원인과 실제 전송된 수신/발신번호, 솔라피 원본 응답을 노출 (원인 확인 후 제거 예정)
     if ($alimtalkResult['success'] === false) {
         $result['alimtalkError'] = $alimtalkResult['error'];
     }
     $result['alimtalkDebug'] = $alimtalkResult['debug'] ?? null;
+    $result['alimtalkResponse'] = $alimtalkResult['response'] ?? null;
 }
 echo json_encode($result);
