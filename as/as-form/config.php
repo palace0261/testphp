@@ -9,3 +9,10 @@ define('FLOW_PROJECT_ID', '2917572');
 define('DROPBOX_APP_KEY', 'xvyxyno123t4bvz');
 define('DROPBOX_APP_SECRET', 'zjajotdg2zr6s5s');
 define('DROPBOX_REFRESH_TOKEN', 'zW1Hxx9Zk0QAAAAAAAAAAbTBMJlzw8qRhY6aRk2aAnFT-dHQw22UwMBsyTvIwhAt');
+
+// 솔라피(카카오 알림톡)
+define('SOLAPI_API_KEY', 'NCSEUH6EP4PWOTRL');
+define('SOLAPI_API_SECRET', '85C8NUGPHJYTXHOPRSE4NILMFJJJN81X');
+define('SOLAPI_PF_ID', 'KA01PF260916025633778vvlIHv58D7i'); // 채널 ID (소다미디어 @sodamedia)
+define('SOLAPI_TEMPLATE_ID', 'KA01TP221025083117992xkz17KyvNbr');
+define('SOLAPI_SENDER_PHONE', '01033191171'); // Solapi에 등록된 발신번호

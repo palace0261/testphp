@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json; charset=utf-8');
 require_once 'config.php';
+require_once __DIR__ . '/../solapi.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -128,4 +129,14 @@ if ($status !== 200 && $status !== 201) {
     exit;
 }
 
-echo json_encode(['success' => true]);
+$alimtalkResult = null;
+if ($phone !== '') {
+    $alimtalkResult = sendSolapiAlimtalk($phone, ['#{고객명}' => $name]);
+}
+
+$result = ['success' => true];
+if ($alimtalkResult !== null && $alimtalkResult['success'] === false) {
+    // 디버깅용: 알림톡 실패 원인을 응답에 노출 (원인 확인 후 제거 예정)
+    $result['alimtalkError'] = $alimtalkResult['error'];
+}
+echo json_encode($result);
