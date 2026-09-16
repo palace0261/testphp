@@ -131,12 +131,20 @@ if ($status !== 200 && $status !== 201) {
 
 $alimtalkResult = null;
 if ($phone !== '') {
-    $alimtalkResult = sendSolapiAlimtalk($phone, ['#{고객명}' => $name]);
+    $receiptNo = date('YmdHis');
+    $alimtalkResult = sendSolapiAlimtalk($phone, [
+        '#{이름}' => $name,
+        '#{접수번호}' => $receiptNo,
+        '#{제품명}' => $productName,
+    ]);
 }
 
 $result = ['success' => true];
-if ($alimtalkResult !== null && $alimtalkResult['success'] === false) {
-    // 디버깅용: 알림톡 실패 원인을 응답에 노출 (원인 확인 후 제거 예정)
-    $result['alimtalkError'] = $alimtalkResult['error'];
+if ($alimtalkResult !== null) {
+    // 디버깅용: 알림톡 실패 원인과 실제 전송된 수신/발신번호를 응답에 노출 (원인 확인 후 제거 예정)
+    if ($alimtalkResult['success'] === false) {
+        $result['alimtalkError'] = $alimtalkResult['error'];
+    }
+    $result['alimtalkDebug'] = $alimtalkResult['debug'] ?? null;
 }
 echo json_encode($result);

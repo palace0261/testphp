@@ -55,13 +55,16 @@ function sendSolapiAlimtalk(string $phone, array $variables): array
     error_log('[solapi] request body: ' . $body);
     error_log('[solapi] http status: ' . $status . ', response: ' . $response . ', curlError: ' . $curlError);
 
+    // 디버깅용: 실제 전송된 수신/발신번호 (원인 확인 후 제거 예정)
+    $debugInfo = ['to' => $to, 'from' => SOLAPI_SENDER_PHONE];
+
     if ($response === false) {
-        return ['success' => false, 'response' => '', 'error' => '솔라피 서버 통신 실패: ' . $curlError];
+        return ['success' => false, 'response' => '', 'error' => '솔라피 서버 통신 실패: ' . $curlError, 'debug' => $debugInfo];
     }
 
     if ($status !== 200 && $status !== 201) {
-        return ['success' => false, 'response' => (string)$response, 'error' => '솔라피 전송 실패(HTTP ' . $status . '): ' . $response];
+        return ['success' => false, 'response' => (string)$response, 'error' => '솔라피 전송 실패(HTTP ' . $status . '): ' . $response, 'debug' => $debugInfo];
     }
 
-    return ['success' => true, 'response' => (string)$response, 'error' => null];
+    return ['success' => true, 'response' => (string)$response, 'error' => null, 'debug' => $debugInfo];
 }
