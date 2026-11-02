@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soda Media A/S 온라인 기술지원 접수!</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css" />
+    <style>
+        :root {
+            --bg-body: #f4f6f8;
+            --white: #ffffff;
+            --gray-050: #fcfdff;
+            --gray-100: #f7f9fc;
+            --gray-200: #edf1f5;
+            --gray-300: #dbe3ea;
+            --gray-500: #98a6b5;
+            --gray-600: #6f7f90;
+            --gray-800: #26313d;
+            --accent: #1f2a36;
+            --accent-soft: #2f3f51;
+            --required: #e03131;
+            --shadow: 0 22px 45px rgba(22, 35, 51, 0.08);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background:
+                radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.85), transparent 34%),
+                radial-gradient(circle at 90% 4%, rgba(255, 255, 255, 0.7), transparent 28%),
+                var(--bg-body);
+            color: var(--gray-800);
+            margin: 0;
+            padding: 60px 20px;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        .wrapper {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 3rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(219, 227, 234, 0.6);
+        }
+        .logo-area {
+            padding: 24px 34px;
+            background-color: var(--white);
+            border-bottom: 1px solid var(--gray-300);
+        }
+        .logo-area .logo { max-width: 220px; height: auto; display: block; }
+        .header {
+            background: linear-gradient(135deg, #1f2a36 0%, #324356 100%);
+            padding: 46px 40px;
+            color: var(--white);
+            text-align: center;
+        }
+        .header h1 {
+            font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.25rem);
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .header p {
+            margin: 16px auto 0;
+            max-width: 720px;
+            color: #d6dee7;
+            font-size: clamp(0.92rem, 0.78rem + 0.42vw, 1.02rem);
+            line-height: 1.75;
+        }
+        .header .reveal-line {
+            display: block;
+        }
+        .content { padding: 42px 52px; position: relative; }
+        .content::before {
+            content: '';
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            right: -70px;
+            top: 320px;
+            background: radial-gradient(circle, rgba(43, 61, 82, 0.08) 0%, rgba(43, 61, 82, 0) 70%);
+            pointer-events: none;
+        }
+        .form-section {
+            background: linear-gradient(180deg, var(--gray-050) 0%, var(--gray-100) 100%);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid var(--gray-300);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(32, 46, 62, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: clamp(1.02rem, 0.96rem + 0.45vw, 1.2rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent);
+            padding: 7px 14px;
+            background: #ffffff;
+            border: 1px solid var(--gray-300);
+            border-radius: 999px;
+            box-shadow: 0 6px 12px rgba(31, 42, 54, 0.06);
+        }
+        .section-label i {
+            color: var(--accent-soft);
+            font-size: 0.95em;
+            width: 16px;
+            text-align: center;
+        }
+        .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 25px 40px; }
+        .full { grid-column: span 2; }
+        .field { display: flex; flex-direction: column; min-width: 0; }
+        label {
+            font-size: clamp(0.92rem, 0.85rem + 0.26vw, 1rem);
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-800);
+            line-height: 1.45;
+        }
+        label span.req { color: var(--required); margin-left: 4px; }
+        .helper-text {
+            font-size: clamp(0.78rem, 0.74rem + 0.2vw, 0.86rem);
+            color: var(--gray-600);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        input, textarea {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 14px 15px;
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1rem);
+            font-family: 'Pretendard', sans-serif;
+            transition: all 0.22s ease;
+            background-color: #fff;
+            color: var(--gray-800);
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 0.92rem;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(49, 66, 84, 0.12);
+            transform: translateY(-1px);
+        }
+        input[readonly] {
+            background-color: var(--gray-100);
+            color: var(--gray-500);
+            cursor: not-allowed;
+        }
+        .preview-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 12px;
+        }
+        .preview-area img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+        }
+        .file-name {
+            font-size: 0.84rem;
+            color: var(--gray-600);
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+        }
+        .btn-submit {
+            position: fixed;
+            left: 50%;
+            bottom: 14px;
+            transform: translateX(-50%);
+            width: min(720px, calc(100% - 32px));
+            padding: 16px 18px;
+            background: #004aff;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(1rem, 0.94rem + 0.25vw, 1.08rem);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s ease;
+            font-family: 'Pretendard', sans-serif;
+            z-index: 999;
+            box-shadow: 0 16px 30px rgba(24, 35, 48, 0.25);
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: #111923;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 20px 34px rgba(24, 35, 48, 0.3);
+        }
+        .btn-submit:disabled {
+            background: var(--gray-600);
+            cursor: not-allowed;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 20px rgba(24, 35, 48, 0.2);
+        }
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal h2 { color: var(--accent); margin-bottom: 20px; }
+        .modal .info-box {
+            background: var(--gray-100);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            margin-bottom: 25px;
+            font-size: 14.5px;
+            line-height: 1.8;
+        }
+        .modal-btn {
+            background: var(--accent);
+            color: #fff;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 15px;
+        }
+
+        .reveal-text {
+            opacity: 1;
+            transform: none;
+        }
+
+        body.reveal-ready .reveal-text {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.62s ease, transform 0.62s ease;
+        }
+        body.reveal-ready .reveal-text.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-line {
+            position: relative;
+            overflow: hidden;
+        }
+        body.reveal-ready .reveal-line::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateX(0%);
+            transition: transform 0.8s ease;
+            pointer-events: none;
+        }
+        body.reveal-ready .reveal-line.is-visible::after {
+            transform: translateX(102%);
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .full { grid-column: span 1; }
+            body { padding: 34px 12px 88px; }
+            .wrapper { border-radius: 18px; padding-bottom: 88px; }
+            .logo-area { padding: 18px 18px; }
+            .header { padding: 26px 18px; }
+            .content { padding: 20px 12px; }
+            .content::before { display: none; }
+            .form-section { padding: 16px 12px; margin-bottom: 14px; }
+            .section-label { margin-bottom: 14px; }
+            .btn-submit { width: calc(100% - 20px); bottom: 10px; border-radius: 11px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal-text,
+            .reveal-line::after,
+            .btn-submit,
+            input,
+            textarea {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="logo-area">
+        <img src="/data/img/soda-logo-10.jpg" alt="Soda Media 로고" class="logo" style="min-width: 5rem; max-width: 10rem; width: 100%; height: auto;">
+    </div>
+    <div class="header">
+        <h1 class="reveal-text">A/S 온라인 기술지원 접수</h1>
+        <p>
+            <span class="reveal-text reveal-line">정확한 장비 식별과 신속한 수리 진행을 위해 아래 정보를 입력해 주세요.</span>
+            <span class="reveal-text reveal-line">담당 엔지니어가 확인 후 빠르게 연락드리겠습니다.</span>
+        </p>
+    </div>
+    <div class="content">
+        <form id="as-form">
+
+            <div class="form-section">
+                <span class="section-label reveal-text"><i class="fa-solid fa-id-card"></i>신청인 정보</span>
+                <div class="grid">
+                    <div class="field">
+                        <label>성함 또는 업체명 <span class="req">(필수)</span></label>
+                        <input type="text" id="user_name" placeholder="성함 또는 단체명을 입력해 주세요" required>
+                    </div>
+                    <div class="field">
+                        <label>연락처 <span class="req">(필수)</span></label>
+                        <input type="text" id="user_phone" placeholder="010-0000-0000" oninput="autoHyphen(this)" maxlength="13" required>
+                    </div>
+                    <div class="field full">
+                        <label>제품 받으실 주소 (택배 수령) <span class="req">(필수)</span></label>
+                        <input type="text" id="user_address" placeholder="수리 완료 후 택배로 받으실 상세 주소를 입력해 주세요" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <span class="section-label reveal-text"><i class="fa-solid fa-microchip"></i>제품 기본 정보</span>
+                <div class="grid">
+                    <div class="field">
+                        <label>1. 제품 명 <span class="req">(필수)</span></label>
+                        <input type="text" id="prod_name" placeholder="예: B9-418W, BC-7-4K, SMC-100 등" required>
+                    </div>
+                    <div class="field">
+                        <label>2. 시리얼 번호 (S/N)</label>
+                        <input type="text" id="prod_sn" placeholder="S/N 번호 입력">
+                    </div>
+                    <div class="field">
+                        <label>3. 구매 일시 (확인 가능 시)</label>
+                        <input type="date" id="buy_date">
+                    </div>
+                    <div class="field">
+                        <label>4. 접수 일자</label>
+                        <input type="date" id="today_date" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <span class="section-label reveal-text"><i class="fa-solid fa-file-lines"></i>증상 설명</span>
+                <div class="grid">
+                    <div class="field full">
+                        <label>5. 증상 내용 <span class="req">(필수)</span></label>
+                        <textarea id="symptom_desc" style="min-height: 220px;" placeholder="어떤 상황에서 문제가 발생하는지 상세히 적어주세요." required></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <span class="section-label reveal-text"><i class="fa-solid fa-paperclip"></i>사진 / 파일 첨부</span>
+                <div class="grid">
+                    <div class="field full">
+                        <label>이미지 첨부 (최대 5장)</label>
+                        <input type="file" id="image_files" accept="image/*" multiple onchange="previewImages(this)">
+                        <p class="helper-text">JPG, PNG, GIF 등 이미지 파일을 선택해주세요.</p>
+                        <div class="preview-area" id="image_preview"></div>
+                    </div>
+                    <div class="field full">
+                        <label>영상 / 파일 첨부 (최대 1개)</label>
+                        <input type="file" id="attach_files" accept="video/*,.pdf,.zip,.mp4" onchange="previewFile(this)">
+                        <p class="helper-text">MP4, PDF, ZIP 등 파일을 선택해주세요.</p>
+                        <div id="file_name_preview"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" id="submit-btn" onclick="submitToFlow()">A/S 접수 신청하기</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-overlay">
+    <div class="modal">
+        <h2>✅ 접수가 완료되었습니다!</h2>
+        <div class="info-box">
+            <strong>[제품 입고 안내]</strong><br>
+            • <b>보내실 곳:</b> (여기에 실제 주소를 입력해 주세요)<br>
+            • <b>고객센터:</b> (여기에 실제 연락처를 입력해 주세요)<br><br>
+            • 택배 발송 시 <b>성함과 연락처</b>를 메모하여 동봉해 주세요.<br>
+            • 담당 엔지니어가 제품 확인 후 연락드리겠습니다.
+        </div>
+        <button class="modal-btn" onclick="location.reload()">확인</button>
+    </div>
+</div>
+
+<script>
+const UPLOAD_API_URL = 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/upload-dropbox.php';
+const SUBMIT_API_URL = 'https://port-9000-testphp-ma6q5cjy22737d6f.sel4.cloudtype.app/as/as-form/submit-flow.php';
+
+document.getElementById('today_date').value = new Date().toISOString().substring(0, 10);
+
+const autoHyphen = (target) => {
+    target.value = target.value
+        .replace(/[^0-9]/g, '')
+        .replace(/^(\d{0,3})(\d{0,4})(\d{0,4})$/g, "$1-$2-$3")
+        .replace(/(\-{1,2})$/g, "");
+}
+
+function previewImages(input) {
+    const preview = document.getElementById('image_preview');
+    preview.innerHTML = '';
+    for (let file of input.files) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function previewFile(input) {
+    const preview = document.getElementById('file_name_preview');
+    if (input.files.length > 0) {
+        preview.innerHTML = '<div class="file-name">📎 ' + input.files[0].name + '</div>';
+    } else {
+        preview.innerHTML = '';
+    }
+}
+
+const toBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+});
+
+async function uploadFileViaPhp(file, folderName) {
+    const base64 = await toBase64(file);
+    const res = await fetch(UPLOAD_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            fileBase64: base64,
+            fileName: file.name,
+            folderName: folderName
+        })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.error || '파일 업로드 실패');
+    }
+    return data.url;
+}
+
+async function submitViaPhp(title, contents, fields, imageLinks, attachLink) {
+    const payload = {
+        imageLinks: imageLinks || [],
+        attachLink: attachLink || null,
+        title,
+        contents,
+        subject: title,
+        body: contents,
+        message: contents,
+        text: contents,
+        user_name: fields.user_name,
+        user_phone: fields.user_phone,
+        user_address: fields.user_address,
+        prod_name: fields.prod_name,
+        prod_sn: fields.prod_sn,
+        buy_date: fields.buy_date,
+        today_date: fields.today_date,
+        symptom_desc: fields.symptom_desc,
+        name: fields.user_name,
+        phone: fields.user_phone,
+        address: fields.user_address,
+        product: fields.prod_name,
+        serial: fields.prod_sn,
+        symptom: fields.symptom_desc
+    };
+
+    const res = await fetch(SUBMIT_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.error || '접수 전송 실패');
+    }
+    return data;
+}
+
+async function submitToFlow() {
+    const requiredFields = [
+        { id: 'user_name',    name: '신청인 정보' },
+        { id: 'user_phone',   name: '연락처' },
+        { id: 'user_address', name: '주소' },
+        { id: 'prod_name',    name: '제품명' },
+        { id: 'symptom_desc', name: '증상 내용' }
+    ];
+
+    for (let field of requiredFields) {
+        if (!document.getElementById(field.id).value.trim()) {
+            alert('[' + field.name + '] 항목은 필수 입력 사항입니다.');
+            document.getElementById(field.id).focus();
+            return;
+        }
+    }
+
+    const phoneVal = document.getElementById('user_phone').value.trim();
+    if (!/^01[0-9]-\d{3,4}-\d{4}$/.test(phoneVal)) {
+        alert('연락처 형식이 올바르지 않습니다.\n예: 010-1234-5678');
+        document.getElementById('user_phone').focus();
+        return;
+    }
+
+    const name     = document.getElementById('user_name').value.trim();
+    const phone    = document.getElementById('user_phone').value.trim();
+    const address  = document.getElementById('user_address').value.trim();
+    const prodName = document.getElementById('prod_name').value.trim();
+    const prodSn   = document.getElementById('prod_sn').value.trim();
+    const buyDate  = document.getElementById('buy_date').value;
+    const today    = document.getElementById('today_date').value;
+    const symptom  = document.getElementById('symptom_desc').value.trim();
+
+    const imageInput  = document.getElementById('image_files');
+    const attachInput = document.getElementById('attach_files');
+
+    if (imageInput.files.length > 5) {
+        alert('이미지는 최대 5장까지 첨부 가능합니다.');
+        return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+
+    const now = new Date();
+    const dateStr = now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + '_' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0');
+    const folderName = dateStr + '_' + (prodName.replace(/[^a-zA-Z0-9]/g, '') || 'item');
+
+    try {
+        const imageLinks = [];
+        const totalFiles = imageInput.files.length + (attachInput.files.length > 0 ? 1 : 0);
+        let uploadedCount = 0;
+
+        for (let file of imageInput.files) {
+            uploadedCount += 1;
+            btn.textContent = '이미지 업로드 중... (' + uploadedCount + '/' + totalFiles + ')';
+            const url = await uploadFileViaPhp(file, folderName);
+            imageLinks.push({ name: file.name, url });
+        }
+
+        let attachLink = null;
+        if (attachInput.files.length > 0) {
+            uploadedCount += 1;
+            btn.textContent = '파일 업로드 중... (' + uploadedCount + '/' + totalFiles + ')';
+            const file = attachInput.files[0];
+            const url = await uploadFileViaPhp(file, folderName);
+            attachLink = { name: file.name, url };
+        }
+
+        const title = '[A/S 접수] ' + name + ' / ' + prodName;
+
+        let contents =
+            '■ 신청인: ' + name + '\n' +
+            '■ 연락처: ' + phone + '\n' +
+            '■ 수령주소: ' + address + '\n' +
+            '■ 제품명: ' + prodName + '\n' +
+            '■ 시리얼번호: ' + (prodSn || '미입력') + '\n' +
+            '■ 구매일자: ' + (buyDate || '미입력') + '\n' +
+            '■ 접수일자: ' + today + '\n\n' +
+            '■ 증상 내용:\n' + symptom;
+
+        if (imageLinks.length > 0) {
+            contents += '\n\n■ 첨부 이미지 (' + imageLinks.length + '장):\n';
+            imageLinks.forEach((img, i) => {
+                contents += (i + 1) + '. ' + img.name + '\n' + img.url + '\n';
+            });
+        }
+
+        if (attachLink) {
+            contents += '\n■ 첨부 파일:\n' + attachLink.name + '\n' + attachLink.url + '\n';
+        }
+
+        btn.textContent = '접수 등록 중...';
+
+        await submitViaPhp(title, contents, {
+            user_name: name,
+            user_phone: phone,
+            user_address: address,
+            prod_name: prodName,
+            prod_sn: prodSn || '',
+            buy_date: buyDate || '',
+            today_date: today,
+            symptom_desc: symptom
+        }, imageLinks, attachLink);
+
+        document.getElementById('modal-overlay').style.display = 'flex';
+
+    } catch (error) {
+        alert('접수 중 오류가 발생했습니다.\n' + error.message);
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'A/S 접수 신청하기';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const autoTargets = document.querySelectorAll('.form-section label, .form-section .helper-text');
+    autoTargets.forEach((el) => {
+        el.classList.add('reveal-text');
+    });
+
+    const revealItems = Array.from(document.querySelectorAll('.reveal-text'));
+
+    if (!revealItems.length) {
+        return;
+    }
+
+    document.body.classList.add('reveal-ready');
+
+    const setVisible = (el) => {
+        el.classList.add('is-visible');
+    };
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        revealItems.forEach((el) => setVisible(el));
+        return;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+        revealItems.forEach((el) => setVisible(el));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            setVisible(entry.target);
+            obs.unobserve(entry.target);
+        });
+    }, {
+        threshold: 0.08,
+        rootMargin: '0px 0px -12% 0px'
+    });
+
+    revealItems.forEach((el, index) => {
+        const delay = (index % 9) * 70;
+        el.style.transitionDelay = delay + 'ms';
+
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.92) {
+            window.setTimeout(() => setVisible(el), delay + 40);
+            return;
+        }
+
+        observer.observe(el);
+    });
+});
+
+
+</script>
+
+</body>
+</html>

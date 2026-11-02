@@ -95,7 +95,10 @@ $attachLinks = pickLinks($input, ['attachLink', 'attach_link', 'attachLinks', 'f
 $title = pickInput($input, ['title', 'subject']);
 $contents = pickInput($input, ['contents', 'content', 'body', 'message', 'text']);
 
-if ($name !== '' && $phone !== '' && $address !== '' && $productName !== '' && $symptom !== '') {
+// 운영 페이지가 링크를 별도 필드로 보내지 않고 contents에만 포함한 경우 그대로 유지
+$clientContentsHasLinks = $contents !== '' && empty($imageLinks) && empty($attachLinks);
+
+if (!$clientContentsHasLinks && $name !== '' && $phone !== '' && $address !== '' && $productName !== '' && $symptom !== '') {
     $title = '[A/S 접수] ' . $name . ' / ' . $productName;
 
     $lines = [
