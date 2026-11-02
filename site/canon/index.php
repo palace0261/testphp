@@ -68,6 +68,7 @@ $sent = $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($p, ['demo', 'support'
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Canon PTZ 공식 리셀러 | 소다미디어</title>
+<link rel="icon" href="../a-cn-img/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" href="../a-cn-css/index.css?v=<?= filemtime(__DIR__ . '/../a-cn-css/index.css') ?>">
 </head>
 <body>
