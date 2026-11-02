@@ -225,6 +225,29 @@
             transform: translateX(-50%);
             box-shadow: 0 10px 20px rgba(24, 35, 48, 0.2);
         }
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: #fff;
+            text-align: center;
+        }
+        #loading-overlay .spinner {
+            width: 64px; height: 64px;
+            border: 6px solid rgba(255,255,255,0.25);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: loading-spin 0.9s linear infinite;
+        }
+        #loading-overlay .loading-title { margin-top: 24px; font-size: 22px; font-weight: 700; }
+        #loading-overlay .loading-status { margin-top: 10px; font-size: 15px; opacity: 0.9; }
+        #loading-overlay .loading-warn { margin-top: 6px; font-size: 14px; color: #ffd36b; }
+        @keyframes loading-spin { to { transform: rotate(360deg); } }
         #modal-overlay {
             display: none;
             position: fixed;
@@ -409,6 +432,13 @@
     </div>
 </div>
 
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-title">전송중입니다...</div>
+    <div class="loading-status" id="loading-status"></div>
+    <div class="loading-warn">완료될 때까지 페이지를 닫거나 뒤로가지 마세요.</div>
+</div>
+
 <div id="modal-overlay">
     <div class="modal">
         <h2>✅ 접수가 완료되었습니다!</h2>
@@ -522,6 +552,23 @@ async function submitViaPhp(title, contents, fields, imageLinks, attachLink) {
     return data;
 }
 
+function preventLeave(e) {
+    e.preventDefault();
+    e.returnValue = '';
+}
+
+function setLoading(on, text) {
+    document.getElementById('loading-overlay').style.display = on ? 'flex' : 'none';
+    if (text !== undefined) {
+        document.getElementById('loading-status').textContent = text;
+    }
+    if (on) {
+        window.addEventListener('beforeunload', preventLeave);
+    } else {
+        window.removeEventListener('beforeunload', preventLeave);
+    }
+}
+
 async function submitToFlow() {
     const requiredFields = [
         { id: 'user_name',    name: '신청인 정보' },
@@ -565,6 +612,7 @@ async function submitToFlow() {
 
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
+    setLoading(true, '');
 
     const now = new Date();
     const dateStr = now.getFullYear().toString() +
@@ -583,6 +631,7 @@ async function submitToFlow() {
         for (let file of imageInput.files) {
             uploadedCount += 1;
             btn.textContent = '이미지 업로드 중... (' + uploadedCount + '/' + totalFiles + ')';
+            setLoading(true, btn.textContent);
             const url = await uploadFileViaPhp(file, folderName);
             imageLinks.push({ name: file.name, url });
         }
@@ -591,6 +640,7 @@ async function submitToFlow() {
         if (attachInput.files.length > 0) {
             uploadedCount += 1;
             btn.textContent = '파일 업로드 중... (' + uploadedCount + '/' + totalFiles + ')';
+            setLoading(true, btn.textContent);
             const file = attachInput.files[0];
             const url = await uploadFileViaPhp(file, folderName);
             attachLink = { name: file.name, url };
@@ -620,6 +670,7 @@ async function submitToFlow() {
         }
 
         btn.textContent = '접수 등록 중...';
+        setLoading(true, btn.textContent);
 
         await submitViaPhp(title, contents, {
             user_name: name,
@@ -632,12 +683,15 @@ async function submitToFlow() {
             symptom_desc: symptom
         }, imageLinks, attachLink);
 
+        setLoading(false);
         document.getElementById('modal-overlay').style.display = 'flex';
 
     } catch (error) {
+        setLoading(false);
         alert('접수 중 오류가 발생했습니다.\n' + error.message);
         console.error(error);
     } finally {
+        setLoading(false);
         btn.disabled = false;
         btn.textContent = 'A/S 접수 신청하기';
     }
