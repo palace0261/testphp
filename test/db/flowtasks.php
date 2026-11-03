@@ -177,7 +177,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       $payload = $_POST;
     }
 
-    $registerId = (string)($payload['registerId'] ?? 'palace790@gmail.com');
+    $registerId = (string)($payload['registerId'] ?? 'stage516@naver.com');
     $title = (string)($payload['title'] ?? '');
     $contents = (string)($payload['contents'] ?? '');
     
@@ -452,7 +452,7 @@ try {
           'x-flow-api-key': apiKey,
         },
         body: JSON.stringify({
-          registerId: 'palace790@gmail.com',
+          registerId: 'stage516@naver.com',
           title: testnoKey,
           contents: contents,
         }),

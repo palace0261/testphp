@@ -1181,7 +1181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $flowContents = $body;
             try {
               $flowUrl = 'https://api.flow.team/v1/posts/projects/2828992';
-              $flowPayload = json_encode(['registerId' => 'palace790@gmail.com', 'title' => $flowTitle, 'contents' => $flowContents]);
+              $flowPayload = json_encode(['registerId' => 'stage516@naver.com', 'title' => $flowTitle, 'contents' => $flowContents]);
               $chf = curl_init($flowUrl);
               curl_setopt_array($chf, [
                 CURLOPT_POST => true,
@@ -1217,7 +1217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $flowContents = $body;
           try {
             $flowUrl = 'https://api.flow.team/v1/posts/projects/2828992';
-            $flowPayload = json_encode(['registerId' => 'palace790@gmail.com', 'title' => $flowTitle, 'contents' => $flowContents]);
+            $flowPayload = json_encode(['registerId' => 'stage516@naver.com', 'title' => $flowTitle, 'contents' => $flowContents]);
               $chf = curl_init($flowUrl);
               curl_setopt_array($chf, [
                 CURLOPT_POST => true,
@@ -1283,7 +1283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'x-flow-api-key': '<?= htmlspecialchars($flowApiKey, ENT_QUOTES, 'UTF-8') ?>',
   },
   body: JSON.stringify({
-    registerId: 'palace790@gmail.com',
+    registerId: 'stage516@naver.com',
     title: document.getElementById('title').value,
     contents: document.getElementById('contents').value,
   }),
