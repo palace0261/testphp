@@ -332,12 +332,14 @@ function canonBoardClearPasswordFailures(mysqli $db, string $ipHash, int $postId
 function canonFlowSend(string $title, string $contents): bool
 {
     $key = getenv('flowapistage');
+    if ($key === false || $key === '') $key = $_SERVER['flowapistage'] ?? $_ENV['flowapistage'] ?? (function_exists('apache_getenv') ? apache_getenv('flowapistage') : false);
     $project = (string)canonBoardConfig('flow_project_id');
     if ($key === false || $key === '') {
         error_log('flowapistage 환경 변수가 설정되지 않았습니다.');
+        $GLOBALS['canonFlowError'] = '환경변수 flowapistage 없음';
         return false;
     }
-    if ($project === '') return false;
+    if ($project === '') { $GLOBALS['canonFlowError'] = '프로젝트 ID 없음'; return false; }
     $payload = json_encode([
         'title' => $title,
         'contents' => $contents,
@@ -354,9 +356,11 @@ function canonFlowSend(string $title, string $contents): bool
     ]);
     $res = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
     curl_close($ch);
     if ($res === false || $code < 200 || $code >= 300) {
-        error_log('Canon flow send failed: HTTP ' . $code . ' ' . substr((string)$res, 0, 300));
+        error_log('Canon flow send failed: HTTP ' . $code . ' ' . $curlErr . ' ' . substr((string)$res, 0, 300));
+        $GLOBALS['canonFlowError'] = 'HTTP ' . $code . ' ' . ($curlErr !== '' ? $curlErr : substr(strip_tags((string)$res), 0, 150));
         return false;
     }
     return true;
@@ -754,16 +758,20 @@ if (in_array($p, ['demo', 'support'], true)) {
         }
         if ($consultError !== '') {
             $sent = false;
-        } elseif ($p === 'demo') {
-            canonFlowSend(
-                trim((string)($_POST['model'] ?? '')) . ' / ' . trim((string)($_POST['name'] ?? '')),
-                trim((string)($_POST['tel'] ?? '')) . "\n" . trim((string)($_POST['msg'] ?? ''))
-            );
         } else {
-            canonFlowSend(
-                trim((string)($_POST['name'] ?? '')) . ' / ' . trim((string)($_POST['tel'] ?? '')),
-                trim((string)($_POST['msg'] ?? ''))
-            );
+            $flowOk = $p === 'demo'
+                ? canonFlowSend(
+                    trim((string)($_POST['model'] ?? '')) . ' / ' . trim((string)($_POST['name'] ?? '')),
+                    trim((string)($_POST['tel'] ?? '')) . "\n" . trim((string)($_POST['msg'] ?? ''))
+                )
+                : canonFlowSend(
+                    trim((string)($_POST['name'] ?? '')) . ' / ' . trim((string)($_POST['tel'] ?? '')),
+                    trim((string)($_POST['msg'] ?? ''))
+                );
+            if (!$flowOk) {
+                $consultError = 'Flow 전송에 실패했습니다. (' . ($GLOBALS['canonFlowError'] ?? '알 수 없음') . ')';
+                $sent = false;
+            }
         }
     }
     foreach ($p === 'demo' ? ['demo'] : ['consult', 'inquiry'] as $formKey) {
