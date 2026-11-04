@@ -332,6 +332,7 @@ function canonBoardClearPasswordFailures(mysqli $db, string $ipHash, int $postId
 function canonFlowSend(string $title, string $contents): bool
 {
     $key = getenv('flowapistage');
+    if ($key === false || $key === '') $key = $_SERVER['flowapistage'] ?? $_ENV['flowapistage'] ?? (function_exists('apache_getenv') ? apache_getenv('flowapistage') : false);
     $project = (string)canonBoardConfig('flow_project_id');
     if ($key === false || $key === '') {
         error_log('flowapistage 환경 변수가 설정되지 않았습니다.');
@@ -339,11 +340,11 @@ function canonFlowSend(string $title, string $contents): bool
     }
     if ($project === '') return false;
     $payload = json_encode([
-        'registerId' => (string)canonBoardConfig('flow_register_email'),
         'title' => $title,
         'contents' => $contents,
+        'status' => 'request',
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $ch = curl_init('https://api.flow.team/v1/posts/projects/' . rawurlencode($project));
+    $ch = curl_init('https://api.flow.team/user/posts/projects/' . rawurlencode($project) . '/tasks');
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
@@ -354,9 +355,10 @@ function canonFlowSend(string $title, string $contents): bool
     ]);
     $res = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
     curl_close($ch);
     if ($res === false || $code < 200 || $code >= 300) {
-        error_log('Canon flow send failed: HTTP ' . $code . ' ' . substr((string)$res, 0, 300));
+        error_log('Canon flow send failed: HTTP ' . $code . ' ' . $curlErr . ' ' . substr((string)$res, 0, 300));
         return false;
     }
     return true;
