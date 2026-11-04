@@ -17,9 +17,15 @@ function sendSolapiAlimtalk(string $phone, array $variables): array
         return ['success' => false, 'response' => '', 'error' => '수신자 연락처가 비어있습니다.'];
     }
 
+    $apiSecret = getenv('solapistage');
+    if ($apiSecret === false || $apiSecret === '') {
+        error_log('solapistage 환경 변수가 설정되지 않았습니다.');
+        return ['success' => false, 'response' => '', 'error' => '서버 설정 오류'];
+    }
+
     $date = date('c');
     $salt = bin2hex(random_bytes(16));
-    $signature = hash_hmac('sha256', $date . $salt, SOLAPI_API_SECRET);
+    $signature = hash_hmac('sha256', $date . $salt, $apiSecret);
 
     $body = json_encode([
         'message' => [
