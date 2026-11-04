@@ -2,7 +2,6 @@
 // ⚠️ 이 파일은 외부에서 절대 직접 접근되면 안 됩니다.
 // .htaccess로 보호하거나, 웹 루트 바깥에 두는 것을 권장합니다.
 
-define('FLOW_API_KEY', '202611030302310025-b83b7e44-f167-49b1-a90d-f9a147b4da1a');
 define('FLOW_PROJECT_ID', '2917572');
 
 // 드롭박스: refresh token 방식 (access token이 자동으로 갱신되어 만료되지 않음)

@@ -166,6 +166,14 @@ if ($body === false) {
     exit;
 }
 
+$apiKey = getenv('flowapistage');
+if ($apiKey === false || $apiKey === '') {
+    error_log('flowapistage 환경 변수가 설정되지 않았습니다.');
+    http_response_code(500);
+    echo json_encode(['error' => '서버 설정 오류']);
+    exit;
+}
+
 $url = 'https://api.flow.team/user/posts/projects/' . FLOW_PROJECT_ID . '/tasks';
 
 $ch = curl_init($url);
@@ -175,7 +183,7 @@ curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
-    'x-flow-api-key: ' . FLOW_API_KEY
+    'x-flow-api-key: ' . $apiKey
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 $response = curl_exec($ch);
