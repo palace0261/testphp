@@ -6,7 +6,6 @@ define('FLOW_PROJECT_ID', '2917572');
 
 // 드롭박스: refresh token 방식 (access token이 자동으로 갱신되어 만료되지 않음)
 define('DROPBOX_APP_KEY', 'xvyxyno123t4bvz');
-define('DROPBOX_APP_SECRET', 'zjajotdg2zr6s5s');
 define('DROPBOX_REFRESH_TOKEN', 'zW1Hxx9Zk0QAAAAAAAAAAbTBMJlzw8qRhY6aRk2aAnFT-dHQw22UwMBsyTvIwhAt');
 
 // 솔라피(카카오 알림톡)

@@ -41,7 +41,7 @@ $ecountUploadSerNo = '1';
 $ecountWhCd = '100';
 // 로그인 정보(필요 시 값 설정)
 $ecountUserId = '추민식';
-$ecountApiCertKey = '44d80dd7845df4575943c5c7baf7e3e759';
+$ecountApiCertKey = (getenv('erpapi') ?: '');
 $ecountLanType = 'ko-KR';
 $ecountLoginPath = '/OAPI/V2/OAPILogin';
 

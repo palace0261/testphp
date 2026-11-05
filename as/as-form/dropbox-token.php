@@ -4,6 +4,11 @@
 // 이 함수를 호출할 때마다 항상 유효한 access token을 받을 수 있습니다.
 function getDropboxAccessToken()
 {
+    $appSecret = getenv('dropsoda');
+    if ($appSecret === false || $appSecret === '') {
+        throw new Exception('dropsoda 환경 변수가 설정되지 않았습니다.');
+    }
+
     $ch = curl_init('https://api.dropbox.com/oauth2/token');
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -13,7 +18,7 @@ function getDropboxAccessToken()
         'grant_type' => 'refresh_token',
         'refresh_token' => DROPBOX_REFRESH_TOKEN,
     ]));
-    curl_setopt($ch, CURLOPT_USERPWD, DROPBOX_APP_KEY . ':' . DROPBOX_APP_SECRET);
+    curl_setopt($ch, CURLOPT_USERPWD, DROPBOX_APP_KEY . ':' . $appSecret);
     $response = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
