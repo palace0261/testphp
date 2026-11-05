@@ -588,6 +588,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
               }
 
+              // U_MEMO1에 포함된 "[일반]" 문구는 전송 시 제외
+              foreach ($saleOrderList as $li => $line) {
+                $memo = $line['BulkDatas']['U_MEMO1'] ?? null;
+                if (is_string($memo) && strpos($memo, '[일반]') !== false) {
+                  $memo = trim(str_replace('[일반]', '', $memo));
+                  if ($memo === '') {
+                    unset($saleOrderList[$li]['BulkDatas']['U_MEMO1']);
+                  } else {
+                    $saleOrderList[$li]['BulkDatas']['U_MEMO1'] = $memo;
+                  }
+                }
+              }
+
               $body = [
                 'SaleOrderList' => $saleOrderList,
               ];
@@ -595,6 +608,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               @file_put_contents(__DIR__ . '/saleorder_debug.json', json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
               $saleOrderResult = callJsonPost($orderUrl, $body);
+
+              // CUST(거래처코드) 미등록 오류면 하이픈 제거 후 1회 재전송
+              $hasCustError = function ($node) use (&$hasCustError) {
+                if (!is_array($node)) return false;
+                if (($node['ColCd'] ?? null) === 'CUST') return true;
+                foreach ($node as $child) {
+                  if (is_array($child) && $hasCustError($child)) return true;
+                }
+                return false;
+              };
+              if (($saleOrderResult['ok'] ?? false) && $hasCustError($saleOrderResult['json'] ?? null)) {
+                $retryList = $saleOrderList;
+                $changed = false;
+                foreach ($retryList as $li => $line) {
+                  $c = $line['BulkDatas']['CUST'] ?? null;
+                  if (is_string($c) && strpos($c, '-') !== false) {
+                    $retryList[$li]['BulkDatas']['CUST'] = str_replace('-', '', $c);
+                    $changed = true;
+                  }
+                }
+                if ($changed) {
+                  $retryBody = ['SaleOrderList' => $retryList];
+                  @file_put_contents(__DIR__ . '/saleorder_debug_retry.json', json_encode($retryBody, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                  $retryResult = callJsonPost($orderUrl, $retryBody);
+                  if ($retryResult['ok'] ?? false) {
+                    $retryResult['retriedWithoutHyphen'] = true;
+                    $saleOrderResult = $retryResult;
+                  }
+                }
+              }
               if (!($saleOrderResult['ok'] ?? false)) {
                 $_SESSION['fail_count'][$key] = $failCount + 1;
                 $error = (string)($saleOrderResult['error'] ?? '주문서 API 호출 오류');
